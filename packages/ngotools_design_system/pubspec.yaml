@@ -1,0 +1,21 @@
+name: ngotools_design_system
+description: Accessible design foundation for NGO.Tools mobile apps.
+version: 0.1.0-dev.1
+repository: https://github.com/ngo-tools/mobile-platform
+issue_tracker: https://github.com/ngo-tools/mobile-platform/issues
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ngotools_mobile_core: ^0.1.0-dev.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

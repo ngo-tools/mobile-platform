@@ -1,0 +1,28 @@
+name: golden_app
+description: Secret-free reference shell for an NGO.Tools organization app.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.0
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  ngotools_api: ^0.1.0-dev.1
+  ngotools_auth: ^0.1.0-dev.1
+  ngotools_design_system: ^0.1.0-dev.1
+  ngotools_mobile_core: ^0.1.0-dev.1
+  ngotools_navigation: ^0.1.0-dev.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

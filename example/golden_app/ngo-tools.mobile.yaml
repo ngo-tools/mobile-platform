@@ -1,0 +1,63 @@
+apiVersion: mobile.ngo.tools/v1alpha1
+kind: OrganizationApp
+metadata:
+  id: mob_01J00000000000000000000000
+  name: Synthetic Golden App
+  version: 0.1.0
+owner:
+  tenant: synthetic-demo
+  repositoryModel: managed_by_ngotools
+identifiers:
+  ios:
+    development: tools.ngo.mobile.golden.dev
+    staging: tools.ngo.mobile.golden.staging
+    production: tools.ngo.mobile.golden
+  android:
+    development: tools.ngo.mobile.golden.dev
+    staging: tools.ngo.mobile.golden.staging
+    production: tools.ngo.mobile.golden
+backend:
+  minimumContractVersion: 2.0.0
+  environments:
+    development:
+      id: env_01J00000000000000000000000
+      apiBaseUrl: https://development.example.invalid/api/v2
+      configRevision: cfg_01J00000000000000000000000
+      attestationMode: disabled
+    staging:
+      id: env_01J00000000000000000000001
+      apiBaseUrl: https://staging.example.invalid/api/v2
+      configRevision: cfg_01J00000000000000000000001
+      attestationMode: test
+    production:
+      id: env_01J00000000000000000000002
+      apiBaseUrl: https://production.example.invalid/api/v2
+      configRevision: cfg_01J00000000000000000000002
+      attestationMode: enforced
+auth:
+  redirectUrl: https://mobile.example.invalid/golden/auth/callback
+localization:
+  defaultLocale: de
+  locales:
+    - de
+    - en
+support:
+  url: https://support.example.invalid/golden
+  privacyUrl: https://privacy.example.invalid/golden
+permissions:
+  apiScopes:
+    - profile:read
+    - contacts:read
+  device: []
+features:
+  modules:
+    - profile
+    - contacts
+branding:
+  template: community
+distribution:
+  ios: testflight
+  android: closed_testing
+deepLinks:
+  hosts:
+    - mobile.example.invalid
