@@ -170,6 +170,44 @@ void main() {
     );
   });
 
+  test('retains encrypted drafts without silent eviction', () async {
+    expect(ContactCachePolicy().maxDrafts, 50);
+    cache = _cache(
+      keyStore: keyStore,
+      blobStore: blobStore,
+      now: () => now,
+      policy: ContactCachePolicy(maxDrafts: 1),
+    );
+    final first = _draft(
+      '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4101',
+      '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4201',
+      now,
+    );
+    final second = _draft(
+      '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4102',
+      '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4202',
+      now,
+    );
+
+    await cache.writeDraft(first);
+
+    await expectLater(
+      cache.writeDraft(second),
+      throwsA(
+        isA<ContactDraftLimitExceeded>().having(
+          (error) => error.maximum,
+          'maximum',
+          1,
+        ),
+      ),
+    );
+    expect(
+      (await cache.readDrafts()).single.idempotencyKey,
+      first.idempotencyKey,
+    );
+    expect(utf8.decode(blobStore.bytes!), isNot(contains('Erika')));
+  });
+
   test('serializes concurrent list and detail updates', () async {
     await Future.wait([
       cache.writeSearch(
@@ -228,6 +266,18 @@ void main() {
     expect(await cache.readSearch(const ContactSearch()), isNull);
     expect(blobStore.bytes, isNull);
     expect(keyStore.key, isNull);
+
+    await expectLater(
+      cache.writeDraft(
+        _draft(
+          '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4103',
+          '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4203',
+          now,
+        ),
+      ),
+      throwsStateError,
+    );
+    expect(await cache.readDrafts(), isEmpty);
   });
 
   test('attempts key deletion even when blob deletion fails', () async {
@@ -320,6 +370,8 @@ ContactRecord _contact(int id, String name, {bool withAddress = false}) =>
     ContactRecord(
       id: id,
       kind: ContactKind.person,
+      version:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       name: name,
       email: 'contact-$id@example.invalid',
       addresses: withAddress
@@ -333,6 +385,21 @@ ContactRecord _contact(int id, String name, {bool withAddress = false}) =>
             ]
           : const [],
     );
+
+ContactDraft _draft(
+  String localId,
+  String idempotencyKey,
+  DateTime timestamp,
+) => ContactDraft(
+  localId: localId,
+  idempotencyKey: idempotencyKey,
+  kind: ContactDraftKind.person,
+  createdAt: timestamp,
+  updatedAt: timestamp,
+  firstName: 'Erika',
+  lastName: 'Beispiel',
+  email: 'erika@example.invalid',
+);
 
 final class _MemoryKeyStore implements ContactCacheKeyStore {
   _MemoryKeyStore(this.key);

@@ -7,6 +7,7 @@ import 'package:ngotools_api/src/generated/model/contact_response.dart';
 import 'package:ngotools_api/src/generated/model/contact_search_request.dart';
 import 'package:ngotools_api/src/generated/model/contact_search_term.dart';
 import 'package:ngotools_api/src/generated/model/contact_sort.dart';
+import 'package:ngotools_api/src/generated/model/create_contact_request.dart';
 import 'package:ngotools_api/src/generated/model/current_user.dart';
 import 'package:ngotools_api/src/generated/model/current_user_response.dart';
 import 'package:ngotools_api/src/generated/model/import_capabilities.dart';
@@ -22,6 +23,7 @@ import 'package:ngotools_api/src/generated/model/pagination_links.dart';
 import 'package:ngotools_api/src/generated/model/pagination_meta.dart';
 import 'package:ngotools_api/src/generated/model/problem_details.dart';
 import 'package:ngotools_api/src/generated/model/runtime_capabilities.dart';
+import 'package:ngotools_api/src/generated/model/update_contact_request.dart';
 
 final _regList = RegExp(r'^List<(.*)>$');
 final _regSet = RegExp(r'^Set<(.*)>$');
@@ -70,6 +72,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ContactSort':
       return ContactSort.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CreateContactRequest':
+      return CreateContactRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'CurrentUser':
       return CurrentUser.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CurrentUserResponse':
@@ -116,6 +121,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'RuntimeCapabilities':
       return RuntimeCapabilities.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'UpdateContactRequest':
+      return UpdateContactRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     default:
       RegExpMatch? match;

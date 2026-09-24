@@ -35,9 +35,9 @@ void main() {
     final explain = await _run(temporary, command, ['explain', 'profile']);
 
     expect(list.exitCode, 0);
-    expect(list.stdout, contains('contacts\tplanned\tContacts'));
+    expect(list.stdout, contains('contacts\tavailable\tContacts'));
     expect(search.exitCode, 0);
-    expect(search.stdout, 'contacts\tplanned\tContacts\n');
+    expect(search.stdout, 'contacts\tavailable\tContacts\n');
     expect(explain.exitCode, 0);
     expect(explain.stdout, contains('API scopes: profile:read'));
   });
@@ -64,7 +64,7 @@ features:
     expect(await manifest.readAsString(), afterFirst);
   });
 
-  test('refuses planned modules without changing the manifest', () async {
+  test('adds the available contacts module with both scopes', () async {
     final manifest = File(path.join(temporary.path, 'ngo-tools.mobile.yaml'));
     const source = '''
 permissions:
@@ -78,10 +78,12 @@ features:
     await manifest.writeAsString(source);
 
     final result = await _run(temporary, command, ['add', 'contacts']);
+    final generated = await manifest.readAsString();
 
-    expect(result.exitCode, 1);
-    expect(result.stderr, contains('is planned and cannot be added'));
-    expect(await manifest.readAsString(), source);
+    expect(result.exitCode, 0);
+    expect(generated, contains('    - contacts:read'));
+    expect(generated, contains('    - contacts:write'));
+    expect(generated, contains('    - contacts'));
   });
 
   test('rejects malformed snapshots', () async {

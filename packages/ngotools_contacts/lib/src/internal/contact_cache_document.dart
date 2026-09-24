@@ -6,31 +6,38 @@ final class ContactCacheDocument {
     Map<int, CachedContactValue>? contacts,
     Map<int, CachedContactValue>? details,
     Map<String, CachedSearchValue>? searches,
+    Map<String, ContactDraft>? drafts,
   }) : contacts = contacts ?? {},
        details = details ?? {},
-       searches = searches ?? {};
+       searches = searches ?? {},
+       drafts = drafts ?? {};
 
   factory ContactCacheDocument.fromJson(Map<String, Object?> json) {
-    if (json['version'] != version) {
+    final documentVersion = json['version'];
+
+    if (documentVersion != version) {
       throw const FormatException('Unsupported contact cache version.');
     }
 
     final contacts = _decodeContactValues(json['contacts']);
     final details = _decodeContactValues(json['details']);
     final searches = _decodeSearchValues(json['searches']);
+    final drafts = _decodeDrafts(json['drafts']);
 
     return ContactCacheDocument(
       contacts: contacts,
       details: details,
       searches: searches,
+      drafts: drafts,
     );
   }
 
-  static const version = 1;
+  static const version = 2;
 
   final Map<int, CachedContactValue> contacts;
   final Map<int, CachedContactValue> details;
   final Map<String, CachedSearchValue> searches;
+  final Map<String, ContactDraft> drafts;
 
   Map<String, Object?> toJson() => {
     'version': version,
@@ -44,6 +51,9 @@ final class ContactCacheDocument {
     },
     'searches': {
       for (final entry in searches.entries) entry.key: entry.value.toJson(),
+    },
+    'drafts': {
+      for (final entry in drafts.entries) entry.key: _encodeDraft(entry.value),
     },
   };
 
@@ -77,6 +87,23 @@ final class ContactCacheDocument {
       for (final entry in map.entries)
         entry.key: CachedSearchValue.fromJson(_objectMap(entry.value)),
     };
+  }
+
+  static Map<String, ContactDraft> _decodeDrafts(Object? value) {
+    final map = _objectMap(value);
+    final result = <String, ContactDraft>{};
+
+    for (final entry in map.entries) {
+      final draft = _decodeDraft(_objectMap(entry.value));
+
+      if (draft.localId != entry.key) {
+        throw const FormatException('Cached draft key mismatch.');
+      }
+
+      result[entry.key] = draft;
+    }
+
+    return result;
   }
 }
 
@@ -157,9 +184,82 @@ final class CachedSearchValue {
   };
 }
 
+Map<String, Object?> _encodeDraft(ContactDraft draft) => {
+  'local_id': draft.localId,
+  'idempotency_key': draft.idempotencyKey,
+  'kind': draft.kind.name,
+  'created_at': draft.createdAt.toUtc().toIso8601String(),
+  'updated_at': draft.updatedAt.toUtc().toIso8601String(),
+  if (draft.contactId != null) 'contact_id': draft.contactId,
+  if (draft.baseVersion != null) 'base_version': draft.baseVersion,
+  if (draft.name != null) 'name': draft.name,
+  if (draft.firstName != null) 'first_name': draft.firstName,
+  if (draft.lastName != null) 'last_name': draft.lastName,
+  if (draft.email != null) 'email': draft.email,
+  if (draft.salutation != null) 'salutation': draft.salutation,
+  if (draft.title != null) 'title': draft.title,
+  if (draft.gender != null) 'gender': draft.gender,
+  if (draft.birthday != null)
+    'birthday': draft.birthday!.toIso8601String().split('T').first,
+  'state': draft.state.name,
+};
+
+ContactDraft _decodeDraft(Map<String, Object?> json) {
+  final localId = json['local_id'];
+  final idempotencyKey = json['idempotency_key'];
+  final kindName = json['kind'];
+  final stateName = json['state'];
+  final contactId = _optionalInt(json, 'contact_id');
+
+  if (localId is! String ||
+      !_isUuid(localId) ||
+      idempotencyKey is! String ||
+      !_isUuid(idempotencyKey) ||
+      kindName is! String ||
+      stateName is! String ||
+      (contactId != null && contactId < 1)) {
+    throw const FormatException('Invalid cached contact draft.');
+  }
+
+  final kind = ContactDraftKind.values
+      .where((candidate) => candidate.name == kindName)
+      .firstOrNull;
+  final state = ContactDraftState.values
+      .where((candidate) => candidate.name == stateName)
+      .firstOrNull;
+  final baseVersion = _optionalString(json, 'base_version');
+
+  if (kind == null ||
+      state == null ||
+      (contactId == null) != (baseVersion == null) ||
+      (baseVersion != null && !_isVersion(baseVersion))) {
+    throw const FormatException('Invalid cached contact draft state.');
+  }
+
+  return ContactDraft(
+    localId: localId,
+    idempotencyKey: idempotencyKey,
+    kind: kind,
+    createdAt: _requiredDateTime(json, 'created_at'),
+    updatedAt: _requiredDateTime(json, 'updated_at'),
+    contactId: contactId,
+    baseVersion: baseVersion,
+    name: _optionalString(json, 'name'),
+    firstName: _optionalString(json, 'first_name'),
+    lastName: _optionalString(json, 'last_name'),
+    email: _optionalString(json, 'email'),
+    salutation: _optionalString(json, 'salutation'),
+    title: _optionalString(json, 'title'),
+    gender: _optionalString(json, 'gender'),
+    birthday: _optionalDateTime(json, 'birthday'),
+    state: state,
+  );
+}
+
 Map<String, Object?> _encodeContact(ContactRecord contact) => {
   'id': contact.id,
   'kind': contact.kind.name,
+  'version': contact.version,
   if (contact.name != null) 'name': contact.name,
   if (contact.firstName != null) 'first_name': contact.firstName,
   if (contact.lastName != null) 'last_name': contact.lastName,
@@ -178,11 +278,14 @@ Map<String, Object?> _encodeContact(ContactRecord contact) => {
 ContactRecord _decodeContact(Map<String, Object?> json) {
   final id = json['id'];
   final kindName = json['kind'];
+  final version = json['version'];
   final rawAddresses = json['addresses'];
 
   if (id is! int ||
       id < 1 ||
       kindName is! String ||
+      version is! String ||
+      !_isVersion(version) ||
       rawAddresses is! List<Object?>) {
     throw const FormatException('Invalid cached contact.');
   }
@@ -204,6 +307,7 @@ ContactRecord _decodeContact(Map<String, Object?> json) {
   return ContactRecord(
     id: id,
     kind: kind,
+    version: version,
     name: _optionalString(json, 'name'),
     firstName: _optionalString(json, 'first_name'),
     lastName: _optionalString(json, 'last_name'),
@@ -309,3 +413,10 @@ DateTime? _optionalDateTime(Map<String, Object?> json, String key) {
 DateTime _requiredDateTime(Map<String, Object?> json, String key) =>
     _optionalDateTime(json, key) ??
     (throw const FormatException('Missing cached timestamp.'));
+
+bool _isUuid(String value) => RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  caseSensitive: false,
+).hasMatch(value);
+
+bool _isVersion(String value) => RegExp(r'^[a-f0-9]{64}$').hasMatch(value);

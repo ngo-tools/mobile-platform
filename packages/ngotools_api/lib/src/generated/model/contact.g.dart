@@ -11,6 +11,8 @@ abstract class _$ContactCWProxy {
 
   Contact type(String type);
 
+  Contact version(String version);
+
   Contact name(String? name);
 
   Contact firstName(String? firstName);
@@ -43,6 +45,7 @@ abstract class _$ContactCWProxy {
   Contact call({
     int id,
     String type,
+    String version,
     String? name,
     String? firstName,
     String? lastName,
@@ -69,6 +72,9 @@ class _$ContactCWProxyImpl implements _$ContactCWProxy {
 
   @override
   Contact type(String type) => call(type: type);
+
+  @override
+  Contact version(String version) => call(version: version);
 
   @override
   Contact name(String? name) => call(name: name);
@@ -116,6 +122,7 @@ class _$ContactCWProxyImpl implements _$ContactCWProxy {
   Contact call({
     Object? id = const $CopyWithPlaceholder(),
     Object? type = const $CopyWithPlaceholder(),
+    Object? version = const $CopyWithPlaceholder(),
     Object? name = const $CopyWithPlaceholder(),
     Object? firstName = const $CopyWithPlaceholder(),
     Object? lastName = const $CopyWithPlaceholder(),
@@ -137,6 +144,10 @@ class _$ContactCWProxyImpl implements _$ContactCWProxy {
           ? _value.type
           // ignore: cast_nullable_to_non_nullable
           : type as String,
+      version: version == const $CopyWithPlaceholder() || version == null
+          ? _value.version
+          // ignore: cast_nullable_to_non_nullable
+          : version as String,
       name: name == const $CopyWithPlaceholder()
           ? _value.name
           // ignore: cast_nullable_to_non_nullable
@@ -200,10 +211,11 @@ Contact _$ContactFromJson(Map<String, dynamic> json) => $checkedCreate(
   'Contact',
   json,
   ($checkedConvert) {
-    $checkKeys(json, requiredKeys: const ['id', 'type']);
+    $checkKeys(json, requiredKeys: const ['id', 'type', 'version']);
     final val = Contact(
       id: $checkedConvert('id', (v) => (v as num).toInt()),
       type: $checkedConvert('type', (v) => v as String),
+      version: $checkedConvert('version', (v) => v as String),
       name: $checkedConvert('name', (v) => v as String?),
       firstName: $checkedConvert('first_name', (v) => v as String?),
       lastName: $checkedConvert('last_name', (v) => v as String?),
@@ -243,6 +255,7 @@ Contact _$ContactFromJson(Map<String, dynamic> json) => $checkedCreate(
 Map<String, dynamic> _$ContactToJson(Contact instance) => <String, dynamic>{
   'id': instance.id,
   'type': instance.type,
+  'version': instance.version,
   'name': ?instance.name,
   'first_name': ?instance.firstName,
   'last_name': ?instance.lastName,

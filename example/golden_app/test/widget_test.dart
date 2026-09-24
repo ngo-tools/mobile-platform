@@ -48,6 +48,30 @@ void main() {
     expect(find.text('Diagnostics'), findsOneWidget);
   });
 
+  testWidgets('fails closed when contacts write access is missing', (
+    tester,
+  ) async {
+    final capabilities = MobileRuntimeCapabilities(
+      schemaVersion: 1,
+      features: const ['contacts', 'profile'],
+      permissions: const ['contacts:read', 'profile:read'],
+      importsEnabled: false,
+      importTypes: const {},
+    );
+
+    await tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
+        capabilities: capabilities,
+        contactsRepository: const SyntheticContactsRepository(),
+      ),
+    );
+
+    expect(find.text('Contacts'), findsNothing);
+    expect(find.text('Diagnostics'), findsOneWidget);
+  });
+
   testWidgets('shows sanitized diagnostics', (tester) async {
     await tester.pumpWidget(
       GoldenApp(

@@ -172,6 +172,7 @@ void main() {
   test('keeps unselected modules discoverable in generated apps', () async {
     final source = (await registration.readAsString())
         .replaceFirst('    - contacts:read\n', '')
+        .replaceFirst('    - contacts:write\n', '')
         .replaceFirst('    - contacts\n', '');
     final profileRegistration = File(
       path.join(temporary.path, 'profile-only.yaml'),

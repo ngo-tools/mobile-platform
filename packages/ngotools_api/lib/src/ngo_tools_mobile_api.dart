@@ -8,10 +8,13 @@ import 'package:uuid/uuid.dart';
 import 'generated/api/contacts_api.dart';
 import 'generated/api/runtime_api.dart';
 import 'generated/model/contact.dart' as generated;
+import 'generated/model/contact_response.dart' as generated;
 import 'generated/model/contact_search_request.dart' as generated;
 import 'generated/model/contact_search_term.dart' as generated;
 import 'generated/model/contact_sort.dart' as generated;
+import 'generated/model/create_contact_request.dart' as generated;
 import 'generated/model/import_capability.dart' as generated;
+import 'generated/model/update_contact_request.dart' as generated;
 import 'internal/mobile_api_interceptors.dart';
 import 'mobile_api_problem.dart';
 import 'mobile_contact.dart';
@@ -217,6 +220,78 @@ final class NgoToolsMobileApi implements MobileContactsApi {
     return _mapContact(data.data);
   });
 
+  /// Creates one contact through the idempotent mutation boundary.
+  @override
+  Future<MobileContactMutationResult> createContact({
+    required String idempotencyKey,
+    required MobileContactMutation contact,
+  }) => _mutationGuard(() async {
+    final response = await _contactsApi.createContact(
+      idempotencyKey: _requireIdempotencyKey(idempotencyKey),
+      createContactRequest: generated.CreateContactRequest(
+        type: switch (contact.kind) {
+          MobileWritableContactKind.person =>
+            generated.CreateContactRequestTypeEnum.person,
+          MobileWritableContactKind.organization =>
+            generated.CreateContactRequestTypeEnum.organization,
+        },
+        name: contact.name,
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        salutation: contact.salutation,
+        title: contact.title,
+        gender: contact.gender,
+        birthday: _formatDate(contact.birthday),
+      ),
+    );
+
+    return _mapMutationResponse(response);
+  });
+
+  /// Updates one contact from its exact opaque version.
+  @override
+  Future<MobileContactMutationResult> updateContact({
+    required int contactId,
+    required String idempotencyKey,
+    required String baseVersion,
+    required MobileContactMutation contact,
+  }) => _mutationGuard(() async {
+    if (contactId < 1) {
+      throw ArgumentError.value(
+        contactId,
+        'contactId',
+        'Must be at least one.',
+      );
+    }
+
+    if (!_isContactVersion(baseVersion)) {
+      throw ArgumentError.value(
+        baseVersion,
+        'baseVersion',
+        'Must be an opaque 64-character lowercase hex value.',
+      );
+    }
+
+    final response = await _contactsApi.updateContact(
+      contactId: contactId,
+      idempotencyKey: _requireIdempotencyKey(idempotencyKey),
+      updateContactRequest: generated.UpdateContactRequest(
+        baseVersion: baseVersion,
+        name: contact.name,
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        salutation: contact.salutation,
+        title: contact.title,
+        gender: contact.gender,
+        birthday: _formatDate(contact.birthday),
+      ),
+    );
+
+    return _mapMutationResponse(response);
+  });
+
   /// Releases HTTP and stream resources owned by this client.
   Future<void> close() async {
     _dio.close(force: true);
@@ -271,6 +346,7 @@ final class NgoToolsMobileApi implements MobileContactsApi {
 
   static MobileContact _mapContact(generated.Contact contact) {
     if (contact.id < 1 ||
+        !_isContactVersion(contact.version) ||
         (contact.activeAddressId != null && contact.activeAddressId! < 1) ||
         (contact.addresses?.any((address) => address.id < 1) ?? false)) {
       throw _invalidResponse();
@@ -284,6 +360,7 @@ final class NgoToolsMobileApi implements MobileContactsApi {
         'couple' => MobileContactKind.couple,
         _ => MobileContactKind.unknown,
       },
+      version: contact.version,
       name: contact.name,
       firstName: contact.firstName,
       lastName: contact.lastName,
@@ -309,6 +386,74 @@ final class NgoToolsMobileApi implements MobileContactsApi {
           ) ??
           const [],
     );
+  }
+
+  static MobileContactMutationSuccess _mapMutationResponse(
+    Response<generated.ContactResponse> response,
+  ) {
+    final data = response.data;
+    final replayed = switch (response.headers.value('idempotency-replayed')) {
+      'true' => true,
+      'false' => false,
+      _ => throw _invalidResponse(),
+    };
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    return MobileContactMutationSuccess(
+      contact: _mapContact(data.data),
+      replayed: replayed,
+    );
+  }
+
+  Future<MobileContactMutationResult> _mutationGuard(
+    Future<MobileContactMutationSuccess> Function() operation,
+  ) async {
+    try {
+      return await _guard(operation);
+    } on MobileApiException catch (error) {
+      if (error.problem.status == 409 &&
+          error.problem.code == 'contact_version_conflict') {
+        return const MobileContactVersionConflict();
+      }
+
+      rethrow;
+    }
+  }
+
+  static String _requireIdempotencyKey(String value) {
+    final normalized = value.trim();
+    final uuid = RegExp(
+      r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+      caseSensitive: false,
+    );
+
+    if (!uuid.hasMatch(normalized)) {
+      throw ArgumentError.value(
+        value,
+        'idempotencyKey',
+        'Must be an RFC 9562 UUID.',
+      );
+    }
+
+    return normalized;
+  }
+
+  static bool _isContactVersion(String value) =>
+      RegExp(r'^[a-f0-9]{64}$').hasMatch(value);
+
+  static String? _formatDate(DateTime? value) {
+    if (value == null) {
+      return null;
+    }
+
+    final year = value.year.toString().padLeft(4, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    final day = value.day.toString().padLeft(2, '0');
+
+    return '$year-$month-$day';
   }
 
   Future<T> _guard<T>(Future<T> Function() operation) async {

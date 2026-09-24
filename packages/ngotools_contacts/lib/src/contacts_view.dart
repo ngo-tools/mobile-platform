@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 
 import 'contact_details_cubit.dart';
+import 'contact_draft_manager.dart';
+import 'contact_editor.dart';
 import 'contact_labels.dart';
 import 'contact_models.dart';
 import 'contacts_cubit.dart';
@@ -16,12 +18,14 @@ final class ContactsView extends StatefulWidget {
   const ContactsView({
     required this.repository,
     required this.labels,
+    this.draftManager,
     this.onContactSelected,
     super.key,
   });
 
   final ContactsRepository repository;
   final ContactLabels labels;
+  final ContactDraftManager? draftManager;
   final ValueChanged<ContactRecord>? onContactSelected;
 
   @override
@@ -58,6 +62,8 @@ final class _ContactsViewState extends State<ContactsView> {
             controller: _searchController,
             labels: widget.labels,
             state: state,
+            onCreate: widget.draftManager == null ? null : _openNewContact,
+            onDrafts: widget.draftManager == null ? null : _openDrafts,
           ),
           Expanded(
             child: _ContactsBody(
@@ -87,10 +93,58 @@ final class _ContactsViewState extends State<ContactsView> {
             repository: widget.repository,
             contactId: contact.id,
             labels: widget.labels,
+            draftManager: widget.draftManager,
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _openNewContact() async {
+    final manager = widget.draftManager;
+
+    if (manager == null) {
+      return;
+    }
+
+    final draft = await manager.createDraft();
+
+    if (!mounted) {
+      return;
+    }
+
+    final saved = await Navigator.of(context).push<ContactRecord>(
+      MaterialPageRoute<ContactRecord>(
+        builder: (_) => ContactEditorPage(
+          manager: manager,
+          draft: draft,
+          labels: widget.labels,
+        ),
+      ),
+    );
+
+    if (saved != null) {
+      await _cubit.retry();
+    }
+  }
+
+  Future<void> _openDrafts() async {
+    final manager = widget.draftManager;
+
+    if (manager == null) {
+      return;
+    }
+
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            ContactDraftsPage(manager: manager, labels: widget.labels),
+      ),
+    );
+
+    if (mounted) {
+      await _cubit.retry();
+    }
   }
 }
 
@@ -99,11 +153,15 @@ final class _ContactsToolbar extends StatelessWidget {
     required this.controller,
     required this.labels,
     required this.state,
+    this.onCreate,
+    this.onDrafts,
   });
 
   final TextEditingController controller;
   final ContactLabels labels;
   final ContactsState state;
+  final VoidCallback? onCreate;
+  final VoidCallback? onDrafts;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -156,6 +214,18 @@ final class _ContactsToolbar extends StatelessWidget {
             }
           },
         ),
+        if (onDrafts case final callback?)
+          OutlinedButton.icon(
+            onPressed: callback,
+            icon: const Icon(Icons.edit_note_outlined),
+            label: Text(labels.drafts),
+          ),
+        if (onCreate case final callback?)
+          FilledButton.icon(
+            onPressed: callback,
+            icon: const Icon(Icons.person_add_outlined),
+            label: Text(labels.newContact),
+          ),
       ],
     ),
   );
@@ -377,12 +447,14 @@ final class ContactDetailsPage extends StatelessWidget {
     required this.repository,
     required this.contactId,
     required this.labels,
+    this.draftManager,
     super.key,
   });
 
   final ContactsRepository repository;
   final int contactId;
   final ContactLabels labels;
+  final ContactDraftManager? draftManager;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -391,6 +463,7 @@ final class ContactDetailsPage extends StatelessWidget {
       repository: repository,
       contactId: contactId,
       labels: labels,
+      draftManager: draftManager,
     ),
   );
 }
@@ -402,12 +475,14 @@ final class ContactDetailsView extends StatefulWidget {
     required this.repository,
     required this.contactId,
     required this.labels,
+    this.draftManager,
     super.key,
   });
 
   final ContactsRepository repository;
   final int contactId;
   final ContactLabels labels;
+  final ContactDraftManager? draftManager;
 
   @override
   State<ContactDetailsView> createState() => _ContactDetailsViewState();
@@ -467,6 +542,12 @@ final class _ContactDetailsViewState extends State<ContactDetailsView> {
               child: _ContactDetails(
                 contact: state.contact!,
                 labels: widget.labels,
+                onEdit:
+                    widget.draftManager != null &&
+                        (state.contact!.kind == ContactKind.person ||
+                            state.contact!.kind == ContactKind.organization)
+                    ? () => unawaited(_edit(state.contact!))
+                    : null,
               ),
             ),
           ],
@@ -474,13 +555,46 @@ final class _ContactDetailsViewState extends State<ContactDetailsView> {
       },
     ),
   );
+
+  Future<void> _edit(ContactRecord contact) async {
+    final manager = widget.draftManager;
+
+    if (manager == null) {
+      return;
+    }
+
+    final draft = await manager.createEditDraft(contact);
+
+    if (!mounted) {
+      return;
+    }
+
+    final saved = await Navigator.of(context).push<ContactRecord>(
+      MaterialPageRoute<ContactRecord>(
+        builder: (_) => ContactEditorPage(
+          manager: manager,
+          draft: draft,
+          labels: widget.labels,
+        ),
+      ),
+    );
+
+    if (saved != null) {
+      await _cubit.load();
+    }
+  }
 }
 
 final class _ContactDetails extends StatelessWidget {
-  const _ContactDetails({required this.contact, required this.labels});
+  const _ContactDetails({
+    required this.contact,
+    required this.labels,
+    this.onEdit,
+  });
 
   final ContactRecord contact;
   final ContactLabels labels;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -506,6 +620,17 @@ final class _ContactDetails extends StatelessWidget {
           ),
         ),
         const SizedBox(height: NgoToolsLayout.sectionSpacing),
+        if (onEdit case final callback?) ...[
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FilledButton.icon(
+              onPressed: callback,
+              icon: const Icon(Icons.edit_outlined),
+              label: Text(labels.editContact),
+            ),
+          ),
+          const SizedBox(height: NgoToolsLayout.sectionSpacing),
+        ],
         if (information.isNotEmpty)
           NgoToolsSectionCard(
             title: labels.contactInformation,

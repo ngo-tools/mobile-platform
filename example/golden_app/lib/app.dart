@@ -18,6 +18,7 @@ class GoldenApp extends StatelessWidget {
     this.authStatus = MobileAuthStatus.signedOut,
     this.capabilities,
     this.contactsRepository,
+    this.contactDraftManager,
     super.key,
   });
 
@@ -36,6 +37,9 @@ class GoldenApp extends StatelessWidget {
   /// Optional contact source supplied by the application composition root.
   final ContactsRepository? contactsRepository;
 
+  /// Optional encrypted draft coordinator supplied by the composition root.
+  final ContactDraftManager? contactDraftManager;
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -49,6 +53,7 @@ class GoldenApp extends StatelessWidget {
       authStatus: authStatus,
       capabilities: capabilities,
       contactsRepository: contactsRepository,
+      contactDraftManager: contactDraftManager,
     ),
   );
 }
@@ -62,6 +67,7 @@ class GoldenShell extends StatelessWidget {
     required this.authStatus,
     this.capabilities,
     this.contactsRepository,
+    this.contactDraftManager,
     super.key,
   });
 
@@ -70,6 +76,7 @@ class GoldenShell extends StatelessWidget {
   final MobileAuthStatus authStatus;
   final MobileRuntimeCapabilities? capabilities;
   final ContactsRepository? contactsRepository;
+  final ContactDraftManager? contactDraftManager;
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +114,11 @@ class GoldenShell extends StatelessWidget {
             : ContactsView(
                 repository: contactsRepository!,
                 labels: isGerman ? ContactLabels.german : ContactLabels.english,
+                draftManager: contactDraftManager,
               ),
         requirement: MobileRouteRequirement(
           features: const ['contacts'],
-          permissions: const ['contacts:read'],
+          permissions: const ['contacts:read', 'contacts:write'],
         ),
       ),
       MobileNavigationItem(

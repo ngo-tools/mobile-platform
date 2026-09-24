@@ -1,6 +1,9 @@
 /// Stable contact kinds exposed by the mobile API boundary.
 enum MobileContactKind { person, organization, couple, unknown }
 
+/// Contact kinds accepted by the narrow mobile mutation boundary.
+enum MobileWritableContactKind { person, organization }
+
 /// Server-supported contact sort fields.
 enum MobileContactSortField {
   name,
@@ -29,6 +32,69 @@ abstract interface class MobileContactsApi {
 
   /// Loads one contact with its server-visible addresses.
   Future<MobileContact> fetchContact(int contactId);
+
+  /// Creates one contact and safely replays a retried submission.
+  Future<MobileContactMutationResult> createContact({
+    required String idempotencyKey,
+    required MobileContactMutation contact,
+  });
+
+  /// Updates one contact only when [baseVersion] is still current.
+  Future<MobileContactMutationResult> updateContact({
+    required int contactId,
+    required String idempotencyKey,
+    required String baseVersion,
+    required MobileContactMutation contact,
+  });
+}
+
+/// Full writable contact projection sent by an explicitly confirmed draft.
+final class MobileContactMutation {
+  /// Creates a narrow person or organization mutation.
+  const MobileContactMutation({
+    required this.kind,
+    this.name,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.salutation,
+    this.title,
+    this.gender,
+    this.birthday,
+  });
+
+  final MobileWritableContactKind kind;
+  final String? name;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? salutation;
+  final String? title;
+  final String? gender;
+  final DateTime? birthday;
+}
+
+/// Result of a confirmed contact mutation.
+sealed class MobileContactMutationResult {
+  const MobileContactMutationResult();
+}
+
+/// Authoritative contact returned after a successful mutation.
+final class MobileContactMutationSuccess extends MobileContactMutationResult {
+  /// Creates a successful mutation result.
+  const MobileContactMutationSuccess({
+    required this.contact,
+    required this.replayed,
+  });
+
+  final MobileContact contact;
+  final bool replayed;
+}
+
+/// A safe signal that the edited base version is no longer current.
+final class MobileContactVersionConflict extends MobileContactMutationResult {
+  /// Creates the conflict result without exposing server contact contents.
+  const MobileContactVersionConflict();
 }
 
 /// One server-side contact sort directive.
@@ -73,6 +139,7 @@ final class MobileContact {
   MobileContact({
     required this.id,
     required this.kind,
+    required this.version,
     this.name,
     this.firstName,
     this.lastName,
@@ -88,6 +155,7 @@ final class MobileContact {
 
   final int id;
   final MobileContactKind kind;
+  final String version;
   final String? name;
   final String? firstName;
   final String? lastName;

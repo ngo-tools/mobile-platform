@@ -64,13 +64,16 @@ final class ContactCachePolicy {
     Duration maxAge = const Duration(minutes: 15),
     int maxSearches = 20,
     int maxContacts = 200,
+    int maxDrafts = 50,
   }) : maxAge = _positiveDuration(maxAge),
        maxSearches = _positiveInt(maxSearches, 'maxSearches'),
-       maxContacts = _positiveInt(maxContacts, 'maxContacts');
+       maxContacts = _positiveInt(maxContacts, 'maxContacts'),
+       maxDrafts = _positiveInt(maxDrafts, 'maxDrafts');
 
   final Duration maxAge;
   final int maxSearches;
   final int maxContacts;
+  final int maxDrafts;
 
   static Duration _positiveDuration(Duration value) {
     if (value <= Duration.zero) {
@@ -102,10 +105,34 @@ abstract interface class ContactReadCache implements MobilePrivateDataPurger {
 
   /// Stores a successful remote contact detail result.
   Future<void> writeContact(ContactSnapshot snapshot);
+
+  /// Invalidates search pages after a successful mutation.
+  Future<void> invalidateSearches();
+}
+
+/// Session-scoped encrypted persistence for explicitly saved drafts.
+abstract interface class ContactDraftStore implements MobilePrivateDataPurger {
+  /// Lists all retained drafts, newest first.
+  Future<List<ContactDraft>> readDrafts();
+
+  /// Stores a new or existing draft without silently evicting another draft.
+  Future<void> writeDraft(ContactDraft draft);
+
+  /// Removes one draft after an explicit discard or successful submission.
+  Future<void> deleteDraft(String localId);
+}
+
+/// Raised when a scope already contains the configured draft maximum.
+final class ContactDraftLimitExceeded implements Exception {
+  /// Creates a bounded-storage error.
+  const ContactDraftLimitExceeded(this.maximum);
+
+  final int maximum;
 }
 
 /// AES-256-GCM cache with its key held in platform-protected storage.
-final class EncryptedContactCache implements ContactReadCache {
+final class EncryptedContactCache
+    implements ContactReadCache, ContactDraftStore {
   /// Creates the production file and protected-key cache.
   factory EncryptedContactCache({
     required ContactCacheScope scope,
@@ -298,6 +325,56 @@ final class EncryptedContactCache implements ContactReadCache {
   });
 
   @override
+  Future<void> invalidateSearches() => _serialized(() async {
+    _ensureActive();
+    final document = await _loadDocument();
+    document.searches.clear();
+    await _writeDocument(document);
+  });
+
+  @override
+  Future<List<ContactDraft>> readDrafts() => _serialized(() async {
+    if (_purged) {
+      return const [];
+    }
+
+    final drafts = (await _loadDocument()).drafts.values.toList(growable: false)
+      ..sort((left, right) => right.updatedAt.compareTo(left.updatedAt));
+
+    return List<ContactDraft>.unmodifiable(drafts);
+  });
+
+  @override
+  Future<void> writeDraft(ContactDraft draft) => _serialized(() async {
+    _ensureActive();
+    _validateDraft(draft);
+    final document = await _loadDocument();
+
+    if (!document.drafts.containsKey(draft.localId) &&
+        document.drafts.length >= _policy.maxDrafts) {
+      throw ContactDraftLimitExceeded(_policy.maxDrafts);
+    }
+
+    document.drafts[draft.localId] = draft;
+    await _writeDocument(document);
+  });
+
+  @override
+  Future<void> deleteDraft(String localId) => _serialized(() async {
+    _ensureActive();
+
+    if (!_isUuid(localId)) {
+      throw ArgumentError.value(localId, 'localId', 'Must be a UUID.');
+    }
+
+    final document = await _loadDocument();
+
+    if (document.drafts.remove(localId) != null) {
+      await _writeDocument(document);
+    }
+  });
+
+  @override
   Future<void> purgePrivateData() => _serialized(() async {
     _purged = true;
     var failed = false;
@@ -460,6 +537,23 @@ final class EncryptedContactCache implements ContactReadCache {
       );
     }
   }
+
+  static void _validateDraft(ContactDraft draft) {
+    if (!_isUuid(draft.localId) ||
+        !_isUuid(draft.idempotencyKey) ||
+        (draft.contactId == null) != (draft.baseVersion == null) ||
+        (draft.contactId != null && draft.contactId! < 1) ||
+        (draft.baseVersion != null &&
+            !RegExp(r'^[a-f0-9]{64}$').hasMatch(draft.baseVersion!)) ||
+        draft.createdAt.isAfter(draft.updatedAt)) {
+      throw ArgumentError.value(draft, 'draft', 'Contains invalid metadata.');
+    }
+  }
+
+  static bool _isUuid(String value) => RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+    caseSensitive: false,
+  ).hasMatch(value);
 
   void _ensureActive() {
     if (_purged) {

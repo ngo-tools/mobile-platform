@@ -7,12 +7,12 @@ This catalog describes client integration requirements. Server capabilities and 
 ## Contacts (`contacts`)
 
 - German: Kontakte
-- Status: `planned`
+- Status: `available`
 - Delivery: `package` (`ngotools_contacts`)
 - Required modules: `profile`
-- API scopes: `contacts:read`
+- API scopes: `contacts:read`, `contacts:write`
 - Features: `contacts`
-- Permissions: `contacts:read`
+- Permissions: `contacts:read`, `contacts:write`
 - Device permissions: none
 - Deep links: `/contacts/{id}`
 

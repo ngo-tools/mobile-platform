@@ -107,7 +107,13 @@ MobileApiException _problem(
 
 ContactPage _page(ContactDataSource source) => ContactPage(
   items: const [
-    ContactRecord(id: 42, kind: ContactKind.person, name: 'Synthetic Contact'),
+    ContactRecord(
+      id: 42,
+      kind: ContactKind.person,
+      version:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      name: 'Synthetic Contact',
+    ),
   ],
   page: 1,
   perPage: 25,
@@ -123,6 +129,7 @@ ContactSnapshot _snapshot(ContactDataSource source) => ContactSnapshot(
   contact: const ContactRecord(
     id: 42,
     kind: ContactKind.person,
+    version: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     name: 'Synthetic Contact',
   ),
   source: source,
@@ -164,6 +171,9 @@ final class _ContactCache implements ContactReadCache {
   bool writeFails = false;
   int searchReads = 0;
   int contactReads = 0;
+
+  @override
+  Future<void> invalidateSearches() async {}
 
   @override
   Future<void> purgePrivateData() async {}

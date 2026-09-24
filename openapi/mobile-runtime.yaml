@@ -124,6 +124,90 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/v2/contact-mutations:
+    post:
+      operationId: createContact
+      tags: [Contacts]
+      summary: Create one contact through the retry-safe mobile boundary
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContactRequest'
+      responses:
+        '200':
+          description: An earlier successful create was replayed
+          headers:
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        '201':
+          description: Contact created
+          headers:
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/ContactMutationConflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /api/v2/contact-mutations/{contactId}:
+    patch:
+      operationId: updateContact
+      tags: [Contacts]
+      summary: Update one contact from an exact opaque base version
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateContactRequest'
+      responses:
+        '200':
+          description: Contact updated or an earlier successful update replayed
+          headers:
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ContactMutationConflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
   /api/v2/mobile-app-releases:
     post:
       operationId: startMobileAppRelease
@@ -197,6 +281,20 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Stable UUID retained for the lifetime of one local draft
+      schema:
+        type: string
+        format: uuid
+  headers:
+    IdempotencyReplayed:
+      description: Whether this response replays an earlier successful mutation
+      schema:
+        type: boolean
   responses:
     Unauthorized:
       description: Authentication is missing or expired
@@ -231,6 +329,16 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ContactMutationConflict:
+      description: The idempotency key is invalid or the base version is stale
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+      content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
@@ -419,16 +527,119 @@ components:
       properties:
         data:
           $ref: '#/components/schemas/Contact'
+    CreateContactRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - type
+        - name
+        - first_name
+        - last_name
+        - email
+        - salutation
+        - title
+        - gender
+        - birthday
+      properties:
+        type:
+          type: string
+          enum: [person, organization]
+        name:
+          type: string
+          maxLength: 255
+          nullable: true
+        first_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        salutation:
+          type: string
+          maxLength: 255
+          nullable: true
+        title:
+          type: string
+          maxLength: 255
+          nullable: true
+        gender:
+          type: string
+          maxLength: 255
+          nullable: true
+        birthday:
+          type: string
+          pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+          nullable: true
+    UpdateContactRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - base_version
+        - name
+        - first_name
+        - last_name
+        - email
+        - salutation
+        - title
+        - gender
+        - birthday
+      properties:
+        base_version:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+        name:
+          type: string
+          maxLength: 255
+          nullable: true
+        first_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        last_name:
+          type: string
+          maxLength: 255
+          nullable: true
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          nullable: true
+        salutation:
+          type: string
+          maxLength: 255
+          nullable: true
+        title:
+          type: string
+          maxLength: 255
+          nullable: true
+        gender:
+          type: string
+          maxLength: 255
+          nullable: true
+        birthday:
+          type: string
+          pattern: '^\\d{4}-\\d{2}-\\d{2}$'
+          nullable: true
     Contact:
       type: object
       additionalProperties: true
-      required: [id, type]
+      required: [id, type, version]
       properties:
         id:
           type: integer
           format: int64
         type:
           type: string
+        version:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
         name:
           type: string
           nullable: true
