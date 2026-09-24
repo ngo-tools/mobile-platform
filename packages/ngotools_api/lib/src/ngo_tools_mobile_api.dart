@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:uuid/uuid.dart';
 
