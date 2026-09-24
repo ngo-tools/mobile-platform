@@ -1,0 +1,5 @@
+interface:
+  display_name: "Create NGO.Tools App"
+  short_description: "Create a tenant-bound NGO.Tools mobile app"
+  brand_color: "#00A9CC"
+  default_prompt: "Use $create-ngo-tools-app to create a mobile app for my NGO.Tools organization."

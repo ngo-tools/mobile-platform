@@ -25,6 +25,10 @@ tests.
 
 ## Create an organization app
 
+For a concise German walkthrough, use the public
+[app-creation skill or manual path](docs/CREATE_TENANT_APP.md). The complete
+agent workflow lives in [`skills/create-ngo-tools-app`](skills/create-ngo-tools-app).
+
 Use a public registration exported by NGO.Tools and pin the generated app to a
 reviewed Mobile Platform commit:
 
