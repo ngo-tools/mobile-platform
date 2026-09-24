@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: NGO.Tools Mobile Runtime API
+  version: 2.0.0
+  description: Secret-free contract for the authenticated mobile runtime.
+servers:
+  - url: https://api.example.invalid
+    description: Synthetic placeholder; apps replace this with their fixed API origin.
+tags:
+  - name: Runtime
+paths:
+  /api/me:
+    get:
+      operationId: getCurrentUser
+      tags: [Runtime]
+      summary: Get the authenticated user and effective access metadata
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v2/capabilities:
+    get:
+      operationId: getCapabilities
+      tags: [Runtime]
+      summary: Get effective tenant and account capabilities
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Effective runtime capabilities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilitiesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    Unauthorized:
+      description: Authentication is missing or expired
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Forbidden:
+      description: The operation is unavailable to this account
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+  schemas:
+    CurrentUserResponse:
+      type: object
+      additionalProperties: false
+      required: [user, permissions, features]
+      properties:
+        user:
+          $ref: '#/components/schemas/CurrentUser'
+        permissions:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        features:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+    CurrentUser:
+      type: object
+      additionalProperties: false
+      required: [id, name, email]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    CapabilitiesResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RuntimeCapabilities'
+    RuntimeCapabilities:
+      type: object
+      additionalProperties: false
+      required: [schema_version, features, imports]
+      properties:
+        schema_version:
+          type: integer
+          minimum: 1
+        features:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        imports:
+          $ref: '#/components/schemas/ImportCapabilities'
+    ImportCapabilities:
+      type: object
+      additionalProperties: false
+      required: [enabled, types]
+      properties:
+        enabled:
+          type: boolean
+        types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ImportCapability'
+    ImportCapability:
+      type: object
+      additionalProperties: true
+      required:
+        - supported
+        - required_feature
+        - feature_enabled
+        - permission_granted
+        - available
+        - requires
+        - batch_import_supported
+        - blockers
+      properties:
+        label:
+          type: string
+          nullable: true
+        supported:
+          type: boolean
+        required_feature:
+          type: string
+        feature_enabled:
+          type: boolean
+        permission_granted:
+          type: boolean
+        available:
+          type: boolean
+        requires:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        batch_import_supported:
+          type: boolean
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapabilityBlocker'
+        limits:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/ImportLimits'
+    CapabilityBlocker:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ImportLimits:
+      type: object
+      additionalProperties: false
+      required: [max_batch_size]
+      properties:
+        max_batch_size:
+          type: integer
+          minimum: 1
+    ProblemDetails:
+      type: object
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        code:
+          type: string
+        error_code:
+          type: string
+        message:
+          type: string
+        request_id:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string

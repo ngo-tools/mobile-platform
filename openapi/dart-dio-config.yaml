@@ -1,0 +1,11 @@
+pubName: ngotools_api
+pubDescription: Internal generated NGO.Tools mobile runtime transport.
+pubVersion: 0.1.0
+pubPublishTo: none
+pubLibrary: ngotools_api_generated
+sourceFolder: src/generated
+serializationLibrary: json_serializable
+enumUnknownDefaultCase: true
+finalProperties: true
+disallowAdditionalPropertiesIfNotPresent: false
+useOptional: false

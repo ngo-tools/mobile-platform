@@ -16,6 +16,7 @@ workspace:
   - example/golden_app
 
 dependencies:
+  crypto: ^3.0.7
   json_schema: ^5.2.2
   path: ^1.9.1
   yaml: ^3.1.4

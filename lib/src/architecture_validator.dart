@@ -52,6 +52,11 @@ abstract final class ArchitectureValidator {
         errors.add('${entry.key} may not import ngotools_auth internals.');
       }
 
+      if (!isApiSource &&
+          entry.value.contains("package:ngotools_api/src/generated/")) {
+        errors.add('${entry.key} may not import generated API internals.');
+      }
+
       if (!isAuthSource &&
           !isApiSource &&
           entry.value.contains("package:dio/")) {
