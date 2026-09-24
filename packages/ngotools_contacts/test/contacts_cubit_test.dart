@@ -151,8 +151,8 @@ final class _CallbackRepository implements ContactsRepository {
   final List<ContactSearch> searches = [];
 
   @override
-  Future<ContactRecord> getById(int contactId) =>
-      Future<ContactRecord>.error(StateError('No detail callback.'));
+  Future<ContactSnapshot> getById(int contactId) =>
+      Future<ContactSnapshot>.error(StateError('No detail callback.'));
 
   @override
   Future<ContactPage> search(ContactSearch search) {

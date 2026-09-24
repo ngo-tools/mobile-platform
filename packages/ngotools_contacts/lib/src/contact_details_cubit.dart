@@ -18,6 +18,8 @@ abstract class ContactDetailsState with _$ContactDetailsState {
   const factory ContactDetailsState({
     @Default(ContactDetailsStatus.initial) ContactDetailsStatus status,
     ContactRecord? contact,
+    @Default(ContactDataSource.remote) ContactDataSource source,
+    DateTime? cachedAt,
     ContactsFailureCode? failure,
   }) = _ContactDetailsState;
 }
@@ -54,7 +56,7 @@ final class ContactDetailsCubit extends Cubit<ContactDetailsState> {
     emit(const ContactDetailsState(status: ContactDetailsStatus.loading));
 
     try {
-      final contact = await _repository.getById(_contactId);
+      final snapshot = await _repository.getById(_contactId);
 
       if (requestGeneration != _requestGeneration || isClosed) {
         return;
@@ -63,7 +65,9 @@ final class ContactDetailsCubit extends Cubit<ContactDetailsState> {
       emit(
         ContactDetailsState(
           status: ContactDetailsStatus.ready,
-          contact: contact,
+          contact: snapshot.contact,
+          source: snapshot.source,
+          cachedAt: snapshot.cachedAt,
         ),
       );
     } on Object catch (error) {

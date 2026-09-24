@@ -15,17 +15,20 @@ void main() {
   late _AuthorizationGateway gateway;
   late _TokenExchangeClient exchange;
   late _SessionStore store;
+  late _PrivateDataPurger privateDataPurger;
   late MobileAuthCubit cubit;
 
   setUp(() {
     gateway = _AuthorizationGateway();
     exchange = _TokenExchangeClient();
     store = _SessionStore();
+    privateDataPurger = _PrivateDataPurger();
     cubit = MobileAuthCubit.testing(
       configuration: _configuration(),
       authorizationGateway: gateway,
       tokenExchangeClient: exchange,
       sessionStore: store,
+      privateDataPurgers: [privateDataPurger],
     );
   });
 
@@ -58,7 +61,20 @@ void main() {
     await cubit.signOut();
 
     expect(store.session, isNull);
+    expect(privateDataPurger.purges, 1);
     expect(cubit.state.status, MobileAuthStatus.signedOut);
+  });
+
+  test('clears private data before attempting remote revocation', () async {
+    store.session = _session();
+    await cubit.restore();
+    var privateDataCleared = false;
+    privateDataPurger.onPurge = () => privateDataCleared = true;
+    exchange.onRevoke = () => expect(privateDataCleared, isTrue);
+
+    await cubit.signOut();
+
+    expect(privateDataCleared, isTrue);
   });
 
   test('maps browser cancellation without leaving a session', () async {
@@ -124,6 +140,7 @@ void main() {
     expect(cubit.state.status, MobileAuthStatus.expired);
     expect(cubit.state.failure?.code, MobileAuthFailureCode.expired);
     expect(store.session, isNull);
+    expect(privateDataPurger.purges, 1);
   });
 
   test('discards a browser result after the user signs out', () async {
@@ -144,6 +161,42 @@ void main() {
     expect(cubit.state.status, MobileAuthStatus.signedOut);
     expect(store.session, isNull);
     expect(exchange.exchanges, 0);
+  });
+
+  test('attempts every private-data purge and sanitizes failures', () async {
+    final failingPurger = _PrivateDataPurger()..fails = true;
+    final laterPurger = _PrivateDataPurger();
+    await cubit.close();
+    cubit = MobileAuthCubit.testing(
+      configuration: _configuration(),
+      authorizationGateway: gateway,
+      tokenExchangeClient: exchange,
+      sessionStore: store,
+      privateDataPurgers: [failingPurger, laterPurger],
+    );
+    store.session = _session();
+    await cubit.restore();
+
+    await cubit.signOut();
+
+    expect(store.session, isNull);
+    expect(failingPurger.purges, 1);
+    expect(laterPurger.purges, 1);
+    expect(cubit.state.status, MobileAuthStatus.failed);
+    expect(cubit.state.failure?.code, MobileAuthFailureCode.storage);
+    expect(cubit.state.toString(), isNot(contains('Synthetic purge failure')));
+  });
+
+  test('purges a user-bound store registered after authentication', () async {
+    store.session = _session();
+    await cubit.restore();
+    final authenticatedStore = _PrivateDataPurger();
+    cubit.registerPrivateDataPurger(authenticatedStore);
+    cubit.registerPrivateDataPurger(authenticatedStore);
+
+    await cubit.signOut();
+
+    expect(authenticatedStore.purges, 1);
   });
 }
 
@@ -186,6 +239,7 @@ final class _TokenExchangeClient implements TokenExchangeClient {
   bool revokeFails = false;
   bool attestationFails = false;
   int exchanges = 0;
+  void Function()? onRevoke;
 
   @override
   Future<AuthSession> exchange({
@@ -209,6 +263,8 @@ final class _TokenExchangeClient implements TokenExchangeClient {
     MobileAuthConfiguration configuration,
     String apiToken,
   ) async {
+    onRevoke?.call();
+
     if (revokeFails) {
       throw StateError('Synthetic revocation failure.');
     }
@@ -238,6 +294,22 @@ final class _SessionStore implements AuthSessionStore {
     }
 
     this.session = session;
+  }
+}
+
+final class _PrivateDataPurger implements MobilePrivateDataPurger {
+  int purges = 0;
+  bool fails = false;
+  void Function()? onPurge;
+
+  @override
+  Future<void> purgePrivateData() async {
+    purges += 1;
+    onPurge?.call();
+
+    if (fails) {
+      throw StateError('Synthetic purge failure.');
+    }
   }
 }
 

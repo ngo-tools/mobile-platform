@@ -8,7 +8,7 @@ abstract interface class ContactsRepository {
   Future<ContactPage> search(ContactSearch search);
 
   /// Loads one contact with its visible addresses.
-  Future<ContactRecord> getById(int contactId);
+  Future<ContactSnapshot> getById(int contactId);
 }
 
 /// Contacts repository backed by the stable NGO.Tools mobile API boundary.
@@ -56,8 +56,8 @@ final class NgoToolsContactsRepository implements ContactsRepository {
   }
 
   @override
-  Future<ContactRecord> getById(int contactId) async =>
-      _mapContact(await _api.fetchContact(contactId));
+  Future<ContactSnapshot> getById(int contactId) async =>
+      ContactSnapshot(contact: _mapContact(await _api.fetchContact(contactId)));
 
   static ContactRecord _mapContact(MobileContact contact) => ContactRecord(
     id: contact.id,

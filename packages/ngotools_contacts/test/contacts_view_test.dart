@@ -53,6 +53,22 @@ void main() {
     expect(find.text('Contacts could not be loaded.'), findsWidgets);
     expect(find.text('Try again'), findsOneWidget);
   });
+
+  testWidgets('labels cached list and detail data as offline copies', (
+    tester,
+  ) async {
+    final repository = _SyntheticRepository(source: ContactDataSource.cache);
+
+    await tester.pumpWidget(_app(repository));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ContactLabels.english.cachedMessage), findsOneWidget);
+
+    await tester.tap(find.text('Erika Beispiel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(ContactLabels.english.cachedMessage), findsOneWidget);
+  });
 }
 
 Widget _app(ContactsRepository repository) => MaterialApp(
@@ -62,9 +78,13 @@ Widget _app(ContactsRepository repository) => MaterialApp(
 );
 
 final class _SyntheticRepository implements ContactsRepository {
-  _SyntheticRepository({this.failSearch = false});
+  _SyntheticRepository({
+    this.failSearch = false,
+    this.source = ContactDataSource.remote,
+  });
 
   final bool failSearch;
+  final ContactDataSource source;
   final List<ContactSearch> searches = [];
   final List<ContactRecord> contacts = const [
     ContactRecord(
@@ -92,8 +112,13 @@ final class _SyntheticRepository implements ContactsRepository {
   ];
 
   @override
-  Future<ContactRecord> getById(int contactId) async =>
-      contacts.singleWhere((contact) => contact.id == contactId);
+  Future<ContactSnapshot> getById(int contactId) async => ContactSnapshot(
+    contact: contacts.singleWhere((contact) => contact.id == contactId),
+    source: source,
+    cachedAt: source == ContactDataSource.cache
+        ? DateTime.utc(2026, 9, 24)
+        : null,
+  );
 
   @override
   Future<ContactPage> search(ContactSearch search) async {
@@ -116,6 +141,10 @@ final class _SyntheticRepository implements ContactsRepository {
       perPage: search.perPage,
       total: matches.length,
       lastPage: 1,
+      source: source,
+      cachedAt: source == ContactDataSource.cache
+          ? DateTime.utc(2026, 9, 24)
+          : null,
     );
   }
 }

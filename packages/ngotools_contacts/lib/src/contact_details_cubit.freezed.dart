@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ContactDetailsState {
 
- ContactDetailsStatus get status; ContactRecord? get contact; ContactsFailureCode? get failure;
+ ContactDetailsStatus get status; ContactRecord? get contact; ContactDataSource get source; DateTime? get cachedAt; ContactsFailureCode? get failure;
 /// Create a copy of ContactDetailsState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $ContactDetailsStateCopyWith<ContactDetailsState> get copyWith => _$ContactDetai
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactDetailsState&&(identical(other.status, status) || other.status == status)&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.failure, failure) || other.failure == failure));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactDetailsState&&(identical(other.status, status) || other.status == status)&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,contact,failure);
+int get hashCode => Object.hash(runtimeType,status,contact,source,cachedAt,failure);
 
 @override
 String toString() {
-  return 'ContactDetailsState(status: $status, contact: $contact, failure: $failure)';
+  return 'ContactDetailsState(status: $status, contact: $contact, source: $source, cachedAt: $cachedAt, failure: $failure)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $ContactDetailsStateCopyWith<$Res>  {
   factory $ContactDetailsStateCopyWith(ContactDetailsState value, $Res Function(ContactDetailsState) _then) = _$ContactDetailsStateCopyWithImpl;
 @useResult
 $Res call({
- ContactDetailsStatus status, ContactRecord? contact, ContactsFailureCode? failure
+ ContactDetailsStatus status, ContactRecord? contact, ContactDataSource source, DateTime? cachedAt, ContactsFailureCode? failure
 });
 
 
@@ -62,11 +62,13 @@ class _$ContactDetailsStateCopyWithImpl<$Res>
 
 /// Create a copy of ContactDetailsState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? contact = freezed,Object? failure = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? status = null,Object? contact = freezed,Object? source = null,Object? cachedAt = freezed,Object? failure = freezed,}) {
   return _then(_self.copyWith(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ContactDetailsStatus,contact: freezed == contact ? _self.contact : contact // ignore: cast_nullable_to_non_nullable
-as ContactRecord?,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
+as ContactRecord?,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
 as ContactsFailureCode?,
   ));
 }
@@ -164,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactsFailureCode? failure)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactDataSource source,  DateTime? cachedAt,  ContactsFailureCode? failure)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ContactDetailsState() when $default != null:
-return $default(_that.status,_that.contact,_that.failure);case _:
+return $default(_that.status,_that.contact,_that.source,_that.cachedAt,_that.failure);case _:
   return orElse();
 
 }
@@ -185,10 +187,10 @@ return $default(_that.status,_that.contact,_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactsFailureCode? failure)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactDataSource source,  DateTime? cachedAt,  ContactsFailureCode? failure)  $default,) {final _that = this;
 switch (_that) {
 case _ContactDetailsState():
-return $default(_that.status,_that.contact,_that.failure);case _:
+return $default(_that.status,_that.contact,_that.source,_that.cachedAt,_that.failure);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +207,10 @@ return $default(_that.status,_that.contact,_that.failure);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactsFailureCode? failure)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ContactDetailsStatus status,  ContactRecord? contact,  ContactDataSource source,  DateTime? cachedAt,  ContactsFailureCode? failure)?  $default,) {final _that = this;
 switch (_that) {
 case _ContactDetailsState() when $default != null:
-return $default(_that.status,_that.contact,_that.failure);case _:
+return $default(_that.status,_that.contact,_that.source,_that.cachedAt,_that.failure);case _:
   return null;
 
 }
@@ -220,11 +222,13 @@ return $default(_that.status,_that.contact,_that.failure);case _:
 
 
 class _ContactDetailsState implements ContactDetailsState {
-  const _ContactDetailsState({this.status = ContactDetailsStatus.initial, this.contact, this.failure});
-  
+  const _ContactDetailsState({this.status = ContactDetailsStatus.initial, this.contact, this.source = ContactDataSource.remote, this.cachedAt, this.failure});
+
 
 @override@JsonKey() final  ContactDetailsStatus status;
 @override final  ContactRecord? contact;
+@override@JsonKey() final  ContactDataSource source;
+@override final  DateTime? cachedAt;
 @override final  ContactsFailureCode? failure;
 
 /// Create a copy of ContactDetailsState
@@ -237,16 +241,16 @@ _$ContactDetailsStateCopyWith<_ContactDetailsState> get copyWith => __$ContactDe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactDetailsState&&(identical(other.status, status) || other.status == status)&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.failure, failure) || other.failure == failure));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactDetailsState&&(identical(other.status, status) || other.status == status)&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,status,contact,failure);
+int get hashCode => Object.hash(runtimeType,status,contact,source,cachedAt,failure);
 
 @override
 String toString() {
-  return 'ContactDetailsState(status: $status, contact: $contact, failure: $failure)';
+  return 'ContactDetailsState(status: $status, contact: $contact, source: $source, cachedAt: $cachedAt, failure: $failure)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$ContactDetailsStateCopyWith<$Res> implements $ContactDeta
   factory _$ContactDetailsStateCopyWith(_ContactDetailsState value, $Res Function(_ContactDetailsState) _then) = __$ContactDetailsStateCopyWithImpl;
 @override @useResult
 $Res call({
- ContactDetailsStatus status, ContactRecord? contact, ContactsFailureCode? failure
+ ContactDetailsStatus status, ContactRecord? contact, ContactDataSource source, DateTime? cachedAt, ContactsFailureCode? failure
 });
 
 
@@ -274,11 +278,13 @@ class __$ContactDetailsStateCopyWithImpl<$Res>
 
 /// Create a copy of ContactDetailsState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? contact = freezed,Object? failure = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? status = null,Object? contact = freezed,Object? source = null,Object? cachedAt = freezed,Object? failure = freezed,}) {
   return _then(_ContactDetailsState(
 status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as ContactDetailsStatus,contact: freezed == contact ? _self.contact : contact // ignore: cast_nullable_to_non_nullable
-as ContactRecord?,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
+as ContactRecord?,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
 as ContactsFailureCode?,
   ));
 }

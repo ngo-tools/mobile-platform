@@ -197,7 +197,30 @@ final class _ContactsBody extends StatelessWidget {
         label: Text(labels.retry),
       ),
     ),
-    _ => _ContactResults(state: state, labels: labels, onSelected: onSelected),
+    _ => Column(
+      children: [
+        if (state.source == ContactDataSource.cache)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              NgoToolsLayout.spacing,
+              NgoToolsLayout.compactSpacing,
+              NgoToolsLayout.spacing,
+              0,
+            ),
+            child: NgoToolsStatusBanner(
+              status: NgoToolsStatus.warning,
+              message: labels.cachedMessage,
+            ),
+          ),
+        Expanded(
+          child: _ContactResults(
+            state: state,
+            labels: labels,
+            onSelected: onSelected,
+          ),
+        ),
+      ],
+    ),
   };
 }
 
@@ -430,9 +453,23 @@ final class _ContactDetailsViewState extends State<ContactDetailsView> {
             label: Text(widget.labels.retry),
           ),
         ),
-        ContactDetailsStatus.ready => _ContactDetails(
-          contact: state.contact!,
-          labels: widget.labels,
+        ContactDetailsStatus.ready => Column(
+          children: [
+            if (state.source == ContactDataSource.cache)
+              Padding(
+                padding: const EdgeInsets.all(NgoToolsLayout.spacing),
+                child: NgoToolsStatusBanner(
+                  status: NgoToolsStatus.warning,
+                  message: widget.labels.cachedMessage,
+                ),
+              ),
+            Expanded(
+              child: _ContactDetails(
+                contact: state.contact!,
+                labels: widget.labels,
+              ),
+            ),
+          ],
         ),
       },
     ),

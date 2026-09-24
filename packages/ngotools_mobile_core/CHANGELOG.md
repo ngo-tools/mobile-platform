@@ -3,3 +3,4 @@
 ## 0.1.0-dev.1
 
 - Establish app and environment configuration contracts.
+- Add the private-data purge contract shared with authentication lifecycle.

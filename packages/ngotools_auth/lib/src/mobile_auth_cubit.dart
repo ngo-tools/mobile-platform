@@ -18,6 +18,7 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
   factory MobileAuthCubit({
     required MobileAuthConfiguration configuration,
     required MobileAttestationProvider attestationProvider,
+    Iterable<MobilePrivateDataPurger> privateDataPurgers = const [],
   }) {
     if (configuration.attestationMode != MobileAttestationMode.disabled &&
         attestationProvider is DisabledMobileAttestationProvider) {
@@ -35,6 +36,7 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
         attestationProvider: attestationProvider,
       ),
       sessionStore: SecureAuthSessionStore(),
+      privateDataPurgers: privateDataPurgers,
     );
   }
 
@@ -45,19 +47,32 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
     required AuthorizationGateway authorizationGateway,
     required TokenExchangeClient tokenExchangeClient,
     required AuthSessionStore sessionStore,
+    Iterable<MobilePrivateDataPurger> privateDataPurgers = const [],
   }) : _configuration = configuration,
        _authorizationGateway = authorizationGateway,
        _tokenExchangeClient = tokenExchangeClient,
        _sessionStore = sessionStore,
+       _privateDataPurgers = List.of(privateDataPurgers),
        super(const MobileAuthState());
 
   final MobileAuthConfiguration _configuration;
   final AuthorizationGateway _authorizationGateway;
   final TokenExchangeClient _tokenExchangeClient;
   final AuthSessionStore _sessionStore;
+  final List<MobilePrivateDataPurger> _privateDataPurgers;
 
   AuthSession? _session;
   int _operation = 0;
+
+  /// Registers a user-bound store created after authentication completed.
+  ///
+  /// The purger remains registered for this Cubit's lifetime and is invoked
+  /// on every explicit logout or API-triggered session expiry.
+  void registerPrivateDataPurger(MobilePrivateDataPurger purger) {
+    if (!_privateDataPurgers.contains(purger)) {
+      _privateDataPurgers.add(purger);
+    }
+  }
 
   /// Restores a protected session when the app starts.
   Future<void> restore() async {
@@ -253,26 +268,26 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
   Future<void> signOut() async {
     _operation += 1;
     final session = _session;
+    _session = null;
+    emit(const MobileAuthState());
+
+    try {
+      await _clearProtectedLocalData();
+    } on Object {
+      emit(
+        const MobileAuthState(
+          status: MobileAuthStatus.failed,
+          failure: MobileAuthFailure(code: MobileAuthFailureCode.storage),
+        ),
+      );
+    }
 
     try {
       if (session != null) {
         await _tokenExchangeClient.revoke(_configuration, session.apiToken);
       }
     } on Object {
-      // Remote revocation is best effort; local credentials must still go.
-    } finally {
-      _session = null;
-      try {
-        await _sessionStore.delete(_configuration);
-        emit(const MobileAuthState());
-      } on Object {
-        emit(
-          const MobileAuthState(
-            status: MobileAuthStatus.failed,
-            failure: MobileAuthFailure(code: MobileAuthFailureCode.storage),
-          ),
-        );
-      }
+      // Remote revocation is best effort after protected local data is gone.
     }
   }
 
@@ -280,14 +295,14 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
   Future<void> expire() async {
     _operation += 1;
     _session = null;
+    emit(
+      const MobileAuthState(
+        status: MobileAuthStatus.expired,
+        failure: MobileAuthFailure(code: MobileAuthFailureCode.expired),
+      ),
+    );
     try {
-      await _sessionStore.delete(_configuration);
-      emit(
-        const MobileAuthState(
-          status: MobileAuthStatus.expired,
-          failure: MobileAuthFailure(code: MobileAuthFailureCode.expired),
-        ),
-      );
+      await _clearProtectedLocalData();
     } on Object {
       emit(
         const MobileAuthState(
@@ -330,6 +345,30 @@ final class MobileAuthCubit extends Cubit<MobileAuthState> {
         ),
       ),
     );
+  }
+
+  Future<void> _clearProtectedLocalData() async {
+    var failed = false;
+
+    try {
+      await _sessionStore.delete(_configuration);
+    } on Object {
+      failed = true;
+    }
+
+    for (final purger in List<MobilePrivateDataPurger>.of(
+      _privateDataPurgers,
+    )) {
+      try {
+        await purger.purgePrivateData();
+      } on Object {
+        failed = true;
+      }
+    }
+
+    if (failed) {
+      throw StateError('Protected local data could not be cleared.');
+    }
   }
 
   MobileAuthFailureCode _dioFailure(DioException error) =>

@@ -36,6 +36,8 @@ abstract class ContactsState with _$ContactsState {
     @Default(25) int perPage,
     @Default(0) int total,
     @Default(1) int lastPage,
+    @Default(ContactDataSource.remote) ContactDataSource source,
+    DateTime? cachedAt,
     ContactsFailureCode? failure,
   }) = _ContactsState;
 
@@ -112,6 +114,8 @@ final class ContactsCubit extends Cubit<ContactsState> {
           page: result.page,
           total: result.total,
           lastPage: result.lastPage,
+          source: result.source,
+          cachedAt: result.cachedAt,
           failure: null,
         ),
       );
@@ -164,6 +168,8 @@ final class ContactsCubit extends Cubit<ContactsState> {
           perPage: result.perPage,
           total: result.total,
           lastPage: result.lastPage,
+          source: result.source,
+          cachedAt: result.cachedAt,
         ),
       );
     } on Object catch (error) {
