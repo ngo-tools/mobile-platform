@@ -27,6 +27,17 @@ abstract final class SyntheticMobileFixture {
             MobileEnvironment.staging => MobileAttestationMode.test,
             MobileEnvironment.production => MobileAttestationMode.enforced,
           },
+          oidc: MobileOidcConfiguration(
+            issuer: Uri.https(
+              'identity.${environment.name}.example.invalid',
+              '/realms/synthetic',
+            ),
+            clientId: 'mobile-synthetic-${environment.name}',
+            redirectUri: Uri.parse(
+              'ngotools-synthetic-${environment.name}://oauth/callback',
+            ),
+            scopes: const ['openid', 'profile', 'email', 'offline_access'],
+          ),
         ),
     },
   );

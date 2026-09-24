@@ -39,4 +39,26 @@ abstract final class ArchitectureValidator {
 
     return errors;
   }
+
+  /// Returns imports that bypass token or HTTP ownership boundaries.
+  static List<String> validateSourceBoundaries(Map<String, String> sources) {
+    final errors = <String>[];
+
+    for (final entry in sources.entries) {
+      final isAuthSource = entry.key.startsWith('packages/ngotools_auth/lib/');
+      final isApiSource = entry.key.startsWith('packages/ngotools_api/lib/');
+
+      if (!isAuthSource && entry.value.contains("package:ngotools_auth/src/")) {
+        errors.add('${entry.key} may not import ngotools_auth internals.');
+      }
+
+      if (!isAuthSource &&
+          !isApiSource &&
+          entry.value.contains("package:dio/")) {
+        errors.add('${entry.key} may not perform direct HTTP requests.');
+      }
+    }
+
+    return errors;
+  }
 }

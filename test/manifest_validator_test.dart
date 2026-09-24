@@ -79,6 +79,27 @@ void main() {
     expect(result.isValid, isFalse);
   });
 
+  test('requires external-browser Authorization Code with PKCE', () {
+    final result = ManifestValidator.validate(
+      manifestSource: manifestSource.replaceFirst(
+        'userAgent: external',
+        'userAgent: embedded',
+      ),
+      schemaSource: schemaSource,
+    );
+
+    expect(result.isValid, isFalse);
+  });
+
+  test('requires the complete public OIDC scope set', () {
+    final result = ManifestValidator.validate(
+      manifestSource: manifestSource.replaceFirst(', offline_access', ''),
+      schemaSource: schemaSource,
+    );
+
+    expect(result.isValid, isFalse);
+  });
+
   test('reports malformed YAML instead of throwing', () {
     final result = ManifestValidator.validate(
       manifestSource: 'metadata: [',

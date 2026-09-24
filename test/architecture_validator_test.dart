@@ -22,4 +22,21 @@ void main() {
       contains('ngotools_mobile_core may not depend on ngotools_api.'),
     );
   });
+
+  test('keeps raw auth state and HTTP behind package boundaries', () {
+    final errors = ArchitectureValidator.validateSourceBoundaries({
+      'example/golden_app/lib/profile.dart':
+          "import 'package:ngotools_auth/src/internal/auth_session.dart';\n"
+          "import 'package:dio/dio.dart';",
+      'packages/ngotools_auth/lib/src/client.dart':
+          "import 'package:dio/dio.dart';",
+      'packages/ngotools_api/lib/src/client.dart':
+          "import 'package:dio/dio.dart';",
+    });
+
+    expect(errors, {
+      'example/golden_app/lib/profile.dart may not import ngotools_auth internals.',
+      'example/golden_app/lib/profile.dart may not perform direct HTTP requests.',
+    });
+  });
 }

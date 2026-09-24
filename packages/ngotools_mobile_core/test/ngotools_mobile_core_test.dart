@@ -9,6 +9,7 @@ void main() {
       apiBaseUrl: Uri.https('staging.example.invalid', '/api/v2'),
       configRevision: 'cfg_01J00000000000000000000000',
       attestationMode: MobileAttestationMode.test,
+      oidc: _oidc(),
     );
     final configuration = MobileAppConfiguration(
       appId: 'mob_01J00000000000000000000000',
@@ -42,9 +43,17 @@ void main() {
       apiBaseUrl: Uri.https('example.invalid', '/api/v2'),
       configRevision: 'cfg_01J00000000000000000000000',
       attestationMode: MobileAttestationMode.enforced,
+      oidc: _oidc(),
     );
 
     expect(configuration.locales, ['de', 'en']);
     expect(configuration.environments, isEmpty);
   });
 }
+
+MobileOidcConfiguration _oidc() => MobileOidcConfiguration(
+  issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
+  clientId: 'mobile-synthetic',
+  redirectUri: Uri.parse('ngotools-synthetic://oauth/callback'),
+  scopes: const ['openid', 'profile', 'email', 'offline_access'],
+);

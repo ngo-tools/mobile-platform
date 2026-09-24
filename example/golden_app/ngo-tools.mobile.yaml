@@ -24,18 +24,34 @@ backend:
       apiBaseUrl: https://development.example.invalid/api/v2
       configRevision: cfg_01J00000000000000000000000
       attestationMode: disabled
+      oidc:
+        issuer: https://identity.development.example.invalid/realms/synthetic
+        clientId: mobile-01j00000000000000000000000
+        redirectUri: ngotools-01j00000000000000000000000://oauth/callback
+        scopes: [openid, profile, email, offline_access]
     staging:
       id: env_01J00000000000000000000001
       apiBaseUrl: https://staging.example.invalid/api/v2
       configRevision: cfg_01J00000000000000000000001
       attestationMode: test
+      oidc:
+        issuer: https://identity.staging.example.invalid/realms/synthetic
+        clientId: mobile-01j00000000000000000000001
+        redirectUri: ngotools-01j00000000000000000000001://oauth/callback
+        scopes: [openid, profile, email, offline_access]
     production:
       id: env_01J00000000000000000000002
       apiBaseUrl: https://production.example.invalid/api/v2
       configRevision: cfg_01J00000000000000000000002
       attestationMode: enforced
+      oidc:
+        issuer: https://identity.production.example.invalid/realms/synthetic
+        clientId: mobile-01j00000000000000000000002
+        redirectUri: ngotools-01j00000000000000000000002://oauth/callback
+        scopes: [openid, profile, email, offline_access]
 auth:
-  redirectUrl: https://mobile.example.invalid/golden/auth/callback
+  flow: authorization_code_pkce
+  userAgent: external
 localization:
   defaultLocale: de
   locales:
