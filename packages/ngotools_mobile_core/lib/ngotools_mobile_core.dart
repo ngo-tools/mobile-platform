@@ -7,6 +7,29 @@ enum MobileEnvironment { development, staging, production }
 /// The level of platform attestation enforced by the backend.
 enum MobileAttestationMode { disabled, test, enforced }
 
+/// Public OpenID Connect settings for one mobile environment.
+class MobileOidcConfiguration {
+  /// Creates immutable public-client settings.
+  MobileOidcConfiguration({
+    required this.issuer,
+    required this.clientId,
+    required this.redirectUri,
+    required Iterable<String> scopes,
+  }) : scopes = List.unmodifiable(scopes);
+
+  /// The environment-specific OpenID Connect issuer.
+  final Uri issuer;
+
+  /// The public client identifier. Mobile apps never embed a client secret.
+  final String clientId;
+
+  /// The exact private-scheme redirect URI registered by the backend.
+  final Uri redirectUri;
+
+  /// The OpenID Connect scopes used for Authorization Code with PKCE.
+  final List<String> scopes;
+}
+
 /// Public, secret-free configuration for one deployment environment.
 class MobileEnvironmentConfiguration {
   /// Creates an immutable environment configuration.
@@ -16,6 +39,7 @@ class MobileEnvironmentConfiguration {
     required this.apiBaseUrl,
     required this.configRevision,
     required this.attestationMode,
+    required this.oidc,
   });
 
   /// The deployment environment represented by this configuration.
@@ -32,6 +56,9 @@ class MobileEnvironmentConfiguration {
 
   /// The attestation policy enforced for this environment.
   final MobileAttestationMode attestationMode;
+
+  /// Public OIDC settings for this environment.
+  final MobileOidcConfiguration oidc;
 }
 
 /// Public, tenant-bound configuration embedded in an organization app.

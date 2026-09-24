@@ -78,9 +78,10 @@
     "auth": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["redirectUrl"],
+      "required": ["flow", "userAgent"],
       "properties": {
-        "redirectUrl": {"type": "string", "format": "uri", "pattern": "^https://"}
+        "flow": {"const": "authorization_code_pkce"},
+        "userAgent": {"const": "external"}
       }
     },
     "localization": {
@@ -195,12 +196,39 @@
     "environment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "apiBaseUrl", "configRevision", "attestationMode"],
+      "required": ["id", "apiBaseUrl", "configRevision", "attestationMode", "oidc"],
       "properties": {
         "id": {"type": "string", "pattern": "^env_[0-9A-HJKMNP-TV-Z]{26}$"},
         "apiBaseUrl": {"type": "string", "format": "uri", "pattern": "^https://"},
         "configRevision": {"type": "string", "pattern": "^cfg_[0-9A-HJKMNP-TV-Z]{26}$"},
-        "attestationMode": {"enum": ["disabled", "test", "enforced"]}
+        "attestationMode": {"enum": ["disabled", "test", "enforced"]},
+        "oidc": {"$ref": "#/definitions/oidc"}
+      }
+    },
+    "oidc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issuer", "clientId", "redirectUri", "scopes"],
+      "properties": {
+        "issuer": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "clientId": {"type": "string", "pattern": "^[A-Za-z0-9._-]+$"},
+        "redirectUri": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^ngotools-[a-z0-9]+://oauth/callback$"
+        },
+        "scopes": {
+          "type": "array",
+          "minItems": 4,
+          "uniqueItems": true,
+          "allOf": [
+            {"contains": {"const": "openid"}},
+            {"contains": {"const": "profile"}},
+            {"contains": {"const": "email"}},
+            {"contains": {"const": "offline_access"}}
+          ],
+          "items": {"enum": ["openid", "profile", "email", "offline_access"]}
+        }
       }
     }
   }

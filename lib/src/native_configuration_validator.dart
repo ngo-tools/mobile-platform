@@ -20,6 +20,7 @@ abstract final class NativeConfigurationValidator {
     required String androidManifest,
     required String iosProjectFile,
     required String iosInfoPlist,
+    required String iosEntitlements,
   }) {
     final errors = <String>[];
     final identifiers = manifest['identifiers'];
@@ -59,6 +60,39 @@ abstract final class NativeConfigurationValidator {
       errors.add('Release builds must not use the Android debug signing key.');
     }
 
+    if (!androidBuildFile.contains('minSdk = 23')) {
+      errors.add(
+        'Android minSdk must support hardware-backed session storage.',
+      );
+    }
+
+    if (!androidManifest.contains('android:allowBackup="false"')) {
+      errors.add('Android backups must be disabled for protected sessions.');
+    }
+
+    if (androidManifest.contains('android:taskAffinity=""')) {
+      errors.add('Android taskAffinity must not block AppAuth redirects.');
+    }
+
+    if (!iosProjectFile.contains(
+          'CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;',
+        ) ||
+        !iosEntitlements.contains('<key>keychain-access-groups</key>')) {
+      errors.add('iOS Keychain entitlements must protect auth sessions.');
+    }
+
+    final redirectSchemes = _redirectSchemes(manifest);
+
+    for (final scheme in redirectSchemes) {
+      if (!androidManifest.contains('android:scheme="$scheme"')) {
+        errors.add('Android is missing the $scheme auth redirect scheme.');
+      }
+
+      if (!iosInfoPlist.contains('<string>$scheme</string>')) {
+        errors.add('iOS is missing the $scheme auth redirect scheme.');
+      }
+    }
+
     final permissions = manifest['permissions'];
     final declaredPermissions = <String>{};
 
@@ -89,5 +123,28 @@ abstract final class NativeConfigurationValidator {
     }
 
     return errors;
+  }
+
+  static Set<String> _redirectSchemes(Map<String, Object?> manifest) {
+    final backend = manifest['backend'];
+
+    if (backend is! Map<String, Object?>) {
+      return const {};
+    }
+
+    final environments = backend['environments'];
+
+    if (environments is! Map<String, Object?>) {
+      return const {};
+    }
+
+    return {
+      for (final environment in environments.values)
+        if (environment is Map<String, Object?> &&
+            environment['oidc'] is Map<String, Object?>)
+          if ((environment['oidc']! as Map<String, Object?>)['redirectUri']
+              case final String redirectUri)
+            Uri.parse(redirectUri).scheme,
+    };
   }
 }

@@ -51,6 +51,10 @@ Future<void> main() async {
           repository,
           'example/golden_app/ios/Runner/Info.plist',
         ),
+        iosEntitlements: await _read(
+          repository,
+          'example/golden_app/ios/Runner/Runner.entitlements',
+        ),
       ).map((error) => 'Native configuration: $error'),
     );
   }
@@ -122,7 +126,28 @@ Future<List<String>> _validateArchitecture(Directory repository) async {
         : <String>{};
   }
 
-  return ArchitectureValidator.validate(packageDependencies);
+  final errors = ArchitectureValidator.validate(packageDependencies);
+  final sources = <String, String>{};
+
+  for (final sourceRoot in [
+    Directory(path.join(repository.path, 'packages')),
+    Directory(path.join(repository.path, 'example', 'golden_app', 'lib')),
+  ]) {
+    await for (final entity in sourceRoot.list(recursive: true)) {
+      if (entity is! File ||
+          !entity.path.endsWith('.dart') ||
+          entity.path.split(path.separator).contains('test')) {
+        continue;
+      }
+
+      final relativePath = path.relative(entity.path, from: repository.path);
+      sources[relativePath] = await entity.readAsString();
+    }
+  }
+
+  errors.addAll(ArchitectureValidator.validateSourceBoundaries(sources));
+
+  return errors;
 }
 
 Future<Map<String, String>> _repositoryTextFiles(Directory repository) async {
