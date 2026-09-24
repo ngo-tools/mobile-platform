@@ -64,6 +64,7 @@ permissions:
   apiScopes:
     - profile:read
     - contacts:read
+    - contacts:write
   device: []
 features:
   modules:

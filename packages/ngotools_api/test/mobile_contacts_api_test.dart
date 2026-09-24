@@ -14,12 +14,20 @@ void main() {
           {
             'id': 41,
             'type': 'person',
+            'version':
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             'first_name': 'Erika',
             'last_name': 'Beispiel',
             'email': 'erika@example.invalid',
             'updated_at': '2026-09-23T10:30:00Z',
           },
-          {'id': 42, 'type': 'future_contact_type', 'name': 'Kontakt 42'},
+          {
+            'id': 42,
+            'type': 'future_contact_type',
+            'version':
+                'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+            'name': 'Kontakt 42',
+          },
         ],
         'meta': {
           'current_page': 2,
@@ -75,6 +83,8 @@ void main() {
         'data': {
           'id': 73,
           'type': 'organization',
+          'version':
+              'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
           'name': 'Beispielverein',
           'active_address_id': 8,
           'addresses': [
@@ -103,6 +113,104 @@ void main() {
     expect(request.path, '/api/v2/contacts/73');
     expect(request.method, 'GET');
     expect(request.queryParameters, {'include': 'addresses'});
+
+    await api.close();
+  });
+
+  test('creates a contact with a stable idempotency key', () async {
+    const idempotencyKey = '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4201';
+    final adapter = _StubHttpClientAdapter(
+      (_) => _jsonResponse(
+        {
+          'data': {
+            'id': 91,
+            'type': 'person',
+            'version':
+                'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+            'first_name': 'Erika',
+            'last_name': 'Beispiel',
+            'email': 'erika@example.invalid',
+          },
+        },
+        201,
+        {
+          'Idempotency-Replayed': ['false'],
+        },
+      ),
+    );
+    final api = _api(adapter);
+
+    final result = await api.createContact(
+      idempotencyKey: idempotencyKey,
+      contact: const MobileContactMutation(
+        kind: MobileWritableContactKind.person,
+        firstName: 'Erika',
+        lastName: 'Beispiel',
+        email: 'erika@example.invalid',
+      ),
+    );
+
+    expect(result, isA<MobileContactMutationSuccess>());
+    final success = result as MobileContactMutationSuccess;
+    expect(success.contact.id, 91);
+    expect(success.replayed, isFalse);
+    final request = adapter.requests.single;
+    expect(request.method, 'POST');
+    expect(request.path, '/api/v2/contact-mutations');
+    expect(request.headers['Idempotency-Key'], idempotencyKey);
+    expect(jsonDecode(request.data as String), {
+      'type': 'person',
+      'name': null,
+      'first_name': 'Erika',
+      'last_name': 'Beispiel',
+      'email': 'erika@example.invalid',
+      'salutation': null,
+      'title': null,
+      'gender': null,
+      'birthday': null,
+    });
+
+    await api.close();
+  });
+
+  test('maps a stale update to a dedicated conflict result', () async {
+    const idempotencyKey = '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4202';
+    const version =
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    final adapter = _StubHttpClientAdapter(
+      (_) => _jsonResponse({
+        'code': 'contact_version_conflict',
+        'message': 'The contact changed after this edit started.',
+      }, 409),
+    );
+    final api = _api(adapter);
+
+    final result = await api.updateContact(
+      contactId: 73,
+      idempotencyKey: idempotencyKey,
+      baseVersion: version,
+      contact: const MobileContactMutation(
+        kind: MobileWritableContactKind.organization,
+        name: 'Beispielverein',
+      ),
+    );
+
+    expect(result, isA<MobileContactVersionConflict>());
+    final request = adapter.requests.single;
+    expect(request.method, 'PATCH');
+    expect(request.path, '/api/v2/contact-mutations/73');
+    expect(request.headers['Idempotency-Key'], idempotencyKey);
+    expect(jsonDecode(request.data as String), {
+      'base_version': version,
+      'name': 'Beispielverein',
+      'first_name': null,
+      'last_name': null,
+      'email': null,
+      'salutation': null,
+      'title': null,
+      'gender': null,
+      'birthday': null,
+    });
 
     await api.close();
   });
@@ -195,14 +303,18 @@ NgoToolsMobileApi _api(_StubHttpClientAdapter adapter) {
   );
 }
 
-ResponseBody _jsonResponse(Object body, [int statusCode = 200]) =>
-    ResponseBody.fromString(
-      jsonEncode(body),
-      statusCode,
-      headers: {
-        Headers.contentTypeHeader: [Headers.jsonContentType],
-      },
-    );
+ResponseBody _jsonResponse(
+  Object body, [
+  int statusCode = 200,
+  Map<String, List<String>> headers = const {},
+]) => ResponseBody.fromString(
+  jsonEncode(body),
+  statusCode,
+  headers: {
+    Headers.contentTypeHeader: [Headers.jsonContentType],
+    ...headers,
+  },
+);
 
 final class _StubHttpClientAdapter implements HttpClientAdapter {
   _StubHttpClientAdapter(this._handler);

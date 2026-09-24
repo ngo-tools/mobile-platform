@@ -56,7 +56,7 @@ abstract final class SyntheticMobileFixture {
   static final capabilities = MobileRuntimeCapabilities(
     schemaVersion: 1,
     features: const ['contacts', 'profile'],
-    permissions: const ['contacts:read', 'profile:read'],
+    permissions: const ['contacts:read', 'contacts:write', 'profile:read'],
     importsEnabled: true,
     importTypes: {
       'contacts': MobileImportCapability(

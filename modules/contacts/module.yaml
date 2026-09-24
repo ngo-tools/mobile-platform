@@ -8,7 +8,7 @@ metadata:
   summary:
     de: Durchsucht und verwaltet Kontakte mit kontrolliertem Offline-Verhalten.
     en: Searches and manages contacts with controlled offline behavior.
-status: planned
+status: available
 delivery:
   type: package
   package: ngotools_contacts
@@ -17,10 +17,12 @@ requires:
     - profile
   apiScopes:
     - contacts:read
+    - contacts:write
   features:
     - contacts
   permissions:
     - contacts:read
+    - contacts:write
   devicePermissions: []
 deepLinks:
   - /contacts/{id}

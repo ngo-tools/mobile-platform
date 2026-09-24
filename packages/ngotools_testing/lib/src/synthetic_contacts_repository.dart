@@ -9,6 +9,8 @@ final class SyntheticContactsRepository implements ContactsRepository {
     ContactRecord(
       id: 101,
       kind: ContactKind.person,
+      version:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       firstName: 'Erika',
       lastName: 'Beispiel',
       email: 'erika@example.invalid',
@@ -26,6 +28,8 @@ final class SyntheticContactsRepository implements ContactsRepository {
     ContactRecord(
       id: 102,
       kind: ContactKind.organization,
+      version:
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       name: 'Beispielverein',
       email: 'verein@example.invalid',
       addresses: [
@@ -42,6 +46,8 @@ final class SyntheticContactsRepository implements ContactsRepository {
     ContactRecord(
       id: 103,
       kind: ContactKind.couple,
+      version:
+          'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
       name: 'Alex und Kim Muster',
       email: 'muster@example.invalid',
     ),

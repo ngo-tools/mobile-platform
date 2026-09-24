@@ -23,6 +23,8 @@ class Contact {
 
     required this.type,
 
+    required this.version,
+
     this.name,
 
     this.firstName,
@@ -51,6 +53,9 @@ class Contact {
 
   @JsonKey(name: r'type', required: true, includeIfNull: false)
   final String type;
+
+  @JsonKey(name: r'version', required: true, includeIfNull: false)
+  final String version;
 
   @JsonKey(name: r'name', required: false, includeIfNull: false)
   final String? name;
@@ -91,6 +96,7 @@ class Contact {
       other is Contact &&
           other.id == id &&
           other.type == type &&
+          other.version == version &&
           other.name == name &&
           other.firstName == firstName &&
           other.lastName == lastName &&
@@ -107,6 +113,7 @@ class Contact {
   int get hashCode =>
       id.hashCode +
       type.hashCode +
+      version.hashCode +
       (name == null ? 0 : name.hashCode) +
       (firstName == null ? 0 : firstName.hashCode) +
       (lastName == null ? 0 : lastName.hashCode) +

@@ -11,8 +11,15 @@ abstract interface class ContactsRepository {
   Future<ContactSnapshot> getById(int contactId);
 }
 
+/// Explicit online mutation boundary used only after draft confirmation.
+abstract interface class ContactMutationRepository {
+  /// Submits one retained draft with its stable idempotency key.
+  Future<ContactDraftSubmissionResult> submitDraft(ContactDraft draft);
+}
+
 /// Contacts repository backed by the stable NGO.Tools mobile API boundary.
-final class NgoToolsContactsRepository implements ContactsRepository {
+final class NgoToolsContactsRepository
+    implements ContactsRepository, ContactMutationRepository {
   /// Creates an API-backed repository.
   const NgoToolsContactsRepository(this._api);
 
@@ -59,6 +66,44 @@ final class NgoToolsContactsRepository implements ContactsRepository {
   Future<ContactSnapshot> getById(int contactId) async =>
       ContactSnapshot(contact: _mapContact(await _api.fetchContact(contactId)));
 
+  @override
+  Future<ContactDraftSubmissionResult> submitDraft(ContactDraft draft) async {
+    final mutation = MobileContactMutation(
+      kind: switch (draft.kind) {
+        ContactDraftKind.person => MobileWritableContactKind.person,
+        ContactDraftKind.organization => MobileWritableContactKind.organization,
+      },
+      name: draft.name,
+      firstName: draft.firstName,
+      lastName: draft.lastName,
+      email: draft.email,
+      salutation: draft.salutation,
+      title: draft.title,
+      gender: draft.gender,
+      birthday: draft.birthday,
+    );
+    final result = draft.contactId == null
+        ? await _api.createContact(
+            idempotencyKey: draft.idempotencyKey,
+            contact: mutation,
+          )
+        : await _api.updateContact(
+            contactId: draft.contactId!,
+            idempotencyKey: draft.idempotencyKey,
+            baseVersion: draft.baseVersion!,
+            contact: mutation,
+          );
+
+    return switch (result) {
+      MobileContactMutationSuccess(:final contact, :final replayed) =>
+        ContactDraftSubmissionSuccess(
+          contact: _mapContact(contact),
+          replayed: replayed,
+        ),
+      MobileContactVersionConflict() => const ContactDraftSubmissionConflict(),
+    };
+  }
+
   static ContactRecord _mapContact(MobileContact contact) => ContactRecord(
     id: contact.id,
     kind: switch (contact.kind) {
@@ -67,6 +112,7 @@ final class NgoToolsContactsRepository implements ContactsRepository {
       MobileContactKind.couple => ContactKind.couple,
       MobileContactKind.unknown => ContactKind.unknown,
     },
+    version: contact.version,
     name: contact.name,
     firstName: contact.firstName,
     lastName: contact.lastName,

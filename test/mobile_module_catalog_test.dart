@@ -18,7 +18,7 @@ void main() {
 
   test('loads descriptors in deterministic identifier order', () {
     expect(catalog.modules.map((module) => module.id), ['contacts', 'profile']);
-    expect(catalog['contacts']?.status, 'planned');
+    expect(catalog['contacts']?.status, 'available');
     expect(catalog['profile']?.status, 'available');
   });
 
@@ -57,6 +57,7 @@ void main() {
     expect(errors, [
       'Module contacts requires selected module profile.',
       'Module contacts requires API scope contacts:read.',
+      'Module contacts requires API scope contacts:write.',
     ]);
   });
 

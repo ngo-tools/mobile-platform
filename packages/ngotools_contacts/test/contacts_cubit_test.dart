@@ -141,8 +141,12 @@ ContactPage _page({required List<ContactRecord> items, required int page}) =>
       lastPage: 1,
     );
 
-ContactRecord _contact(int id, String name) =>
-    ContactRecord(id: id, kind: ContactKind.person, name: name);
+ContactRecord _contact(int id, String name) => ContactRecord(
+  id: id,
+  kind: ContactKind.person,
+  version: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  name: name,
+);
 
 final class _CallbackRepository implements ContactsRepository {
   _CallbackRepository({required this.onSearch});

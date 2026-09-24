@@ -7,6 +7,12 @@ void main() {
   late _MockMobileApi api;
   late NgoToolsContactsRepository repository;
 
+  setUpAll(() {
+    registerFallbackValue(
+      const MobileContactMutation(kind: MobileWritableContactKind.person),
+    );
+  });
+
   setUp(() {
     api = _MockMobileApi();
     repository = NgoToolsContactsRepository(api);
@@ -26,6 +32,8 @@ void main() {
           MobileContact(
             id: 42,
             kind: MobileContactKind.person,
+            version:
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             firstName: 'Erika',
             lastName: 'Beispiel',
             email: 'erika@example.invalid',
@@ -98,6 +106,50 @@ void main() {
       (MobileContactSortField.updatedAt, MobileContactSortDirection.descending),
       (MobileContactSortField.id, MobileContactSortDirection.descending),
     ]);
+  });
+
+  test('maps confirmed drafts into the stable mutation API', () async {
+    when(
+      () => api.createContact(
+        idempotencyKey: any(named: 'idempotencyKey'),
+        contact: any(named: 'contact'),
+      ),
+    ).thenAnswer(
+      (_) async => MobileContactMutationSuccess(
+        contact: MobileContact(
+          id: 43,
+          kind: MobileContactKind.person,
+          version:
+              'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          firstName: 'Erika',
+          lastName: 'Beispiel',
+        ),
+        replayed: false,
+      ),
+    );
+    final draft = ContactDraft(
+      localId: '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4101',
+      idempotencyKey: '018e9cf8-7aa1-7cc8-8e6b-6f1deacb4201',
+      kind: ContactDraftKind.person,
+      createdAt: DateTime.utc(2026, 9, 24),
+      updatedAt: DateTime.utc(2026, 9, 24),
+      firstName: 'Erika',
+      lastName: 'Beispiel',
+    );
+
+    final result = await repository.submitDraft(draft);
+
+    expect(result, isA<ContactDraftSubmissionSuccess>());
+    final mutation =
+        verify(
+              () => api.createContact(
+                idempotencyKey: draft.idempotencyKey,
+                contact: captureAny(named: 'contact'),
+              ),
+            ).captured.single
+            as MobileContactMutation;
+    expect(mutation.kind, MobileWritableContactKind.person);
+    expect(mutation.firstName, 'Erika');
   });
 }
 

@@ -1,5 +1,5 @@
 name: ngotools_contacts
-description: Read-only contact discovery for NGO.Tools mobile apps.
+description: Encrypted contact discovery and confirmed drafts for NGO.Tools mobile apps.
 version: 0.1.0-dev.1
 repository: https://github.com/ngo-tools/mobile-platform
 issue_tracker: https://github.com/ngo-tools/mobile-platform/issues
@@ -24,6 +24,7 @@ dependencies:
   ngotools_mobile_core: ^0.1.0-dev.1
   path: ^1.9.1
   path_provider: ^2.1.6
+  uuid: ^4.6.0
 
 dev_dependencies:
   build_runner: ^2.4.15

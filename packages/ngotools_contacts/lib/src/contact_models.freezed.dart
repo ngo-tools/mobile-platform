@@ -292,7 +292,7 @@ as String?,
 /// @nodoc
 mixin _$ContactRecord {
 
- int get id; ContactKind get kind; String? get name; String? get firstName; String? get lastName; String? get email; String? get salutation; String? get title; String? get gender; DateTime? get birthday; int? get activeAddressId; DateTime? get updatedAt; List<ContactAddress> get addresses;
+ int get id; ContactKind get kind; String get version; String? get name; String? get firstName; String? get lastName; String? get email; String? get salutation; String? get title; String? get gender; DateTime? get birthday; int? get activeAddressId; DateTime? get updatedAt; List<ContactAddress> get addresses;
 /// Create a copy of ContactRecord
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -303,16 +303,16 @@ $ContactRecordCopyWith<ContactRecord> get copyWith => _$ContactRecordCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.activeAddressId, activeAddressId) || other.activeAddressId == activeAddressId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.addresses, addresses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.version, version) || other.version == version)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.activeAddressId, activeAddressId) || other.activeAddressId == activeAddressId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.addresses, addresses));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,kind,name,firstName,lastName,email,salutation,title,gender,birthday,activeAddressId,updatedAt,const DeepCollectionEquality().hash(addresses));
+int get hashCode => Object.hash(runtimeType,id,kind,version,name,firstName,lastName,email,salutation,title,gender,birthday,activeAddressId,updatedAt,const DeepCollectionEquality().hash(addresses));
 
 @override
 String toString() {
-  return 'ContactRecord(id: $id, kind: $kind, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, activeAddressId: $activeAddressId, updatedAt: $updatedAt, addresses: $addresses)';
+  return 'ContactRecord(id: $id, kind: $kind, version: $version, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, activeAddressId: $activeAddressId, updatedAt: $updatedAt, addresses: $addresses)';
 }
 
 
@@ -323,7 +323,7 @@ abstract mixin class $ContactRecordCopyWith<$Res>  {
   factory $ContactRecordCopyWith(ContactRecord value, $Res Function(ContactRecord) _then) = _$ContactRecordCopyWithImpl;
 @useResult
 $Res call({
- int id, ContactKind kind, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, int? activeAddressId, DateTime? updatedAt, List<ContactAddress> addresses
+ int id, ContactKind kind, String version, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, int? activeAddressId, DateTime? updatedAt, List<ContactAddress> addresses
 });
 
 
@@ -340,11 +340,12 @@ class _$ContactRecordCopyWithImpl<$Res>
 
 /// Create a copy of ContactRecord
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? kind = null,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? activeAddressId = freezed,Object? updatedAt = freezed,Object? addresses = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? kind = null,Object? version = null,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? activeAddressId = freezed,Object? updatedAt = freezed,Object? addresses = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as ContactKind,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as ContactKind,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -440,10 +441,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  ContactKind kind,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  ContactKind kind,  String version,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ContactRecord() when $default != null:
-return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
+return $default(_that.id,_that.kind,_that.version,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
   return orElse();
 
 }
@@ -461,10 +462,10 @@ return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  ContactKind kind,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  ContactKind kind,  String version,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)  $default,) {final _that = this;
 switch (_that) {
 case _ContactRecord():
-return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
+return $default(_that.id,_that.kind,_that.version,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -481,10 +482,10 @@ return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  ContactKind kind,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  ContactKind kind,  String version,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  int? activeAddressId,  DateTime? updatedAt,  List<ContactAddress> addresses)?  $default,) {final _that = this;
 switch (_that) {
 case _ContactRecord() when $default != null:
-return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
+return $default(_that.id,_that.kind,_that.version,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.activeAddressId,_that.updatedAt,_that.addresses);case _:
   return null;
 
 }
@@ -496,11 +497,12 @@ return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_t
 
 
 class _ContactRecord extends ContactRecord {
-  const _ContactRecord({required this.id, required this.kind, this.name, this.firstName, this.lastName, this.email, this.salutation, this.title, this.gender, this.birthday, this.activeAddressId, this.updatedAt, final  List<ContactAddress> addresses = const <ContactAddress>[]}): _addresses = addresses,super._();
+  const _ContactRecord({required this.id, required this.kind, required this.version, this.name, this.firstName, this.lastName, this.email, this.salutation, this.title, this.gender, this.birthday, this.activeAddressId, this.updatedAt, final  List<ContactAddress> addresses = const <ContactAddress>[]}): _addresses = addresses,super._();
 
 
 @override final  int id;
 @override final  ContactKind kind;
+@override final  String version;
 @override final  String? name;
 @override final  String? firstName;
 @override final  String? lastName;
@@ -529,16 +531,16 @@ _$ContactRecordCopyWith<_ContactRecord> get copyWith => __$ContactRecordCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.activeAddressId, activeAddressId) || other.activeAddressId == activeAddressId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._addresses, _addresses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactRecord&&(identical(other.id, id) || other.id == id)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.version, version) || other.version == version)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.activeAddressId, activeAddressId) || other.activeAddressId == activeAddressId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._addresses, _addresses));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,kind,name,firstName,lastName,email,salutation,title,gender,birthday,activeAddressId,updatedAt,const DeepCollectionEquality().hash(_addresses));
+int get hashCode => Object.hash(runtimeType,id,kind,version,name,firstName,lastName,email,salutation,title,gender,birthday,activeAddressId,updatedAt,const DeepCollectionEquality().hash(_addresses));
 
 @override
 String toString() {
-  return 'ContactRecord(id: $id, kind: $kind, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, activeAddressId: $activeAddressId, updatedAt: $updatedAt, addresses: $addresses)';
+  return 'ContactRecord(id: $id, kind: $kind, version: $version, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, activeAddressId: $activeAddressId, updatedAt: $updatedAt, addresses: $addresses)';
 }
 
 
@@ -549,7 +551,7 @@ abstract mixin class _$ContactRecordCopyWith<$Res> implements $ContactRecordCopy
   factory _$ContactRecordCopyWith(_ContactRecord value, $Res Function(_ContactRecord) _then) = __$ContactRecordCopyWithImpl;
 @override @useResult
 $Res call({
- int id, ContactKind kind, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, int? activeAddressId, DateTime? updatedAt, List<ContactAddress> addresses
+ int id, ContactKind kind, String version, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, int? activeAddressId, DateTime? updatedAt, List<ContactAddress> addresses
 });
 
 
@@ -566,11 +568,12 @@ class __$ContactRecordCopyWithImpl<$Res>
 
 /// Create a copy of ContactRecord
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? kind = null,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? activeAddressId = freezed,Object? updatedAt = freezed,Object? addresses = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? kind = null,Object? version = null,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? activeAddressId = freezed,Object? updatedAt = freezed,Object? addresses = null,}) {
   return _then(_ContactRecord(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
-as ContactKind,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as ContactKind,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -582,6 +585,308 @@ as DateTime?,activeAddressId: freezed == activeAddressId ? _self.activeAddressId
 as int?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,addresses: null == addresses ? _self._addresses : addresses // ignore: cast_nullable_to_non_nullable
 as List<ContactAddress>,
+  ));
+}
+
+
+}
+
+/// @nodoc
+mixin _$ContactDraft {
+
+ String get localId; String get idempotencyKey; ContactDraftKind get kind; DateTime get createdAt; DateTime get updatedAt; int? get contactId; String? get baseVersion; String? get name; String? get firstName; String? get lastName; String? get email; String? get salutation; String? get title; String? get gender; DateTime? get birthday; ContactDraftState get state;
+/// Create a copy of ContactDraft
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ContactDraftCopyWith<ContactDraft> get copyWith => _$ContactDraftCopyWithImpl<ContactDraft>(this as ContactDraft, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactDraft&&(identical(other.localId, localId) || other.localId == localId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.contactId, contactId) || other.contactId == contactId)&&(identical(other.baseVersion, baseVersion) || other.baseVersion == baseVersion)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.state, state) || other.state == state));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,localId,idempotencyKey,kind,createdAt,updatedAt,contactId,baseVersion,name,firstName,lastName,email,salutation,title,gender,birthday,state);
+
+@override
+String toString() {
+  return 'ContactDraft(localId: $localId, idempotencyKey: $idempotencyKey, kind: $kind, createdAt: $createdAt, updatedAt: $updatedAt, contactId: $contactId, baseVersion: $baseVersion, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, state: $state)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ContactDraftCopyWith<$Res>  {
+  factory $ContactDraftCopyWith(ContactDraft value, $Res Function(ContactDraft) _then) = _$ContactDraftCopyWithImpl;
+@useResult
+$Res call({
+ String localId, String idempotencyKey, ContactDraftKind kind, DateTime createdAt, DateTime updatedAt, int? contactId, String? baseVersion, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, ContactDraftState state
+});
+
+
+
+
+}
+/// @nodoc
+class _$ContactDraftCopyWithImpl<$Res>
+    implements $ContactDraftCopyWith<$Res> {
+  _$ContactDraftCopyWithImpl(this._self, this._then);
+
+  final ContactDraft _self;
+  final $Res Function(ContactDraft) _then;
+
+/// Create a copy of ContactDraft
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? localId = null,Object? idempotencyKey = null,Object? kind = null,Object? createdAt = null,Object? updatedAt = null,Object? contactId = freezed,Object? baseVersion = freezed,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? state = null,}) {
+  return _then(_self.copyWith(
+localId: null == localId ? _self.localId : localId // ignore: cast_nullable_to_non_nullable
+as String,idempotencyKey: null == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as ContactDraftKind,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,contactId: freezed == contactId ? _self.contactId : contactId // ignore: cast_nullable_to_non_nullable
+as int?,baseVersion: freezed == baseVersion ? _self.baseVersion : baseVersion // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
+as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,salutation: freezed == salutation ? _self.salutation : salutation // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String?,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
+as DateTime?,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as ContactDraftState,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ContactDraft].
+extension ContactDraftPatterns on ContactDraft {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ContactDraft value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ContactDraft() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ContactDraft value)  $default,){
+final _that = this;
+switch (_that) {
+case _ContactDraft():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ContactDraft value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ContactDraft() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String localId,  String idempotencyKey,  ContactDraftKind kind,  DateTime createdAt,  DateTime updatedAt,  int? contactId,  String? baseVersion,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  ContactDraftState state)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ContactDraft() when $default != null:
+return $default(_that.localId,_that.idempotencyKey,_that.kind,_that.createdAt,_that.updatedAt,_that.contactId,_that.baseVersion,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.state);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String localId,  String idempotencyKey,  ContactDraftKind kind,  DateTime createdAt,  DateTime updatedAt,  int? contactId,  String? baseVersion,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  ContactDraftState state)  $default,) {final _that = this;
+switch (_that) {
+case _ContactDraft():
+return $default(_that.localId,_that.idempotencyKey,_that.kind,_that.createdAt,_that.updatedAt,_that.contactId,_that.baseVersion,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.state);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String localId,  String idempotencyKey,  ContactDraftKind kind,  DateTime createdAt,  DateTime updatedAt,  int? contactId,  String? baseVersion,  String? name,  String? firstName,  String? lastName,  String? email,  String? salutation,  String? title,  String? gender,  DateTime? birthday,  ContactDraftState state)?  $default,) {final _that = this;
+switch (_that) {
+case _ContactDraft() when $default != null:
+return $default(_that.localId,_that.idempotencyKey,_that.kind,_that.createdAt,_that.updatedAt,_that.contactId,_that.baseVersion,_that.name,_that.firstName,_that.lastName,_that.email,_that.salutation,_that.title,_that.gender,_that.birthday,_that.state);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ContactDraft implements ContactDraft {
+  const _ContactDraft({required this.localId, required this.idempotencyKey, required this.kind, required this.createdAt, required this.updatedAt, this.contactId, this.baseVersion, this.name, this.firstName, this.lastName, this.email, this.salutation, this.title, this.gender, this.birthday, this.state = ContactDraftState.local});
+
+
+@override final  String localId;
+@override final  String idempotencyKey;
+@override final  ContactDraftKind kind;
+@override final  DateTime createdAt;
+@override final  DateTime updatedAt;
+@override final  int? contactId;
+@override final  String? baseVersion;
+@override final  String? name;
+@override final  String? firstName;
+@override final  String? lastName;
+@override final  String? email;
+@override final  String? salutation;
+@override final  String? title;
+@override final  String? gender;
+@override final  DateTime? birthday;
+@override@JsonKey() final  ContactDraftState state;
+
+/// Create a copy of ContactDraft
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ContactDraftCopyWith<_ContactDraft> get copyWith => __$ContactDraftCopyWithImpl<_ContactDraft>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactDraft&&(identical(other.localId, localId) || other.localId == localId)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.contactId, contactId) || other.contactId == contactId)&&(identical(other.baseVersion, baseVersion) || other.baseVersion == baseVersion)&&(identical(other.name, name) || other.name == name)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.email, email) || other.email == email)&&(identical(other.salutation, salutation) || other.salutation == salutation)&&(identical(other.title, title) || other.title == title)&&(identical(other.gender, gender) || other.gender == gender)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.state, state) || other.state == state));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,localId,idempotencyKey,kind,createdAt,updatedAt,contactId,baseVersion,name,firstName,lastName,email,salutation,title,gender,birthday,state);
+
+@override
+String toString() {
+  return 'ContactDraft(localId: $localId, idempotencyKey: $idempotencyKey, kind: $kind, createdAt: $createdAt, updatedAt: $updatedAt, contactId: $contactId, baseVersion: $baseVersion, name: $name, firstName: $firstName, lastName: $lastName, email: $email, salutation: $salutation, title: $title, gender: $gender, birthday: $birthday, state: $state)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ContactDraftCopyWith<$Res> implements $ContactDraftCopyWith<$Res> {
+  factory _$ContactDraftCopyWith(_ContactDraft value, $Res Function(_ContactDraft) _then) = __$ContactDraftCopyWithImpl;
+@override @useResult
+$Res call({
+ String localId, String idempotencyKey, ContactDraftKind kind, DateTime createdAt, DateTime updatedAt, int? contactId, String? baseVersion, String? name, String? firstName, String? lastName, String? email, String? salutation, String? title, String? gender, DateTime? birthday, ContactDraftState state
+});
+
+
+
+
+}
+/// @nodoc
+class __$ContactDraftCopyWithImpl<$Res>
+    implements _$ContactDraftCopyWith<$Res> {
+  __$ContactDraftCopyWithImpl(this._self, this._then);
+
+  final _ContactDraft _self;
+  final $Res Function(_ContactDraft) _then;
+
+/// Create a copy of ContactDraft
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? localId = null,Object? idempotencyKey = null,Object? kind = null,Object? createdAt = null,Object? updatedAt = null,Object? contactId = freezed,Object? baseVersion = freezed,Object? name = freezed,Object? firstName = freezed,Object? lastName = freezed,Object? email = freezed,Object? salutation = freezed,Object? title = freezed,Object? gender = freezed,Object? birthday = freezed,Object? state = null,}) {
+  return _then(_ContactDraft(
+localId: null == localId ? _self.localId : localId // ignore: cast_nullable_to_non_nullable
+as String,idempotencyKey: null == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
+as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as ContactDraftKind,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime,contactId: freezed == contactId ? _self.contactId : contactId // ignore: cast_nullable_to_non_nullable
+as int?,baseVersion: freezed == baseVersion ? _self.baseVersion : baseVersion // ignore: cast_nullable_to_non_nullable
+as String?,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String?,firstName: freezed == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
+as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String?,salutation: freezed == salutation ? _self.salutation : salutation // ignore: cast_nullable_to_non_nullable
+as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,gender: freezed == gender ? _self.gender : gender // ignore: cast_nullable_to_non_nullable
+as String?,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
+as DateTime?,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as ContactDraftState,
   ));
 }
 

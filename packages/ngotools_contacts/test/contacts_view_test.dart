@@ -90,6 +90,8 @@ final class _SyntheticRepository implements ContactsRepository {
     ContactRecord(
       id: 1,
       kind: ContactKind.person,
+      version:
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       firstName: 'Erika',
       lastName: 'Beispiel',
       email: 'erika@example.invalid',
@@ -106,6 +108,8 @@ final class _SyntheticRepository implements ContactsRepository {
     ContactRecord(
       id: 2,
       kind: ContactKind.organization,
+      version:
+          'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       name: 'Beispielverein',
       email: 'verein@example.invalid',
     ),

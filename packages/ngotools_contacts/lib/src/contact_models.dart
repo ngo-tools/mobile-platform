@@ -11,6 +11,12 @@ enum ContactsSort { lastName, name, recentlyUpdated }
 /// Origin of a contact result shown to the user.
 enum ContactDataSource { remote, cache }
 
+/// Contact kinds supported by the mobile editor.
+enum ContactDraftKind { person, organization }
+
+/// Persisted local state of a contact draft.
+enum ContactDraftState { local, unsent, validationFailure, conflict }
+
 /// Sanitized address fields displayed in contact details.
 @freezed
 abstract class ContactAddress with _$ContactAddress {
@@ -36,6 +42,7 @@ abstract class ContactRecord with _$ContactRecord {
   const factory ContactRecord({
     required int id,
     required ContactKind kind,
+    required String version,
     String? name,
     String? firstName,
     String? lastName,
@@ -64,6 +71,67 @@ abstract class ContactRecord with _$ContactRecord {
 
     return composedName.isEmpty ? fallback : composedName;
   }
+}
+
+/// Encrypted, session-scoped contact draft awaiting explicit submission.
+@freezed
+abstract class ContactDraft with _$ContactDraft {
+  /// Creates a local draft with one stable idempotency key.
+  const factory ContactDraft({
+    required String localId,
+    required String idempotencyKey,
+    required ContactDraftKind kind,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    int? contactId,
+    String? baseVersion,
+    String? name,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? salutation,
+    String? title,
+    String? gender,
+    DateTime? birthday,
+    @Default(ContactDraftState.local) ContactDraftState state,
+  }) = _ContactDraft;
+}
+
+/// Result of a manually confirmed draft submission.
+sealed class ContactDraftSubmissionResult {
+  const ContactDraftSubmissionResult();
+}
+
+/// Authoritative contact returned after the server accepted the draft.
+final class ContactDraftSubmissionSuccess extends ContactDraftSubmissionResult {
+  /// Creates a successful submission result.
+  const ContactDraftSubmissionSuccess({
+    required this.contact,
+    required this.replayed,
+  });
+
+  final ContactRecord contact;
+  final bool replayed;
+}
+
+/// A transport failure left the draft stored and explicitly unsent.
+final class ContactDraftSubmissionUnsent extends ContactDraftSubmissionResult {
+  /// Creates an unsent result.
+  const ContactDraftSubmissionUnsent();
+}
+
+/// Server validation failed without discarding the local draft.
+final class ContactDraftSubmissionValidationFailure
+    extends ContactDraftSubmissionResult {
+  /// Creates a validation failure result.
+  const ContactDraftSubmissionValidationFailure();
+}
+
+/// The contact changed after the draft's base version was loaded.
+final class ContactDraftSubmissionConflict
+    extends ContactDraftSubmissionResult {
+  /// Creates a conflict result.
+  const ContactDraftSubmissionConflict();
 }
 
 /// One immutable page returned by a [ContactsRepository].
