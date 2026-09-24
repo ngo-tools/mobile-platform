@@ -1,6 +1,7 @@
 /// Synthetic fixtures for NGO.Tools mobile app tests.
 library;
 
+import 'package:ngotools_api/ngotools_api.dart';
 import 'package:ngotools_auth/ngotools_auth.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 
@@ -47,5 +48,28 @@ abstract final class SyntheticMobileFixture {
     id: 'synthetic-user',
     displayName: 'Synthetic User',
     capabilities: const ['contacts.read'],
+  );
+
+  /// Effective capabilities containing no organization or user data.
+  static final capabilities = MobileRuntimeCapabilities(
+    schemaVersion: 1,
+    features: const ['contacts', 'profile'],
+    permissions: const ['contacts:read', 'profile:read'],
+    importsEnabled: true,
+    importTypes: {
+      'contacts': MobileImportCapability(
+        key: 'contacts',
+        label: 'Contacts',
+        supported: true,
+        requiredFeature: 'contacts',
+        featureEnabled: true,
+        permissionGranted: true,
+        available: true,
+        requires: const ['contacts'],
+        batchImportSupported: true,
+        blockers: const [],
+        maxBatchSize: 250,
+      ),
+    },
   );
 }

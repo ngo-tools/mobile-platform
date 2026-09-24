@@ -10,4 +10,31 @@ void main() {
       Brightness.dark,
     );
   });
+
+  testWidgets('components remain readable with enlarged text', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: NgoToolsTheme.community(),
+        home: const MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  NgoToolsSectionCard(title: 'Section', child: Text('Content')),
+                  NgoToolsStatusBanner(message: 'Safe status'),
+                  NgoToolsEmptyState(title: 'Empty', message: 'No records'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Section'), findsOneWidget);
+    expect(find.text('Safe status'), findsOneWidget);
+    expect(find.text('Empty'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

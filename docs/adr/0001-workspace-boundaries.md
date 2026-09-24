@@ -15,7 +15,8 @@ Dependencies point toward stable platform contracts:
 - `ngotools_mobile_core` has no internal dependency.
 - `ngotools_auth`, `ngotools_api`, and `ngotools_design_system` may depend on
   core.
-- `ngotools_navigation` may depend on core and auth.
+- `ngotools_navigation` may depend on core, auth, and the API's public
+  capability contracts.
 - `ngotools_testing` may depend on all public packages.
 - apps may depend on all public packages.
 

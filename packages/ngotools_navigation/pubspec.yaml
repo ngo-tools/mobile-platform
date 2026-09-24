@@ -13,6 +13,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  ngotools_api: ^0.1.0-dev.1
   ngotools_auth: ^0.1.0-dev.1
   ngotools_mobile_core: ^0.1.0-dev.1
 

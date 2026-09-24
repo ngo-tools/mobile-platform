@@ -1,3 +1,4 @@
 # ngotools_design_system
 
-Shared accessible theme foundations for NGO.Tools organization apps.
+Accessible design foundations for NGO.Tools organization apps, including
+shared layout tokens, section cards, status banners, and empty states.

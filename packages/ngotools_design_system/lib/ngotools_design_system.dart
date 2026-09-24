@@ -3,6 +3,11 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'src/layout.dart';
+
+export 'src/components.dart';
+export 'src/layout.dart';
+
 /// Builds approved NGO.Tools application themes.
 abstract final class NgoToolsTheme {
   /// Creates the Community template theme.
@@ -16,6 +21,16 @@ abstract final class NgoToolsTheme {
       colorScheme: colorScheme,
       useMaterial3: true,
       visualDensity: VisualDensity.standard,
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: colorScheme.surfaceContainerLow,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(NgoToolsLayout.cornerRadius),
+        ),
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
     );
   }
 }
