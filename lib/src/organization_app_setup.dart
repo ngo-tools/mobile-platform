@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'manifest_validator.dart';
+import 'mobile_module_catalog.dart';
 import 'native_configuration_validator.dart';
 import 'secret_scanner.dart';
 
@@ -93,6 +94,7 @@ abstract final class OrganizationAppSetup {
         temporary,
       );
       await _configure(
+        repository: repository,
         directory: temporary,
         manifest: manifest,
         registrationSource: registrationSource,
@@ -212,6 +214,7 @@ abstract final class OrganizationAppSetup {
   }
 
   static Future<void> _configure({
+    required Directory repository,
     required Directory directory,
     required Map<String, Object?> manifest,
     required String registrationSource,
@@ -242,6 +245,11 @@ abstract final class OrganizationAppSetup {
     await File(
       path.join(directory.path, 'ngo-tools.mobile.yaml'),
     ).writeAsString(registrationSource);
+    await _writeModuleCatalog(
+      repository: repository,
+      directory: directory,
+      manifest: manifest,
+    );
     await File(
       path.join(directory.path, 'analysis_options.yaml'),
     ).writeAsString('include: package:flutter_lints/flutter.yaml\n');
@@ -315,6 +323,38 @@ abstract final class OrganizationAppSetup {
     await File(path.join(directory.path, '.ngotools-setup.json')).writeAsString(
       '${const JsonEncoder.withIndent('  ').convert(provenance)}\n',
     );
+  }
+
+  static Future<void> _writeModuleCatalog({
+    required Directory repository,
+    required Directory directory,
+    required Map<String, Object?> manifest,
+  }) async {
+    final result = await MobileModuleCatalog.loadFromRepository(repository);
+
+    if (!result.isValid || result.catalog == null) {
+      throw StateError(
+        'The platform module catalog is invalid:\n${result.errors.join('\n')}',
+      );
+    }
+
+    final catalog = result.catalog!;
+    final errors = catalog.validateManifest(manifest);
+
+    if (errors.isNotEmpty) {
+      throw FormatException(
+        'Invalid registration modules:\n${errors.join('\n')}',
+      );
+    }
+
+    final snapshot = File(
+      path.join(directory.path, '.ngotools', 'modules.json'),
+    );
+    final documentation = File(path.join(directory.path, 'docs', 'MODULES.md'));
+    await snapshot.parent.create(recursive: true);
+    await documentation.parent.create(recursive: true);
+    await snapshot.writeAsString(catalog.renderSnapshot());
+    await documentation.writeAsString(catalog.renderMarkdown());
   }
 
   static Future<void> _rewritePubspec(

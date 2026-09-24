@@ -1,0 +1,26 @@
+apiVersion: mobile.ngo.tools/v1alpha1
+kind: MobileModule
+metadata:
+  id: contacts
+  name:
+    de: Kontakte
+    en: Contacts
+  summary:
+    de: Durchsucht und verwaltet Kontakte mit kontrolliertem Offline-Verhalten.
+    en: Searches and manages contacts with controlled offline behavior.
+status: planned
+delivery:
+  type: package
+  package: ngotools_contacts
+requires:
+  modules:
+    - profile
+  apiScopes:
+    - contacts:read
+  features:
+    - contacts
+  permissions:
+    - contacts:read
+  devicePermissions: []
+deepLinks:
+  - /contacts/{id}

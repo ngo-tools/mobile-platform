@@ -48,6 +48,22 @@ default-branch commit, and waits for NGO.Tools approval of the signed artifact
 before uploading it to Google Play or TestFlight. No signing or store material
 is stored in this public platform repository.
 
+## Discover modules
+
+The versioned descriptors under `modules/` are the source of truth for reusable
+app modules. Inspect them through the local catalog command:
+
+```bash
+dart run tool/modules.dart list
+dart run tool/modules.dart search contacts
+dart run tool/modules.dart explain contacts
+```
+
+Generated organization apps receive a complete local catalog snapshot and a
+local `docs/MODULES.md`, so supported additions remain discoverable. The `add`
+command updates module and API-scope manifest declarations only for modules
+marked `available`; it never grants server access.
+
 ## Workspace
 
 - `ngotools_mobile_core`: immutable environment and app configuration

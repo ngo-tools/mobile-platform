@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "modules": [
+    {
+      "id": "contacts",
+      "name": {
+        "de": "Kontakte",
+        "en": "Contacts"
+      },
+      "summary": {
+        "de": "Durchsucht und verwaltet Kontakte mit kontrolliertem Offline-Verhalten.",
+        "en": "Searches and manages contacts with controlled offline behavior."
+      },
+      "status": "planned",
+      "delivery": {
+        "type": "package",
+        "package": "ngotools_contacts"
+      },
+      "requires": {
+        "modules": [
+          "profile"
+        ],
+        "api_scopes": [
+          "contacts:read"
+        ],
+        "features": [
+          "contacts"
+        ],
+        "permissions": [
+          "contacts:read"
+        ],
+        "device_permissions": []
+      },
+      "deep_links": [
+        "/contacts/{id}"
+      ]
+    },
+    {
+      "id": "profile",
+      "name": {
+        "de": "Profil",
+        "en": "Profile"
+      },
+      "summary": {
+        "de": "Zeigt das eigene bereinigte NGO.Tools-Benutzerprofil an.",
+        "en": "Displays the current sanitized NGO.Tools user profile."
+      },
+      "status": "available",
+      "delivery": {
+        "type": "built_in"
+      },
+      "requires": {
+        "modules": [],
+        "api_scopes": [
+          "profile:read"
+        ],
+        "features": [
+          "profile"
+        ],
+        "permissions": [
+          "profile:read"
+        ],
+        "device_permissions": []
+      },
+      "deep_links": [
+        "/profile"
+      ]
+    }
+  ]
+}
