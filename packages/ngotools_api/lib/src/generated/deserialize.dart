@@ -1,5 +1,12 @@
 import 'package:ngotools_api/src/generated/model/capabilities_response.dart';
 import 'package:ngotools_api/src/generated/model/capability_blocker.dart';
+import 'package:ngotools_api/src/generated/model/contact.dart';
+import 'package:ngotools_api/src/generated/model/contact_address.dart';
+import 'package:ngotools_api/src/generated/model/contact_collection_response.dart';
+import 'package:ngotools_api/src/generated/model/contact_response.dart';
+import 'package:ngotools_api/src/generated/model/contact_search_request.dart';
+import 'package:ngotools_api/src/generated/model/contact_search_term.dart';
+import 'package:ngotools_api/src/generated/model/contact_sort.dart';
 import 'package:ngotools_api/src/generated/model/current_user.dart';
 import 'package:ngotools_api/src/generated/model/current_user_response.dart';
 import 'package:ngotools_api/src/generated/model/import_capabilities.dart';
@@ -11,6 +18,8 @@ import 'package:ngotools_api/src/generated/model/mobile_app_release_poll_request
 import 'package:ngotools_api/src/generated/model/mobile_app_release_poll_response.dart';
 import 'package:ngotools_api/src/generated/model/mobile_app_release_request.dart';
 import 'package:ngotools_api/src/generated/model/mobile_app_release_start_response.dart';
+import 'package:ngotools_api/src/generated/model/pagination_links.dart';
+import 'package:ngotools_api/src/generated/model/pagination_meta.dart';
 import 'package:ngotools_api/src/generated/model/problem_details.dart';
 import 'package:ngotools_api/src/generated/model/runtime_capabilities.dart';
 
@@ -42,6 +51,25 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'CapabilityBlocker':
       return CapabilityBlocker.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'Contact':
+      return Contact.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ContactAddress':
+      return ContactAddress.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContactCollectionResponse':
+      return ContactCollectionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContactResponse':
+      return ContactResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContactSearchRequest':
+      return ContactSearchRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContactSearchTerm':
+      return ContactSearchTerm.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ContactSort':
+      return ContactSort.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CurrentUser':
       return CurrentUser.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'CurrentUserResponse':
@@ -76,6 +104,12 @@ ReturnType deserialize<ReturnType, BaseType>(
       return MobileAppReleaseStartResponse.fromJson(
             value as Map<String, dynamic>,
           )
+          as ReturnType;
+    case 'PaginationLinks':
+      return PaginationLinks.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'PaginationMeta':
+      return PaginationMeta.fromJson(value as Map<String, dynamic>)
           as ReturnType;
     case 'ProblemDetails':
       return ProblemDetails.fromJson(value as Map<String, dynamic>)

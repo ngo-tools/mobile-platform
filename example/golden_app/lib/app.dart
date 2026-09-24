@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ngotools_api/ngotools_api.dart';
 import 'package:ngotools_auth/ngotools_auth.dart';
+import 'package:ngotools_contacts/ngotools_contacts.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:ngotools_navigation/ngotools_navigation.dart';
@@ -16,6 +17,7 @@ class GoldenApp extends StatelessWidget {
     this.configuration,
     this.authStatus = MobileAuthStatus.signedOut,
     this.capabilities,
+    this.contactsRepository,
     super.key,
   });
 
@@ -31,6 +33,9 @@ class GoldenApp extends StatelessWidget {
   /// Optional capability override used by deterministic tests.
   final MobileRuntimeCapabilities? capabilities;
 
+  /// Optional contact source supplied by the application composition root.
+  final ContactsRepository? contactsRepository;
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -43,6 +48,7 @@ class GoldenApp extends StatelessWidget {
       configuration: configuration ?? mobileAppConfiguration,
       authStatus: authStatus,
       capabilities: capabilities,
+      contactsRepository: contactsRepository,
     ),
   );
 }
@@ -55,6 +61,7 @@ class GoldenShell extends StatelessWidget {
     required this.configuration,
     required this.authStatus,
     this.capabilities,
+    this.contactsRepository,
     super.key,
   });
 
@@ -62,6 +69,7 @@ class GoldenShell extends StatelessWidget {
   final MobileAppConfiguration configuration;
   final MobileAuthStatus authStatus;
   final MobileRuntimeCapabilities? capabilities;
+  final ContactsRepository? contactsRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +95,19 @@ class GoldenShell extends StatelessWidget {
         label: isGerman ? 'Kontakte' : 'Contacts',
         icon: Icons.people_outline,
         selectedIcon: Icons.people,
-        builder: (_) => NgoToolsEmptyState(
-          title: isGerman ? 'Noch keine Kontakte' : 'No contacts yet',
-          message: isGerman
-              ? 'Diese synthetische Ansicht enthält keine Personendaten.'
-              : 'This synthetic view contains no personal data.',
-        ),
+        builder: (_) => contactsRepository == null
+            ? NgoToolsEmptyState(
+                title: isGerman
+                    ? 'Kontakte nicht verbunden'
+                    : 'Contacts not connected',
+                message: isGerman
+                    ? 'Die App benötigt eine authentifizierte API-Verbindung.'
+                    : 'The app requires an authenticated API connection.',
+              )
+            : ContactsView(
+                repository: contactsRepository!,
+                labels: isGerman ? ContactLabels.german : ContactLabels.english,
+              ),
         requirement: MobileRouteRequirement(
           features: const ['contacts'],
           permissions: const ['contacts:read'],

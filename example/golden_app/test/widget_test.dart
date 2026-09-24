@@ -63,4 +63,21 @@ void main() {
     expect(find.text('Synthetic User'), findsNothing);
     expect(find.textContaining('Bearer'), findsNothing);
   });
+
+  testWidgets('previews contacts with synthetic data only', (tester) async {
+    await tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
+        capabilities: SyntheticMobileFixture.capabilities,
+        contactsRepository: const SyntheticContactsRepository(),
+      ),
+    );
+    await tester.tap(find.text('Contacts'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Erika Beispiel'), findsOneWidget);
+    expect(find.textContaining('erika@example.invalid'), findsOneWidget);
+    expect(find.textContaining('@ngo.tools'), findsNothing);
+  });
 }

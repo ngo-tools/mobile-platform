@@ -1,9 +1,9 @@
 # ngotools_api
 
 Secure runtime access for NGO.Tools organization apps. The public API exposes
-immutable capabilities, protected release approval, and sanitized RFC
-9457-style problems. Dio, polling credentials, and the OpenAPI-generated
-transport remain internal to this package.
+immutable capabilities, read-only contact projections, protected release
+approval, and sanitized RFC 9457-style problems. Dio, polling credentials,
+and the OpenAPI-generated transport remain internal to this package.
 
 The client is generated from `openapi/mobile-runtime.yaml` with a pinned
 OpenAPI Generator binary:

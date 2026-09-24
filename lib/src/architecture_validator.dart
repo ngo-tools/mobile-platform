@@ -4,6 +4,7 @@ abstract final class ArchitectureValidator {
     'ngotools_mobile_core': {},
     'ngotools_auth': {'ngotools_mobile_core'},
     'ngotools_api': {'ngotools_mobile_core'},
+    'ngotools_contacts': {'ngotools_api', 'ngotools_design_system'},
     'ngotools_design_system': {'ngotools_mobile_core'},
     'ngotools_navigation': {
       'ngotools_mobile_core',
@@ -14,6 +15,7 @@ abstract final class ArchitectureValidator {
       'ngotools_mobile_core',
       'ngotools_auth',
       'ngotools_api',
+      'ngotools_contacts',
       'ngotools_design_system',
       'ngotools_navigation',
     },

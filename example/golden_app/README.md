@@ -19,6 +19,10 @@ flutter run -t lib/main_production.dart
 All hosts use the reserved `.invalid` domain. The app contains no production
 data, signing configuration, or store credentials.
 
+The contact screen accepts a repository from the app composition root. Widget
+tests render it with `SyntheticContactsRepository`; generated applications do
+not silently fall back to sample contacts when no authenticated API is wired.
+
 ## Protected releases
 
 Generated organization apps include `.github/workflows/release.yml`. It can be

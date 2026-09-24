@@ -5,17 +5,23 @@ import 'package:meta/meta.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:uuid/uuid.dart';
 
+import 'generated/api/contacts_api.dart';
 import 'generated/api/runtime_api.dart';
+import 'generated/model/contact.dart' as generated;
+import 'generated/model/contact_search_request.dart' as generated;
+import 'generated/model/contact_search_term.dart' as generated;
+import 'generated/model/contact_sort.dart' as generated;
 import 'generated/model/import_capability.dart' as generated;
 import 'internal/mobile_api_interceptors.dart';
 import 'mobile_api_problem.dart';
+import 'mobile_contact.dart';
 import 'mobile_runtime_capabilities.dart';
 
 /// Connects the protected authentication session to an HTTP client.
 typedef MobileApiAuthorizer = void Function(Dio client);
 
 /// Secure typed access to the NGO.Tools mobile runtime API.
-final class NgoToolsMobileApi {
+final class NgoToolsMobileApi implements MobileContactsApi {
   /// Creates the production API pipeline for one fixed environment.
   factory NgoToolsMobileApi({
     required MobileEnvironmentConfiguration environment,
@@ -50,6 +56,7 @@ final class NgoToolsMobileApi {
        _capabilityInvalidations =
            capabilityInvalidations ?? StreamController<void>.broadcast() {
     _runtimeApi = RuntimeApi(_dio);
+    _contactsApi = ContactsApi(_dio);
     _dio.interceptors.addAll([
       MobileRequestMetadataInterceptor(requestId ?? () => const Uuid().v4()),
       MobileReadRetryInterceptor(_dio),
@@ -60,6 +67,7 @@ final class NgoToolsMobileApi {
   final Dio _dio;
   final StreamController<void> _capabilityInvalidations;
   late final RuntimeApi _runtimeApi;
+  late final ContactsApi _contactsApi;
 
   /// Emits whenever a denied request may indicate changed server access.
   Stream<void> get capabilityInvalidations => _capabilityInvalidations.stream;
@@ -120,6 +128,95 @@ final class NgoToolsMobileApi {
     }
   }
 
+  /// Searches the server-authorized contact projection.
+  @override
+  Future<MobileContactPage> searchContacts({
+    String? query,
+    int page = 1,
+    int perPage = 25,
+    List<MobileContactSort> sort = const [
+      MobileContactSort(field: MobileContactSortField.lastName),
+      MobileContactSort(field: MobileContactSortField.id),
+    ],
+  }) => _guard(() async {
+    if (page < 1) {
+      throw ArgumentError.value(page, 'page', 'Must be at least one.');
+    }
+
+    if (perPage < 1 || perPage > 100) {
+      throw ArgumentError.value(
+        perPage,
+        'perPage',
+        'Must be between one and 100.',
+      );
+    }
+
+    if (sort.length > 2) {
+      throw ArgumentError.value(sort, 'sort', 'At most two sorts are allowed.');
+    }
+
+    final normalizedQuery = query?.trim();
+    final response = await _contactsApi.searchContacts(
+      contactSearchRequest: generated.ContactSearchRequest(
+        search: normalizedQuery == null || normalizedQuery.isEmpty
+            ? null
+            : generated.ContactSearchTerm(value: normalizedQuery),
+        sort: sort.map(_mapSort).toList(growable: false),
+      ),
+      page: page,
+      limit: perPage,
+    );
+    final data = response.data;
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    final meta = data.meta;
+
+    if (meta != null &&
+        (meta.currentPage < 1 ||
+            meta.perPage < 1 ||
+            meta.total < 0 ||
+            (meta.lastPage != null && meta.lastPage! < 1))) {
+      throw _invalidResponse();
+    }
+
+    final total = meta?.total ?? data.data.length;
+    final resolvedPerPage = meta?.perPage ?? perPage;
+    final lastPage =
+        meta?.lastPage ?? (total == 0 ? 1 : (total / resolvedPerPage).ceil());
+
+    return MobileContactPage(
+      items: data.data.map(_mapContact),
+      page: meta?.currentPage ?? page,
+      perPage: resolvedPerPage,
+      total: total,
+      lastPage: lastPage,
+    );
+  });
+
+  /// Loads one contact with its server-visible addresses.
+  @override
+  Future<MobileContact> fetchContact(int contactId) => _guard(() async {
+    if (contactId < 1) {
+      throw ArgumentError.value(
+        contactId,
+        'contactId',
+        'Must be at least one.',
+      );
+    }
+
+    final response = await _contactsApi.getContact(contactId: contactId);
+    final data = response.data;
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    return _mapContact(data.data);
+  });
+
   /// Releases HTTP and stream resources owned by this client.
   Future<void> close() async {
     _dio.close(force: true);
@@ -148,6 +245,94 @@ final class NgoToolsMobileApi {
         )
         .toList(growable: false),
     maxBatchSize: capability.limits?.maxBatchSize,
+  );
+
+  static generated.ContactSort _mapSort(MobileContactSort sort) =>
+      generated.ContactSort(
+        field: switch (sort.field) {
+          MobileContactSortField.name => generated.ContactSortFieldEnum.name,
+          MobileContactSortField.firstName =>
+            generated.ContactSortFieldEnum.firstName,
+          MobileContactSortField.lastName =>
+            generated.ContactSortFieldEnum.lastName,
+          MobileContactSortField.updatedAt =>
+            generated.ContactSortFieldEnum.updatedAt,
+          MobileContactSortField.createdAt =>
+            generated.ContactSortFieldEnum.createdAt,
+          MobileContactSortField.id => generated.ContactSortFieldEnum.id,
+        },
+        direction: switch (sort.direction) {
+          MobileContactSortDirection.ascending =>
+            generated.ContactSortDirectionEnum.asc,
+          MobileContactSortDirection.descending =>
+            generated.ContactSortDirectionEnum.desc,
+        },
+      );
+
+  static MobileContact _mapContact(generated.Contact contact) {
+    if (contact.id < 1 ||
+        (contact.activeAddressId != null && contact.activeAddressId! < 1) ||
+        (contact.addresses?.any((address) => address.id < 1) ?? false)) {
+      throw _invalidResponse();
+    }
+
+    return MobileContact(
+      id: contact.id,
+      kind: switch (contact.type) {
+        'person' => MobileContactKind.person,
+        'organization' => MobileContactKind.organization,
+        'couple' => MobileContactKind.couple,
+        _ => MobileContactKind.unknown,
+      },
+      name: contact.name,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.email,
+      salutation: contact.salutation,
+      title: contact.title,
+      gender: contact.gender,
+      birthday: contact.birthday,
+      activeAddressId: contact.activeAddressId,
+      updatedAt: contact.updatedAt,
+      addresses:
+          contact.addresses?.map(
+            (address) => MobileContactAddress(
+              id: address.id,
+              type: address.type,
+              line1: address.line1,
+              line2: address.line2,
+              postalCode: address.postalCode,
+              city: address.city,
+              state: address.state,
+              country: address.country,
+            ),
+          ) ??
+          const [],
+    );
+  }
+
+  Future<T> _guard<T>(Future<T> Function() operation) async {
+    try {
+      return await operation();
+    } on DioException catch (error) {
+      final normalized = error.error;
+
+      if (normalized is MobileApiException) {
+        throw normalized;
+      }
+
+      throw MobileApiException(MobileApiProblemParser.fromDio(error));
+    } on MobileApiException {
+      rethrow;
+    }
+  }
+
+  static MobileApiException _invalidResponse() => MobileApiException(
+    MobileApiProblem(
+      code: 'invalid_response',
+      title: 'Invalid server response',
+      status: 0,
+    ),
   );
 
   static void _validateBaseUrl(Uri uri) {
