@@ -373,6 +373,7 @@ abstract final class OrganizationAppSetup {
     const packages = [
       'ngotools_api',
       'ngotools_auth',
+      'ngotools_contacts',
       'ngotools_design_system',
       'ngotools_mobile_core',
       'ngotools_navigation',
