@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mobile.ngo.tools/schemas/ngo-tools.mobile.schema.json",
+  "title": "NGO.Tools organization app manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "apiVersion",
+    "kind",
+    "metadata",
+    "owner",
+    "identifiers",
+    "backend",
+    "auth",
+    "localization",
+    "support",
+    "permissions",
+    "features",
+    "branding",
+    "distribution",
+    "deepLinks"
+  ],
+  "properties": {
+    "apiVersion": {"const": "mobile.ngo.tools/v1alpha1"},
+    "kind": {"const": "OrganizationApp"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^mob_[0-9A-HJKMNP-TV-Z]{26}$"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 100},
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"
+        }
+      }
+    },
+    "owner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tenant", "repositoryModel"],
+      "properties": {
+        "tenant": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+        "repositoryModel": {"enum": ["managed_by_ngotools", "customer_owned"]}
+      }
+    },
+    "identifiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "ios": {"$ref": "#/definitions/environmentIdentifiers"},
+        "android": {"$ref": "#/definitions/environmentIdentifiers"}
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimumContractVersion", "environments"],
+      "properties": {
+        "minimumContractVersion": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$"
+        },
+        "environments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["development", "staging", "production"],
+          "properties": {
+            "development": {"$ref": "#/definitions/environment"},
+            "staging": {"$ref": "#/definitions/environment"},
+            "production": {"$ref": "#/definitions/environment"}
+          }
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["redirectUrl"],
+      "properties": {
+        "redirectUrl": {"type": "string", "format": "uri", "pattern": "^https://"}
+      }
+    },
+    "localization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultLocale", "locales"],
+      "properties": {
+        "defaultLocale": {"type": "string", "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"},
+        "locales": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "allOf": [
+            {"contains": {"const": "de"}},
+            {"contains": {"const": "en"}}
+          ],
+          "items": {"type": "string", "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"}
+        }
+      }
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "privacyUrl"],
+      "properties": {
+        "url": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "privacyUrl": {"type": "string", "format": "uri", "pattern": "^https://"}
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["apiScopes", "device"],
+      "properties": {
+        "apiScopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["profile:read", "contacts:read", "contacts:write", "projects:read"]
+          }
+        },
+        "device": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["notifications", "camera", "photos", "location"]}
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules"],
+      "properties": {
+        "modules": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["profile", "contacts"]}
+        }
+      }
+    },
+    "branding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template"],
+      "properties": {
+        "template": {"enum": ["community", "workspace", "field"]}
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "ios": {"enum": ["testflight", "private", "public"]},
+        "android": {
+          "enum": ["internal_testing", "closed_testing", "managed_private", "public"]
+        }
+      }
+    },
+    "deepLinks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hosts"],
+      "properties": {
+        "hosts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z]{2,}$"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "environmentIdentifiers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["development", "staging", "production"],
+      "properties": {
+        "development": {"$ref": "#/definitions/applicationIdentifier"},
+        "staging": {"$ref": "#/definitions/applicationIdentifier"},
+        "production": {"$ref": "#/definitions/applicationIdentifier"}
+      }
+    },
+    "applicationIdentifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_-]*)+$"
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "apiBaseUrl", "configRevision", "attestationMode"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^env_[0-9A-HJKMNP-TV-Z]{26}$"},
+        "apiBaseUrl": {"type": "string", "format": "uri", "pattern": "^https://"},
+        "configRevision": {"type": "string", "pattern": "^cfg_[0-9A-HJKMNP-TV-Z]{26}$"},
+        "attestationMode": {"enum": ["disabled", "test", "enforced"]}
+      }
+    }
+  }
+}
