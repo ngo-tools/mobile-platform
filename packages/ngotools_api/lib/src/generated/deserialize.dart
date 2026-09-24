@@ -5,6 +5,12 @@ import 'package:ngotools_api/src/generated/model/current_user_response.dart';
 import 'package:ngotools_api/src/generated/model/import_capabilities.dart';
 import 'package:ngotools_api/src/generated/model/import_capability.dart';
 import 'package:ngotools_api/src/generated/model/import_limits.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_approved_release.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_release_approval.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_release_poll_request.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_release_poll_response.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_release_request.dart';
+import 'package:ngotools_api/src/generated/model/mobile_app_release_start_response.dart';
 import 'package:ngotools_api/src/generated/model/problem_details.dart';
 import 'package:ngotools_api/src/generated/model/runtime_capabilities.dart';
 
@@ -49,6 +55,28 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ImportLimits':
       return ImportLimits.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'MobileAppApprovedRelease':
+      return MobileAppApprovedRelease.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MobileAppReleaseApproval':
+      return MobileAppReleaseApproval.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MobileAppReleasePollRequest':
+      return MobileAppReleasePollRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MobileAppReleasePollResponse':
+      return MobileAppReleasePollResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'MobileAppReleaseRequest':
+      return MobileAppReleaseRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'MobileAppReleaseStartResponse':
+      return MobileAppReleaseStartResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
     case 'ProblemDetails':
       return ProblemDetails.fromJson(value as Map<String, dynamic>)
           as ReturnType;

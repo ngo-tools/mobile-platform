@@ -33,6 +33,14 @@ Future<void> main() async {
       repository,
     )).map((error) => 'Generated API: $error'),
   );
+  errors.addAll(
+    ReleaseWorkflowValidator.validate(
+      await _read(
+        repository,
+        'example/golden_app/.github/workflows/release.yml',
+      ),
+    ).map((error) => 'Release workflow: $error'),
+  );
 
   final manifest = manifestResult.manifest;
 
