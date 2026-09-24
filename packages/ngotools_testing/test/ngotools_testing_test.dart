@@ -13,4 +13,9 @@ void main() {
 
     expect(hosts, everyElement(endsWith('.invalid')));
   });
+
+  test('exposes only synthetic runtime capabilities', () {
+    expect(SyntheticMobileFixture.capabilities.hasFeature('contacts'), isTrue);
+    expect(SyntheticMobileFixture.capabilities.canImport('contacts'), isTrue);
+  });
 }

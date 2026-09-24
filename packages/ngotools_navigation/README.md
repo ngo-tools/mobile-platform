@@ -1,3 +1,5 @@
 # ngotools_navigation
 
-Framework-neutral access decisions for auth and capability-aware routes.
+Auth- and server-capability-aware navigation for NGO.Tools apps. The package
+keeps feature, permission, and import checks distinct, provides an adaptive
+Material shell, and exposes sanitized support diagnostics.

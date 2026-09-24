@@ -6,7 +6,11 @@ void main() {
     final errors = ArchitectureValidator.validate({
       'ngotools_mobile_core': {},
       'ngotools_auth': {'flutter', 'ngotools_mobile_core'},
-      'ngotools_navigation': {'ngotools_auth', 'ngotools_mobile_core'},
+      'ngotools_navigation': {
+        'ngotools_api',
+        'ngotools_auth',
+        'ngotools_mobile_core',
+      },
     });
 
     expect(errors, isEmpty);

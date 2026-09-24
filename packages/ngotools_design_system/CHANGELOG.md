@@ -3,3 +3,4 @@
 ## 0.1.0-dev.1
 
 - Establish the accessible Community theme foundation.
+- Add shared layout tokens and accessible content components.
