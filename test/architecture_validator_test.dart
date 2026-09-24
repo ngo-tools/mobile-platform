@@ -27,6 +27,7 @@ void main() {
     final errors = ArchitectureValidator.validateSourceBoundaries({
       'example/golden_app/lib/profile.dart':
           "import 'package:ngotools_auth/src/internal/auth_session.dart';\n"
+          "import 'package:ngotools_api/src/generated/api.dart';\n"
           "import 'package:dio/dio.dart';",
       'packages/ngotools_auth/lib/src/client.dart':
           "import 'package:dio/dio.dart';",
@@ -36,6 +37,7 @@ void main() {
 
     expect(errors, {
       'example/golden_app/lib/profile.dart may not import ngotools_auth internals.',
+      'example/golden_app/lib/profile.dart may not import generated API internals.',
       'example/golden_app/lib/profile.dart may not perform direct HTTP requests.',
     });
   });

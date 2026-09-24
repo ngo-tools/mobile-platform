@@ -28,6 +28,11 @@ Future<void> main() async {
       repository,
     )).map((error) => 'Architecture: $error'),
   );
+  errors.addAll(
+    (await GeneratedApiValidator.validate(
+      repository,
+    )).map((error) => 'Generated API: $error'),
+  );
 
   final manifest = manifestResult.manifest;
 
