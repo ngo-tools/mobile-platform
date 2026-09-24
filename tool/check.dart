@@ -29,6 +29,12 @@ Future<void> main() async {
     )).map((error) => 'Architecture: $error'),
   );
   errors.addAll(
+    (await _validateModuleCatalog(
+      repository,
+      manifestResult.manifest,
+    )).map((error) => 'Module catalog: $error'),
+  );
+  errors.addAll(
     (await GeneratedApiValidator.validate(
       repository,
     )).map((error) => 'Generated API: $error'),
@@ -172,6 +178,53 @@ Future<List<String>> _validateArchitecture(Directory repository) async {
   }
 
   errors.addAll(ArchitectureValidator.validateSourceBoundaries(sources));
+
+  return errors;
+}
+
+Future<List<String>> _validateModuleCatalog(
+  Directory repository,
+  Map<String, Object?>? manifest,
+) async {
+  final result = await MobileModuleCatalog.loadFromRepository(repository);
+  final errors = result.errors.toList(growable: true);
+  final catalog = result.catalog;
+
+  if (catalog == null || manifest == null) {
+    return errors;
+  }
+
+  final manifestErrors = catalog.validateManifest(manifest);
+  errors.addAll(manifestErrors);
+
+  if (manifestErrors.isNotEmpty) {
+    return errors;
+  }
+
+  final expectedFiles = <String, String>{
+    '.ngotools/modules.json': catalog.renderSnapshot(),
+    'docs/MODULES.md': catalog.renderMarkdown(),
+    'example/golden_app/.ngotools/modules.json': catalog.renderSnapshot(),
+    'example/golden_app/docs/MODULES.md': catalog.renderMarkdown(),
+  };
+
+  for (final entry in expectedFiles.entries) {
+    final file = File(path.join(repository.path, entry.key));
+
+    if (!await file.exists() || await file.readAsString() != entry.value) {
+      errors.add('${entry.key} must be regenerated.');
+    }
+  }
+
+  final command = await _read(repository, 'tool/modules.dart');
+  final generatedCommand = await _read(
+    repository,
+    'example/golden_app/tool/modules.dart',
+  );
+
+  if (command != generatedCommand) {
+    errors.add('The generated app module command must be regenerated.');
+  }
 
   return errors;
 }

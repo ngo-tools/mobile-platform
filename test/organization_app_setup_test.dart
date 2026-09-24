@@ -64,6 +64,10 @@ void main() {
       output,
       '.github/workflows/release.yml',
     );
+    final moduleSnapshot = await _read(output, '.ngotools/modules.json');
+    final moduleDocumentation = await _read(output, 'docs/MODULES.md');
+    final moduleCommand = await _read(output, 'tool/modules.dart');
+    final agentInstructions = await _read(output, 'AGENTS.md');
     final provenance =
         jsonDecode(await _read(output, '.ngotools-setup.json'))
             as Map<String, dynamic>;
@@ -88,6 +92,11 @@ void main() {
       contains('actions/checkout@11d5960a326750d5838078e36cf38b85af677262'),
     );
     expect(ReleaseWorkflowValidator.validate(releaseWorkflow), isEmpty);
+    expect(moduleSnapshot, contains('"id": "contacts"'));
+    expect(moduleSnapshot, contains('"id": "profile"'));
+    expect(moduleDocumentation, contains('## Contacts (`contacts`)'));
+    expect(moduleCommand, contains("case 'search':"));
+    expect(agentInstructions, contains('tool/modules.dart search'));
     expect(
       dartConfiguration,
       contains("appId: 'mob_01J00000000000000000000000'"),
@@ -158,6 +167,34 @@ void main() {
       throwsA(isA<FormatException>()),
     );
     expect(await output.exists(), isFalse);
+  });
+
+  test('keeps unselected modules discoverable in generated apps', () async {
+    final source = (await registration.readAsString())
+        .replaceFirst('    - contacts:read\n', '')
+        .replaceFirst('    - contacts\n', '');
+    final profileRegistration = File(
+      path.join(temporary.path, 'profile-only.yaml'),
+    );
+    await profileRegistration.writeAsString(source);
+    final output = Directory(path.join(temporary.path, 'profile-only'));
+
+    await OrganizationAppSetup.generate(
+      repository: repository,
+      registration: profileRegistration,
+      output: output,
+      platformRef: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    );
+
+    final snapshot = await _read(output, '.ngotools/modules.json');
+    final documentation = await _read(output, 'docs/MODULES.md');
+    final generatedManifest = await _read(output, 'ngo-tools.mobile.yaml');
+
+    expect(snapshot, contains('"id": "profile"'));
+    expect(snapshot, contains('"id": "contacts"'));
+    expect(documentation, contains('## Profile (`profile`)'));
+    expect(documentation, contains('## Contacts (`contacts`)'));
+    expect(generatedManifest, isNot(contains('    - contacts\n')));
   });
 
   test('never overwrites an existing output directory', () async {

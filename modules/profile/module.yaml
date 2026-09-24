@@ -1,0 +1,24 @@
+apiVersion: mobile.ngo.tools/v1alpha1
+kind: MobileModule
+metadata:
+  id: profile
+  name:
+    de: Profil
+    en: Profile
+  summary:
+    de: Zeigt das eigene bereinigte NGO.Tools-Benutzerprofil an.
+    en: Displays the current sanitized NGO.Tools user profile.
+status: available
+delivery:
+  type: built_in
+requires:
+  modules: []
+  apiScopes:
+    - profile:read
+  features:
+    - profile
+  permissions:
+    - profile:read
+  devicePermissions: []
+deepLinks:
+  - /profile

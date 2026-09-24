@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mobile.ngo.tools/schemas/mobile-module.schema.json",
+  "title": "NGO.Tools mobile module descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["apiVersion", "kind", "metadata", "status", "delivery", "requires", "deepLinks"],
+  "properties": {
+    "apiVersion": {"const": "mobile.ngo.tools/v1alpha1"},
+    "kind": {"const": "MobileModule"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "summary"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"},
+        "name": {"$ref": "#/definitions/localizedText"},
+        "summary": {"$ref": "#/definitions/localizedText"}
+      }
+    },
+    "status": {"enum": ["available", "planned", "deprecated"]},
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"enum": ["built_in", "package"]},
+        "package": {"type": "string", "pattern": "^ngotools_[a-z0-9_]+$"}
+      }
+    },
+    "requires": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modules", "apiScopes", "features", "permissions", "devicePermissions"],
+      "properties": {
+        "modules": {"$ref": "#/definitions/moduleIds"},
+        "apiScopes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["profile:read", "contacts:read", "contacts:write", "projects:read"]
+          }
+        },
+        "features": {"$ref": "#/definitions/capabilities"},
+        "permissions": {"$ref": "#/definitions/capabilities"},
+        "devicePermissions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["notifications", "camera", "photos", "location"]}
+        }
+      }
+    },
+    "deepLinks": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^/[a-z0-9{}_-]+(?:/[a-z0-9{}_-]+)*$"}
+    }
+  },
+  "definitions": {
+    "localizedText": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["de", "en"],
+      "properties": {
+        "de": {"type": "string", "minLength": 1, "maxLength": 200},
+        "en": {"type": "string", "minLength": 1, "maxLength": 200}
+      }
+    },
+    "moduleIds": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"}
+    },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.:-][a-z0-9]+)*$"}
+    }
+  }
+}
