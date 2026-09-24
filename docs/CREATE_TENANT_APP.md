@@ -1,9 +1,10 @@
 # Eigene App für einen Tenant starten
 
 Eine Organisation-App ist eine eigene Flutter-App für **genau einen**
-NGO.Tools-Tenant. Sie erhält feste API-, OIDC- und App-IDs und bietet keine
-freie Tenant-Auswahl. Der einfachste Einstieg ist ein öffentlicher Skill, der
-den vollständigen, versionierten Arbeitsauftrag enthält.
+NGO.Tools-Tenant. Bevor irgendetwas registriert oder dauerhaft festgelegt wird,
+entsteht zuerst eine lokale Vorschau mit synthetischen Daten. Der einfachste
+Einstieg ist ein öffentlicher Skill, der den vollständigen, versionierten
+Arbeitsauftrag enthält.
 
 ## Mit einem KI-Agenten
 
@@ -17,38 +18,56 @@ https://github.com/ngo-tools/mobile-platform/tree/main/skills/create-ngo-tools-a
 ```
 
 Mehr musst Du technisch nicht vorbereiten. Der Agent fragt zu Beginn immer
-schlicht nach dem Organisations-Slug. Du gibst den Slug als freie Eingabe ein;
-es gibt keine Auswahl zwischen Demo-, Staging- oder anderen Tenants.
-Danach wählst Du aus, welche verfügbaren Module direkt mitgegeben werden
-sollen. Diese Startauswahl lässt sich später jederzeit um weitere verfügbare
-Module ergänzen. Anschließend erledigt der Agent selbst:
+schlicht nach dem Organisations-Slug. Du gibst den Slug als freie Eingabe ein.
+Danach wählst Du aus, welche verfügbaren Module Du zuerst sehen möchtest. Diese
+Startauswahl lässt sich später jederzeit um weitere verfügbare Module ergänzen.
+Anschließend erledigt der Agent selbst:
 
 1. den öffentlichen Skill und die Mobile Platform laden;
 2. den vollständigen, geprüften Platform-Commit bestimmen;
-3. die App-Registrierung beim genannten Tenant starten;
-4. nach Deiner Browser-Freigabe die öffentliche Konfiguration abholen;
-5. einen passenden Zielordner aus dem App-Slug ableiten;
-6. die tenantgebundene App generieren, anpassen und gegen Staging prüfen.
+3. eine rein lokale Preview-Konfiguration mit `.invalid`-Endpunkten und
+   automatisch abgeleiteten Test-IDs erzeugen;
+4. die gewählten Module mit synthetischen Daten einbauen;
+5. Analyse und relevante Tests ausführen;
+6. die App im lokalen iOS-Simulator oder Android-Emulator starten.
 
-Der Agent fragt nur nach Entscheidungen, die er nicht sicher ermitteln darf:
+Vor dieser Vorschau fragt der Agent **nicht** nach:
 
-- Module, die direkt mitgegeben werden sollen;
-- iOS, Android oder beide Plattformen;
-- Support- und Datenschutz-URL;
-- öffentliche Store-/Signing-Kennungen, falls sie noch nirgends hinterlegt
-  sind;
-- optionale Logos, Farben und fachliche Besonderheiten.
+- Support- oder Datenschutz-URL;
+- endgültigen Bundle- oder Application-IDs;
+- Store-, Signing- oder Distributionsdaten;
+- Repository-Eigentümer oder App-Namen.
+
+Die Vorschau kontaktiert den Tenant nicht und reserviert keine dauerhaften IDs.
+Du kannst zunächst Screens, Module und Gestaltung beurteilen und ändern lassen.
+
+## Erst nach der Vorschau
+
+Erst wenn Du ausdrücklich sagst, dass die App mit dem Tenant verbunden werden
+soll, beginnt die Registrierung. Dann werden nur noch fehlende endgültige
+Angaben wie Zielplattformen, Support- und Datenschutz-URL sowie öffentliche
+App-Kennungen geklärt. Die Browser-Freigabe bleibt eine menschliche Handlung.
+Sie zeigt die konkrete Organisation, App-IDs und Plattformen, bevor NGO.Tools
+Staging und Production registriert.
 
 Bei Self-Service wird ohne Rückfrage das kundeneigene Repository mit den
-kundeneigenen Store-Konten verwendet. Einen Arbeitsnamen leitet der Agent aus
-dem Organisationsnamen oder Slug ab.
+kundeneigenen Store-Konten verwendet. Der Agent erhält keine Produktionsdaten,
+Tokens, Signing-Schlüssel oder Store-Zugänge.
 
-Die Browser-Freigabe bleibt immer eine menschliche Handlung. Sie zeigt die
-konkrete Organisation, App-IDs und Plattformen, bevor NGO.Tools Staging und
-Production registriert. Der Agent erhält keine Produktionsdaten, Tokens,
-Signing-Schlüssel oder Store-Zugänge.
+## Manuell zuerst ansehen
 
-## Manuell
+Die synthetische Golden App lässt sich ohne Registrierung direkt starten:
+
+```bash
+cd mobile-platform/example/golden_app
+flutter pub get
+flutter run -t lib/main_development.dart
+```
+
+Sie verwendet ausschließlich reservierte `.invalid`-Endpunkte und enthält
+keine Produktionsdaten oder Zugangsdaten.
+
+## Später manuell mit dem Tenant verbinden
 
 Der manuelle Weg ist für Entwickler gedacht, die die von NGO.Tools exportierte
 `ngo-tools.mobile.yaml` bereits besitzen. Im Checkout von
@@ -81,7 +100,15 @@ flutter build apk --debug -t lib/main_staging.dart
 flutter run -t lib/main_staging.dart
 ```
 
-## Fertig für Staging
+## Fertig für die Vorschau
+
+- Der Organisations-Slug und die gewünschten Startmodule sind festgelegt.
+- Alle Endpunkte und Daten sind synthetisch.
+- Die App läuft lokal im Simulator oder Emulator.
+- Noch keine Registrierung, endgültige App-ID oder Store-Konfiguration wurde
+  angelegt.
+
+## Später fertig für Staging
 
 - Tenant, App-IDs, Redirects und Endpunkte stammen aus der freigegebenen
   Registrierung.
