@@ -2,12 +2,13 @@ openapi: 3.0.3
 info:
   title: NGO.Tools Mobile Runtime API
   version: 2.0.0
-  description: Secret-free contract for the authenticated mobile runtime.
+  description: Secret-free contract for the mobile runtime and release approval.
 servers:
   - url: https://api.example.invalid
     description: Synthetic placeholder; apps replace this with their fixed API origin.
 tags:
   - name: Runtime
+  - name: Release
 paths:
   /api/me:
     get:
@@ -45,6 +46,74 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+  /api/v2/mobile-app-releases:
+    post:
+      operationId: startMobileAppRelease
+      tags: [Release]
+      summary: Start approval for one immutable signed mobile artifact
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppReleaseRequest'
+      responses:
+        '201':
+          description: Release approval was started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileAppReleaseStartResponse'
+        '404':
+          $ref: '#/components/responses/ReleaseError'
+        '409':
+          $ref: '#/components/responses/ReleaseError'
+        '422':
+          $ref: '#/components/responses/ReleaseError'
+  /api/v2/mobile-app-releases/{releaseRequestId}/poll:
+    post:
+      operationId: pollMobileAppRelease
+      tags: [Release]
+      summary: Poll a release approval with its one-time token
+      security: []
+      parameters:
+        - name: releaseRequestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileAppReleasePollRequest'
+      responses:
+        '200':
+          description: Release was approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileAppReleasePollResponse'
+        '202':
+          description: Release is waiting for approval
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileAppReleasePollResponse'
+        '403':
+          $ref: '#/components/responses/ReleaseError'
+        '404':
+          $ref: '#/components/responses/ReleaseError'
+        '410':
+          $ref: '#/components/responses/ReleaseError'
+        '422':
+          $ref: '#/components/responses/ReleaseError'
 components:
   securitySchemes:
     bearerAuth:
@@ -66,6 +135,16 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ReleaseError:
+      description: Release approval failed
+      headers:
+        Cache-Control:
+          schema:
+            type: string
+      content:
         application/json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
@@ -191,6 +270,132 @@ components:
         max_batch_size:
           type: integer
           minimum: 1
+    MobileAppReleaseRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - app_id
+        - platform
+        - channel
+        - version
+        - build_number
+        - source_revision
+        - artifact_sha256
+        - sdk_version
+        - contract_version
+      properties:
+        app_id:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+        channel:
+          type: string
+          enum: [internal, beta, production]
+        version:
+          type: string
+        build_number:
+          type: string
+        source_revision:
+          type: string
+          pattern: '^[a-f0-9]{40}$'
+        artifact_sha256:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+        sdk_version:
+          type: string
+        contract_version:
+          type: string
+    MobileAppReleasePollRequest:
+      type: object
+      additionalProperties: false
+      required: [poll_token]
+      properties:
+        poll_token:
+          type: string
+          minLength: 64
+          maxLength: 64
+    MobileAppReleaseStartResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/MobileAppReleaseApproval'
+    MobileAppReleaseApproval:
+      type: object
+      additionalProperties: false
+      required:
+        - release_request_id
+        - poll_token
+        - user_code
+        - authorization_url
+        - expires_in
+        - poll_interval
+      properties:
+        release_request_id:
+          type: string
+        poll_token:
+          type: string
+        user_code:
+          type: string
+        authorization_url:
+          type: string
+          format: uri
+        expires_in:
+          type: integer
+          minimum: 1
+        poll_interval:
+          type: integer
+          minimum: 1
+    MobileAppReleasePollResponse:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, approved]
+        code:
+          type: string
+          nullable: true
+        release:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/MobileAppApprovedRelease'
+    MobileAppApprovedRelease:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - app_id
+        - platform
+        - channel
+        - version
+        - build_number
+        - status
+        - management_url
+      properties:
+        id:
+          type: string
+        app_id:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+        channel:
+          type: string
+          enum: [internal, beta, production]
+        version:
+          type: string
+        build_number:
+          type: string
+        status:
+          type: string
+          enum: [approved]
+        management_url:
+          type: string
+          format: uri
     ProblemDetails:
       type: object
       additionalProperties: true

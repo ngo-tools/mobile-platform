@@ -1,0 +1,410 @@
+name: Protected mobile release
+run-name: Release ${{ inputs.platform }} build ${{ inputs.build_number }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Native platform to release
+        required: true
+        type: choice
+        options:
+          - android
+          - ios
+      source_revision:
+        description: Full organization-app commit SHA from the default branch
+        required: true
+        type: string
+      build_number:
+        description: Numeric native build number
+        required: true
+        type: string
+      confirm_app_id:
+        description: Enter the registered app ID to confirm this release
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: mobile-production-${{ inputs.platform }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Verify immutable release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      app_id: ${{ steps.registration.outputs.app_id }}
+      identifier: ${{ steps.registration.outputs.identifier }}
+      version: ${{ steps.registration.outputs.version }}
+      play_track: ${{ steps.registration.outputs.play_track }}
+
+    steps:
+      - name: Check out immutable source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ inputs.source_revision }}
+
+      - name: Verify protected source revision
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+          WORKFLOW_REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          [[ "$BUILD_NUMBER" =~ ^[0-9]+([.][0-9]+){0,2}$ ]]
+          [[ "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]]
+          test "$WORKFLOW_REF_NAME" = "$DEFAULT_BRANCH"
+          test "$(git rev-parse HEAD)" = "$SOURCE_REVISION"
+          git merge-base --is-ancestor "$SOURCE_REVISION" "origin/$DEFAULT_BRANCH"
+          test -z "$(git status --porcelain)"
+
+      - name: Verify public registration provenance
+        id: registration
+        env:
+          CONFIRM_APP_ID: ${{ inputs.confirm_app_id }}
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          test -f .ngotools-setup.json
+          test -f ngo-tools.mobile.yaml
+          app_id="$(jq -er '.app_id' .ngotools-setup.json)"
+          test "$CONFIRM_APP_ID" = "$app_id"
+          expected_hash="$(jq -er '.registration_sha256' .ngotools-setup.json)"
+          actual_hash="$(sha256sum ngo-tools.mobile.yaml | cut -d " " -f 1)"
+          test "$expected_hash" = "$actual_hash"
+          platform_ref="$(jq -er '.platform_ref' .ngotools-setup.json)"
+          [[ "$platform_ref" =~ ^[0-9a-f]{40}$ ]]
+          identifier="$(jq -er --arg platform "$PLATFORM" '.identifiers[$platform]' .ngotools-setup.json)"
+          distribution="$(jq -er --arg platform "$PLATFORM" '.distribution[$platform]' .ngotools-setup.json)"
+          case "$distribution" in
+            internal_testing) play_track=internal ;;
+            closed_testing) play_track=beta ;;
+            managed_private|public) play_track=production ;;
+            testflight|private) play_track= ;;
+            *) exit 1 ;;
+          esac
+          {
+            echo "app_id=$app_id"
+            echo "identifier=$identifier"
+            echo "version=$(jq -er '.app_version' .ngotools-setup.json)"
+            echo "play_track=$play_track"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Verify protected release environment
+        env:
+          ENVIRONMENT_NAME: mobile-production-${{ inputs.platform }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          environment="$(gh api "repos/$GITHUB_REPOSITORY/environments/$ENVIRONMENT_NAME")"
+          jq -e '.protection_rules | any(.type == "required_reviewers" and .prevent_self_review == true)' <<< "$environment" > /dev/null
+          jq -e '.deployment_branch_policy.protected_branches == true' <<< "$environment" > /dev/null
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Verify app source
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter analyze
+          flutter test
+
+  release_android:
+    name: Sign and release Android
+    needs: preflight
+    if: inputs.platform == 'android'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: mobile-production-android
+
+    steps:
+      - name: Check out approved source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.source_revision }}
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Validate protected Android credentials
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          test -n "$ANDROID_STORE_PASSWORD"
+          test -n "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+
+      - name: Build signed Android artifact
+        id: artifact
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          APP_VERSION: ${{ needs.preflight.outputs.version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          chmod 600 "$ANDROID_KEYSTORE_PATH"
+          flutter pub get
+          flutter build appbundle --release \
+            --build-name="$APP_VERSION" \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define-from-file=config/production.json
+          artifact=build/app/outputs/bundle/release/app-release.aab
+          test -f "$artifact"
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "$artifact" | cut -d " " -f 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Request NGO.Tools release approval
+        env:
+          ARTIFACT_SHA256: ${{ steps.artifact.outputs.sha256 }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          set -euo pipefail
+          dart run tool/request_release.dart \
+            --platform=android \
+            --artifact-sha256="$ARTIFACT_SHA256" \
+            --source-revision="$SOURCE_REVISION" \
+            --build-number="$BUILD_NUMBER" \
+            --result="$RUNNER_TEMP/release-result.json"
+
+      - name: Upload approved artifact to Google Play
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ needs.preflight.outputs.identifier }}
+          releaseFile: ${{ steps.artifact.outputs.path }}
+          track: ${{ needs.preflight.outputs.play_track }}
+          status: completed
+
+      - name: Create public release provenance
+        env:
+          ARTIFACT_SHA256: ${{ steps.artifact.outputs.sha256 }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          set -euo pipefail
+          jq -s \
+            --arg artifact_sha256 "$ARTIFACT_SHA256" \
+            --arg build_number "$BUILD_NUMBER" \
+            --arg platform android \
+            --arg source_revision "$SOURCE_REVISION" \
+            '.[0] + {
+              artifact_sha256: $artifact_sha256,
+              build_number: $build_number,
+              platform: $platform,
+              source_revision: $source_revision
+            }' \
+            "$RUNNER_TEMP/release-result.json" > "$RUNNER_TEMP/release-provenance.json"
+
+      - name: Archive public release provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-release-provenance-${{ inputs.build_number }}
+          path: ${{ runner.temp }}/release-provenance.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove Android signing material
+        if: always()
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/release.jks" \
+            "$RUNNER_TEMP/release-result.json" \
+            "$RUNNER_TEMP/release-provenance.json"
+
+  release_ios:
+    name: Sign and release iOS
+    needs: preflight
+    if: inputs.platform == 'ios'
+    runs-on: macos-15
+    timeout-minutes: 45
+    environment: mobile-production-ios
+
+    steps:
+      - name: Check out approved source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          ref: ${{ inputs.source_revision }}
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Validate protected iOS credentials
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$APP_STORE_CONNECT_API_KEY_ID"
+          test -n "$APP_STORE_CONNECT_ISSUER_ID"
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY"
+          test -n "$IOS_CERTIFICATE_BASE64"
+          test -n "$IOS_CERTIFICATE_PASSWORD"
+          test -n "$IOS_PROVISIONING_PROFILE_BASE64"
+          [[ "$IOS_PROVISIONING_PROFILE_NAME" =~ ^[A-Za-z0-9._-]+([[:space:]][A-Za-z0-9._-]+)*$ ]]
+          [[ "$IOS_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]
+
+      - name: Build signed iOS artifact
+        id: artifact
+        env:
+          APP_VERSION: ${{ needs.preflight.outputs.version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          PUBLIC_IDENTIFIER: ${{ needs.preflight.outputs.identifier }}
+        run: |
+          set -euo pipefail
+          certificate="$RUNNER_TEMP/distribution.p12"
+          profile="$RUNNER_TEMP/distribution.mobileprovision"
+          export_options="$RUNNER_TEMP/ExportOptions.plist"
+          keychain="$RUNNER_TEMP/release.keychain-db"
+          keychain_password="$(openssl rand -hex 32)"
+          installed_profile=
+          cleanup() {
+            security delete-keychain "$keychain" 2>/dev/null || true
+            rm -f "$certificate" "$profile" "$export_options"
+            if [[ -n "$installed_profile" ]]; then rm -f "$installed_profile"; fi
+          }
+          trap cleanup EXIT
+          echo "::add-mask::$keychain_password"
+          printf '%s' "$IOS_CERTIFICATE_BASE64" | base64 -D > "$certificate"
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -D > "$profile"
+          chmod 600 "$certificate" "$profile"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -k "$keychain" \
+            -P "$IOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s \
+            -k "$keychain_password" "$keychain"
+          security list-keychains -d user -s "$keychain"
+          profile_uuid="$(security cms -D -i "$profile" | plutil -extract UUID raw -)"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          installed_profile="$HOME/Library/MobileDevice/Provisioning Profiles/$profile_uuid.mobileprovision"
+          cp "$profile" "$installed_profile"
+          cat > "$export_options" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>teamID</key><string>$IOS_TEAM_ID</string>
+            <key>provisioningProfiles</key><dict>
+              <key>$PUBLIC_IDENTIFIER</key><string>$IOS_PROVISIONING_PROFILE_NAME</string>
+            </dict>
+          </dict></plist>
+          EOF
+          flutter pub get
+          flutter build ipa --release \
+            --build-name="$APP_VERSION" \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define-from-file=config/production.json \
+            --export-options-plist="$export_options"
+          shopt -s nullglob
+          artifacts=(build/ios/ipa/*.ipa)
+          test "${#artifacts[@]}" -eq 1
+          artifact="${artifacts[0]}"
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(shasum -a 256 "$artifact" | cut -d " " -f 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Request NGO.Tools release approval
+        env:
+          ARTIFACT_SHA256: ${{ steps.artifact.outputs.sha256 }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          set -euo pipefail
+          dart run tool/request_release.dart \
+            --platform=ios \
+            --artifact-sha256="$ARTIFACT_SHA256" \
+            --source-revision="$SOURCE_REVISION" \
+            --build-number="$BUILD_NUMBER" \
+            --result="$RUNNER_TEMP/release-result.json"
+
+      - name: Upload approved artifact to TestFlight
+        uses: Apple-Actions/upload-testflight-build@9fd28d4e690396e43caca69cef54cccccce77034
+        with:
+          app-path: ${{ steps.artifact.outputs.path }}
+          app-type: ios
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+      - name: Create public release provenance
+        env:
+          ARTIFACT_SHA256: ${{ steps.artifact.outputs.sha256 }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SOURCE_REVISION: ${{ inputs.source_revision }}
+        run: |
+          set -euo pipefail
+          jq -s \
+            --arg artifact_sha256 "$ARTIFACT_SHA256" \
+            --arg build_number "$BUILD_NUMBER" \
+            --arg platform ios \
+            --arg source_revision "$SOURCE_REVISION" \
+            '.[0] + {
+              artifact_sha256: $artifact_sha256,
+              build_number: $build_number,
+              platform: $platform,
+              source_revision: $source_revision
+            }' \
+            "$RUNNER_TEMP/release-result.json" > "$RUNNER_TEMP/release-provenance.json"
+
+      - name: Archive public release provenance
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-release-provenance-${{ inputs.build_number }}
+          path: ${{ runner.temp }}/release-provenance.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Remove iOS release metadata
+        if: always()
+        run: |
+          rm -f \
+            "$RUNNER_TEMP/release-result.json" \
+            "$RUNNER_TEMP/release-provenance.json"

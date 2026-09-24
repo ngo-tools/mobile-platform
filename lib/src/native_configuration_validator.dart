@@ -60,9 +60,25 @@ abstract final class NativeConfigurationValidator {
       errors.add('Release builds must not use the Android debug signing key.');
     }
 
-    if (!androidBuildFile.contains('minSdk = 23')) {
+    for (final variable in const {
+      'ANDROID_KEYSTORE_PATH',
+      'ANDROID_STORE_PASSWORD',
+      'ANDROID_KEY_ALIAS',
+      'ANDROID_KEY_PASSWORD',
+    }) {
+      if (!androidBuildFile.contains('System.getenv("$variable")')) {
+        errors.add('Android release signing must read $variable from CI.');
+      }
+    }
+
+    final minimumSdkMatch = RegExp(
+      r'minSdk\s*=\s*(\d+)',
+    ).firstMatch(androidBuildFile);
+    final minimumSdk = int.tryParse(minimumSdkMatch?.group(1) ?? '');
+
+    if (minimumSdk == null || minimumSdk < 23) {
       errors.add(
-        'Android minSdk must support hardware-backed session storage.',
+        'Android minSdk must be at least 23 for protected session storage.',
       );
     }
 
@@ -82,6 +98,17 @@ abstract final class NativeConfigurationValidator {
     }
 
     final redirectSchemes = _redirectSchemes(manifest);
+    final productionRedirectScheme = _productionRedirectScheme(manifest);
+
+    if (productionRedirectScheme != null &&
+        !androidBuildFile.contains(
+          'manifestPlaceholders["appAuthRedirectScheme"] =\n'
+          '            "$productionRedirectScheme"',
+        )) {
+      errors.add(
+        'Android AppAuth placeholder does not match the production redirect.',
+      );
+    }
 
     for (final scheme in redirectSchemes) {
       if (!androidManifest.contains('android:scheme="$scheme"')) {
@@ -189,5 +216,24 @@ abstract final class NativeConfigurationValidator {
     }
 
     return hosts.whereType<String>().toSet();
+  }
+
+  static String? _productionRedirectScheme(Map<String, Object?> manifest) {
+    final backend = manifest['backend'];
+
+    if (backend is! Map<String, Object?>) {
+      return null;
+    }
+
+    final environments = backend['environments'];
+    final production = environments is Map<String, Object?>
+        ? environments['production']
+        : null;
+    final oidc = production is Map<String, Object?> ? production['oidc'] : null;
+    final redirectUri = oidc is Map<String, Object?>
+        ? oidc['redirectUri']
+        : null;
+
+    return redirectUri is String ? Uri.parse(redirectUri).scheme : null;
   }
 }

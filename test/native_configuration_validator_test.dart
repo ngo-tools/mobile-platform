@@ -30,7 +30,13 @@ void main() {
   const iosEntitlements = '<key>keychain-access-groups</key>';
   const androidBuildFile =
       'defaultConfig { applicationId = "tools.ngo.mobile.golden"; '
-      'minSdk = 23 }';
+      'minSdk = 23 }\n'
+      'System.getenv("ANDROID_KEYSTORE_PATH")\n'
+      'System.getenv("ANDROID_STORE_PASSWORD")\n'
+      'System.getenv("ANDROID_KEY_ALIAS")\n'
+      'System.getenv("ANDROID_KEY_PASSWORD")\n'
+      'manifestPlaceholders["appAuthRedirectScheme"] =\n'
+      '            "ngotools-synthetic"';
 
   test('accepts matching secret-free native configuration', () {
     final errors = NativeConfigurationValidator.validate(
@@ -45,13 +51,63 @@ void main() {
     expect(errors, isEmpty);
   });
 
+  test('requires release signing to come from the CI environment', () {
+    final errors = NativeConfigurationValidator.validate(
+      manifest: manifest,
+      androidBuildFile:
+          'defaultConfig { applicationId = "tools.ngo.mobile.golden"; '
+          'minSdk = 23 }',
+      androidManifest: androidManifest,
+      iosProjectFile: iosProjectFile,
+      iosInfoPlist: iosInfoPlist,
+      iosEntitlements: iosEntitlements,
+    );
+
+    expect(
+      errors,
+      containsAll([
+        'Android release signing must read ANDROID_KEYSTORE_PATH from CI.',
+        'Android release signing must read ANDROID_STORE_PASSWORD from CI.',
+        'Android release signing must read ANDROID_KEY_ALIAS from CI.',
+        'Android release signing must read ANDROID_KEY_PASSWORD from CI.',
+      ]),
+    );
+  });
+
+  test('rejects Android versions below the secure storage baseline', () {
+    final errors = NativeConfigurationValidator.validate(
+      manifest: manifest,
+      androidBuildFile: androidBuildFile.replaceFirst(
+        'minSdk = 23',
+        'minSdk = 22',
+      ),
+      androidManifest: androidManifest,
+      iosProjectFile: iosProjectFile,
+      iosInfoPlist: iosInfoPlist,
+      iosEntitlements: iosEntitlements,
+    );
+
+    expect(
+      errors,
+      contains(
+        'Android minSdk must be at least 23 for protected session storage.',
+      ),
+    );
+  });
+
   test('rejects identifiers and signing configuration drift', () {
     final errors = NativeConfigurationValidator.validate(
       manifest: manifest,
       androidBuildFile:
           'applicationId = "tools.ngo.mobile.other"\n'
           'minSdk = 23\n'
-          'signingConfig = signingConfigs.getByName("debug")',
+          'signingConfig = signingConfigs.getByName("debug")\n'
+          'System.getenv("ANDROID_KEYSTORE_PATH")\n'
+          'System.getenv("ANDROID_STORE_PASSWORD")\n'
+          'System.getenv("ANDROID_KEY_ALIAS")\n'
+          'System.getenv("ANDROID_KEY_PASSWORD")\n'
+          'manifestPlaceholders["appAuthRedirectScheme"] =\n'
+          '            "ngotools-synthetic"',
       androidManifest: androidManifest,
       iosProjectFile:
           'PRODUCT_BUNDLE_IDENTIFIER = tools.ngo.mobile.other;\n'
@@ -109,7 +165,13 @@ void main() {
     final errors = NativeConfigurationValidator.validate(
       manifest: manifest,
       androidBuildFile:
-          'defaultConfig { applicationId = "tools.ngo.mobile.golden" }',
+          'defaultConfig { applicationId = "tools.ngo.mobile.golden" }\n'
+          'System.getenv("ANDROID_KEYSTORE_PATH")\n'
+          'System.getenv("ANDROID_STORE_PASSWORD")\n'
+          'System.getenv("ANDROID_KEY_ALIAS")\n'
+          'System.getenv("ANDROID_KEY_PASSWORD")\n'
+          'manifestPlaceholders["appAuthRedirectScheme"] =\n'
+          '            "ngotools-synthetic"',
       androidManifest: '<application android:taskAffinity="" />',
       iosProjectFile: 'PRODUCT_BUNDLE_IDENTIFIER = tools.ngo.mobile.golden;',
       iosInfoPlist: '<plist />',

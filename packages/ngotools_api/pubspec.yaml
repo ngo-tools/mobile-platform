@@ -14,9 +14,8 @@ dependencies:
   bloc: ^9.2.1
   copy_with_extension: ^17.1.0
   dio: ^5.11.1
-  flutter:
-    sdk: flutter
   json_annotation: ^4.12.0
+  meta: ^1.17.0
   ngotools_mobile_core: ^0.1.0-dev.1
   uuid: ^4.6.0
 

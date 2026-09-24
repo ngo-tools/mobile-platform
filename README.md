@@ -42,6 +42,12 @@ does not fetch credentials, run a build, configure signing, or create a remote
 repository. A single dependency override block pins the complete internal
 package graph to the requested commit until the packages are published.
 
+The generated repository also contains a manual release workflow. It requires
+protected GitHub environments with human reviewers, builds only an immutable
+default-branch commit, and waits for NGO.Tools approval of the signed artifact
+before uploading it to Google Play or TestFlight. No signing or store material
+is stored in this public platform repository.
+
 ## Workspace
 
 - `ngotools_mobile_core`: immutable environment and app configuration

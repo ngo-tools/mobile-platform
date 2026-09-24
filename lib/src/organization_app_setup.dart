@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 import 'manifest_validator.dart';
 import 'native_configuration_validator.dart';
@@ -58,6 +59,9 @@ abstract final class OrganizationAppSetup {
 
     final manifest = validation.manifest!;
     final identifiers = _map(manifest, 'identifiers');
+    final platformVersion = _platformVersion(
+      await File(path.join(repository.path, 'pubspec.yaml')).readAsString(),
+    );
 
     if (identifiers['android'] is! Map<String, Object?> ||
         identifiers['ios'] is! Map<String, Object?>) {
@@ -93,6 +97,7 @@ abstract final class OrganizationAppSetup {
         manifest: manifest,
         registrationSource: registrationSource,
         platformRef: platformRef,
+        platformVersion: platformVersion,
       );
 
       if (await FileSystemEntity.type(output.path, followLinks: false) !=
@@ -211,6 +216,7 @@ abstract final class OrganizationAppSetup {
     required Map<String, Object?> manifest,
     required String registrationSource,
     required String platformRef,
+    required String platformVersion,
   }) async {
     final metadata = _map(manifest, 'metadata');
     final owner = _map(manifest, 'owner');
@@ -292,10 +298,19 @@ abstract final class OrganizationAppSetup {
     }
 
     final provenance = {
+      'app_id': _string(metadata, 'id'),
+      'app_version': _string(metadata, 'version'),
+      'contract_version': _string(backend, 'minimumContractVersion'),
+      'platform_sdk_version': platformVersion,
       'platform_ref': platformRef,
       'registration_sha256': sha256
           .convert(utf8.encode(registrationSource))
           .toString(),
+      'identifiers': {
+        'android': _string(androidIdentifiers, 'production'),
+        'ios': _string(iosIdentifiers, 'production'),
+      },
+      'distribution': Map<String, Object?>.from(_map(manifest, 'distribution')),
     };
     await File(path.join(directory.path, '.ngotools-setup.json')).writeAsString(
       '${const JsonEncoder.withIndent('  ').convert(provenance)}\n',
@@ -342,7 +357,7 @@ abstract final class OrganizationAppSetup {
     Directory directory,
     String packageName,
   ) async {
-    for (final sourceRoot in const ['lib', 'test']) {
+    for (final sourceRoot in const ['lib', 'test', 'tool']) {
       final sourceDirectory = Directory(path.join(directory.path, sourceRoot));
 
       await for (final entity in sourceDirectory.list(recursive: true)) {
@@ -378,6 +393,10 @@ abstract final class OrganizationAppSetup {
         .replaceFirst(
           'applicationId = "tools.ngo.mobile.golden"',
           'applicationId = "$applicationId"',
+        )
+        .replaceFirst(
+          '"ngotools-01j00000000000000000000002"',
+          '"${schemes[2]}"',
         );
     await buildFile.writeAsString(buildSource);
 
@@ -594,6 +613,20 @@ abstract final class OrganizationAppSetup {
 
   static List<String> _strings(Map<String, Object?> value, String key) =>
       (value[key]! as List<Object?>).cast<String>();
+
+  static String _platformVersion(String pubspecSource) {
+    final pubspec = loadYaml(pubspecSource);
+    final version = pubspec is YamlMap ? pubspec['version'] : null;
+
+    if (version is! String ||
+        !RegExp(r'^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$').hasMatch(version)) {
+      throw const FormatException(
+        'The Mobile Platform pubspec has no semantic version.',
+      );
+    }
+
+    return version;
+  }
 
   static String _literal(String value) =>
       "'${value.replaceAll(r'\', r'\\').replaceAll("'", r"\'").replaceAll(r'$', r'\$').replaceAll('\n', r'\n').replaceAll('\r', r'\r').replaceAll('\t', r'\t')}'";

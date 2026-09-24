@@ -52,12 +52,18 @@ void main() {
       output,
       'ios/Runner.xcodeproj/project.pbxproj',
     );
+    final iosPodfile = await _read(output, 'ios/Podfile');
     final iosEntitlements = await _read(
       output,
       'ios/Runner/Runner.entitlements',
     );
     final bootstrap = await _read(output, 'lib/bootstrap.dart');
     final main = await _read(output, 'lib/main.dart');
+    final releaseTool = await _read(output, 'tool/request_release.dart');
+    final releaseWorkflow = await _read(
+      output,
+      '.github/workflows/release.yml',
+    );
     final provenance =
         jsonDecode(await _read(output, '.ngotools-setup.json'))
             as Map<String, dynamic>;
@@ -71,6 +77,17 @@ void main() {
     );
     expect(bootstrap, contains("package:ngo_tools_synthetic_demo/app.dart"));
     expect(main, contains("package:ngo_tools_synthetic_demo/bootstrap.dart"));
+    expect(
+      releaseTool,
+      contains(
+        "package:ngo_tools_synthetic_demo/generated/mobile_app_config.dart",
+      ),
+    );
+    expect(
+      releaseWorkflow,
+      contains('actions/checkout@11d5960a326750d5838078e36cf38b85af677262'),
+    );
+    expect(ReleaseWorkflowValidator.validate(releaseWorkflow), isEmpty);
     expect(
       dartConfiguration,
       contains("appId: 'mob_01J00000000000000000000000'"),
@@ -92,16 +109,36 @@ void main() {
       ),
     );
     expect(androidBuild, contains('applicationId = "tools.ngo.mobile.golden"'));
+    expect(
+      androidBuild,
+      contains(
+        'manifestPlaceholders["appAuthRedirectScheme"] =\n'
+        '            "ngotools-01j00000000000000000000002"',
+      ),
+    );
     expect(androidManifest, contains('android:host="mobile.example.invalid"'));
     expect(
       iosProject,
       contains('PRODUCT_BUNDLE_IDENTIFIER = tools.ngo.mobile.golden;'),
     );
+    expect(iosPodfile, contains("platform :ios, '13.0'"));
     expect(
       iosEntitlements,
       contains('<string>applinks:mobile.example.invalid</string>'),
     );
     expect(provenance['platform_ref'], platformRef);
+    expect(provenance['app_id'], 'mob_01J00000000000000000000000');
+    expect(provenance['app_version'], '0.1.0');
+    expect(provenance['contract_version'], '2.0.0');
+    expect(provenance['platform_sdk_version'], '0.1.0-dev.1');
+    expect(provenance['identifiers'], {
+      'android': 'tools.ngo.mobile.golden',
+      'ios': 'tools.ngo.mobile.golden',
+    });
+    expect(provenance['distribution'], {
+      'android': 'closed_testing',
+      'ios': 'testflight',
+    });
     expect(
       provenance['registration_sha256'],
       matches(RegExp(r'^[0-9a-f]{64}$')),
