@@ -97,11 +97,27 @@ abstract final class ManifestValidator {
         for (final entry in expectedModes.entries) {
           final environment = environments[entry.key];
 
-          if (environment is Map<String, Object?> &&
-              environment['attestationMode'] != entry.value) {
-            errors.add(
-              'backend.environments.${entry.key}.attestationMode must be ${entry.value}.',
+          if (environment is Map<String, Object?>) {
+            if (environment['attestationMode'] != entry.value) {
+              errors.add(
+                'backend.environments.${entry.key}.attestationMode must be ${entry.value}.',
+              );
+            }
+
+            _validatePublicUrl(
+              environment['apiBaseUrl'],
+              'backend.environments.${entry.key}.apiBaseUrl',
+              errors,
             );
+            final oidc = environment['oidc'];
+
+            if (oidc is Map<String, Object?>) {
+              _validatePublicUrl(
+                oidc['issuer'],
+                'backend.environments.${entry.key}.oidc.issuer',
+                errors,
+              );
+            }
           }
         }
       }
@@ -120,6 +136,27 @@ abstract final class ManifestValidator {
     }
 
     return errors;
+  }
+
+  static void _validatePublicUrl(
+    Object? value,
+    String field,
+    List<String> errors,
+  ) {
+    if (value is! String) {
+      return;
+    }
+
+    final uri = Uri.tryParse(value);
+
+    if (uri == null ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
+      errors.add(
+        '$field must not contain credentials, a query, or a fragment.',
+      );
+    }
   }
 
   static Object? _normalizeYaml(Object? value) {

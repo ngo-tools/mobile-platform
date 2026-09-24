@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_app/app.dart';
 import 'package:ngotools_api/ngotools_api.dart';
+import 'package:ngotools_auth/ngotools_auth.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
+import 'package:ngotools_testing/ngotools_testing.dart';
 
 void main() {
   testWidgets('shows the selected synthetic environment', (tester) async {
@@ -37,6 +39,7 @@ void main() {
     await tester.pumpWidget(
       GoldenApp(
         environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
         capabilities: capabilities,
       ),
     );
@@ -47,7 +50,11 @@ void main() {
 
   testWidgets('shows sanitized diagnostics', (tester) async {
     await tester.pumpWidget(
-      const GoldenApp(environment: MobileEnvironment.staging),
+      GoldenApp(
+        environment: MobileEnvironment.staging,
+        authStatus: MobileAuthStatus.authenticated,
+        capabilities: SyntheticMobileFixture.capabilities,
+      ),
     );
     await tester.tap(find.text('Diagnostics'));
     await tester.pump();

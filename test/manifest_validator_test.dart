@@ -100,6 +100,29 @@ void main() {
     expect(result.isValid, isFalse);
   });
 
+  test('rejects credentials and query data in runtime origins', () {
+    final result = ManifestValidator.validate(
+      manifestSource: manifestSource
+          .replaceFirst(
+            'https://development.example.invalid/api/v2',
+            'https://user@development.example.invalid/api/v2',
+          )
+          .replaceFirst(
+            'https://identity.development.example.invalid/realms/synthetic',
+            'https://identity.development.example.invalid/realms/synthetic?token=value',
+          ),
+      schemaSource: schemaSource,
+    );
+
+    expect(
+      result.errors,
+      containsAll([
+        'backend.environments.development.apiBaseUrl must not contain credentials, a query, or a fragment.',
+        'backend.environments.development.oidc.issuer must not contain credentials, a query, or a fragment.',
+      ]),
+    );
+  });
+
   test('reports malformed YAML instead of throwing', () {
     final result = ManifestValidator.validate(
       manifestSource: 'metadata: [',

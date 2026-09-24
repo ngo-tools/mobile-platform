@@ -5,15 +5,28 @@ import 'package:ngotools_auth/ngotools_auth.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:ngotools_navigation/ngotools_navigation.dart';
-import 'package:ngotools_testing/ngotools_testing.dart';
+
+import 'generated/mobile_app_config.dart';
 
 /// Secret-free reference application for the NGO.Tools Golden Path.
 class GoldenApp extends StatelessWidget {
   /// Creates the reference app for [environment].
-  const GoldenApp({required this.environment, this.capabilities, super.key});
+  const GoldenApp({
+    required this.environment,
+    this.configuration,
+    this.authStatus = MobileAuthStatus.signedOut,
+    this.capabilities,
+    super.key,
+  });
 
   /// The environment selected at build time.
   final MobileEnvironment environment;
+
+  /// Public tenant-bound registration for this app.
+  final MobileAppConfiguration? configuration;
+
+  /// Current token-free authentication status.
+  final MobileAuthStatus authStatus;
 
   /// Optional capability override used by deterministic tests.
   final MobileRuntimeCapabilities? capabilities;
@@ -27,7 +40,9 @@ class GoldenApp extends StatelessWidget {
     darkTheme: NgoToolsTheme.community(brightness: Brightness.dark),
     home: GoldenShell(
       environment: environment,
-      capabilities: capabilities ?? SyntheticMobileFixture.capabilities,
+      configuration: configuration ?? mobileAppConfiguration,
+      authStatus: authStatus,
+      capabilities: capabilities,
     ),
   );
 }
@@ -37,22 +52,25 @@ class GoldenShell extends StatelessWidget {
   /// Creates the Golden Path shell.
   const GoldenShell({
     required this.environment,
-    required this.capabilities,
+    required this.configuration,
+    required this.authStatus,
+    this.capabilities,
     super.key,
   });
 
   final MobileEnvironment environment;
-  final MobileRuntimeCapabilities capabilities;
+  final MobileAppConfiguration configuration;
+  final MobileAuthStatus authStatus;
+  final MobileRuntimeCapabilities? capabilities;
 
   @override
   Widget build(BuildContext context) {
     final isGerman = Localizations.localeOf(context).languageCode == 'de';
-    final environmentConfiguration = SyntheticMobileFixture.configuration
-        .forEnvironment(environment);
+    final environmentConfiguration = configuration.forEnvironment(environment);
     final diagnostics = MobileDiagnosticsSnapshot.fromRuntime(
-      appId: SyntheticMobileFixture.configuration.appId,
+      appId: configuration.appId,
       environment: environmentConfiguration,
-      authStatus: MobileAuthStatus.authenticated,
+      authStatus: authStatus,
       capabilities: capabilities,
     );
     final items = [
@@ -98,7 +116,7 @@ class GoldenShell extends StatelessWidget {
       title: const Text('NGO.Tools'),
       breakpoint: NgoToolsLayout.navigationRailBreakpoint,
       items: items,
-      authStatus: MobileAuthStatus.authenticated,
+      authStatus: authStatus,
       capabilities: capabilities,
     );
   }

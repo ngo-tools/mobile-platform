@@ -37,6 +37,19 @@ Future<void> main() async {
   final manifest = manifestResult.manifest;
 
   if (manifest != null) {
+    final expectedConfiguration =
+        await OrganizationAppSetup.renderFormattedDartConfiguration(manifest);
+    final committedConfiguration = await _read(
+      repository,
+      'example/golden_app/lib/generated/mobile_app_config.dart',
+    );
+
+    if (committedConfiguration != expectedConfiguration) {
+      errors.add(
+        'Generated app configuration: regenerate it from the manifest.',
+      );
+    }
+
     errors.addAll(
       NativeConfigurationValidator.validate(
         manifest: manifest,

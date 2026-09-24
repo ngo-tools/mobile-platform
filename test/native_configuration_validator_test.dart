@@ -83,6 +83,28 @@ void main() {
     expect(errors, hasLength(2));
   });
 
+  test('requires app links on both native platforms', () {
+    final deepLinkManifest = <String, Object?>{
+      ...manifest,
+      'deepLinks': <String, Object?>{
+        'hosts': <Object?>['mobile.example.invalid'],
+      },
+    };
+    final errors = NativeConfigurationValidator.validate(
+      manifest: deepLinkManifest,
+      androidBuildFile: androidBuildFile,
+      androidManifest: androidManifest,
+      iosProjectFile: iosProjectFile,
+      iosInfoPlist: iosInfoPlist,
+      iosEntitlements: iosEntitlements,
+    );
+
+    expect(errors, {
+      'Android is missing the mobile.example.invalid app-link host.',
+      'iOS is missing the mobile.example.invalid associated domain.',
+    });
+  });
+
   test('rejects missing redirect and protected-storage configuration', () {
     final errors = NativeConfigurationValidator.validate(
       manifest: manifest,

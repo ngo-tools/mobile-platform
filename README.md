@@ -23,13 +23,32 @@ The gate validates the app manifest and native identifiers, scans for secrets,
 checks package boundaries, formats and analyzes the workspace, and runs all
 tests.
 
+## Create an organization app
+
+Use a public registration exported by NGO.Tools and pin the generated app to a
+reviewed Mobile Platform commit:
+
+```bash
+dart run tool/setup_app.dart \
+  --registration=/absolute/path/ngo-tools.mobile.yaml \
+  --output=/absolute/path/my-organization-app \
+  --platform-ref=0123456789abcdef0123456789abcdef01234567
+```
+
+The destination must not exist. The command validates the registration before
+writing, configures Android and iOS identifiers, redirects, app links, and
+declared device permissions, and records only public generation provenance. It
+does not fetch credentials, run a build, configure signing, or create a remote
+repository. A single dependency override block pins the complete internal
+package graph to the requested commit until the packages are published.
+
 ## Workspace
 
 - `ngotools_mobile_core`: immutable environment and app configuration
 - `ngotools_auth`: authentication state boundary without exposed raw tokens
-- `ngotools_api`: API contract and problem-detail types
+- `ngotools_api`: generated runtime transport and sanitized public contracts
 - `ngotools_design_system`: shared accessible visual foundation
-- `ngotools_navigation`: auth- and capability-aware navigation contracts
+- `ngotools_navigation`: adaptive auth- and capability-aware navigation
 - `ngotools_testing`: synthetic fixtures for application tests
 - `example/golden_app`: secret-free reference shell
 
