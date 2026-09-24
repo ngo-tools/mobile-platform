@@ -93,6 +93,33 @@ abstract final class NativeConfigurationValidator {
       }
     }
 
+    final deepLinkHosts = _deepLinkHosts(manifest);
+
+    for (final host in deepLinkHosts) {
+      if (!androidManifest.contains('android:host="$host"')) {
+        errors.add('Android is missing the $host app-link host.');
+      }
+
+      if (!iosEntitlements.contains('<string>applinks:$host</string>')) {
+        errors.add('iOS is missing the $host associated domain.');
+      }
+    }
+
+    final androidHosts = RegExp(
+      'android:host="([^"]+)"',
+    ).allMatches(androidManifest).map((match) => match.group(1)!).toSet();
+    final iosHosts = RegExp(
+      r'<string>applinks:([^<]+)</string>',
+    ).allMatches(iosEntitlements).map((match) => match.group(1)!).toSet();
+
+    for (final host in androidHosts.difference(deepLinkHosts)) {
+      errors.add('Android declares the unregistered $host app-link host.');
+    }
+
+    for (final host in iosHosts.difference(deepLinkHosts)) {
+      errors.add('iOS declares the unregistered $host associated domain.');
+    }
+
     final permissions = manifest['permissions'];
     final declaredPermissions = <String>{};
 
@@ -146,5 +173,21 @@ abstract final class NativeConfigurationValidator {
               case final String redirectUri)
             Uri.parse(redirectUri).scheme,
     };
+  }
+
+  static Set<String> _deepLinkHosts(Map<String, Object?> manifest) {
+    final deepLinks = manifest['deepLinks'];
+
+    if (deepLinks is! Map<String, Object?>) {
+      return const {};
+    }
+
+    final hosts = deepLinks['hosts'];
+
+    if (hosts is! List<Object?>) {
+      return const {};
+    }
+
+    return hosts.whereType<String>().toSet();
   }
 }
