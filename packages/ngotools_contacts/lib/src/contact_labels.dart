@@ -20,6 +20,7 @@ final class ContactLabels {
     required this.retry,
     required this.loadMore,
     required this.loading,
+    required this.cachedMessage,
     required this.unknownContact,
     required this.detailsTitle,
     required this.contactInformation,
@@ -47,6 +48,8 @@ final class ContactLabels {
     retry: 'Erneut versuchen',
     loadMore: 'Weitere laden',
     loading: 'Kontakte werden geladen',
+    cachedMessage:
+        'Offline-Kopie der letzten erfolgreichen Aktualisierung wird angezeigt.',
     unknownContact: 'Unbenannter Kontakt',
     detailsTitle: 'Kontaktdetails',
     contactInformation: 'Kontaktinformationen',
@@ -74,6 +77,7 @@ final class ContactLabels {
     retry: 'Try again',
     loadMore: 'Load more',
     loading: 'Loading contacts',
+    cachedMessage: 'Showing an offline copy from the last successful update.',
     unknownContact: 'Unnamed contact',
     detailsTitle: 'Contact details',
     contactInformation: 'Contact information',
@@ -99,6 +103,7 @@ final class ContactLabels {
   final String retry;
   final String loadMore;
   final String loading;
+  final String cachedMessage;
   final String unknownContact;
   final String detailsTitle;
   final String contactInformation;

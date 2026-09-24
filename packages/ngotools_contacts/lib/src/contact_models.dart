@@ -8,6 +8,9 @@ enum ContactKind { person, organization, couple, unknown }
 /// Sort modes supported by the contact list.
 enum ContactsSort { lastName, name, recentlyUpdated }
 
+/// Origin of a contact result shown to the user.
+enum ContactDataSource { remote, cache }
+
 /// Sanitized address fields displayed in contact details.
 @freezed
 abstract class ContactAddress with _$ContactAddress {
@@ -75,10 +78,23 @@ abstract class ContactPage with _$ContactPage {
     required int perPage,
     required int total,
     required int lastPage,
+    @Default(ContactDataSource.remote) ContactDataSource source,
+    DateTime? cachedAt,
   }) = _ContactPage;
 
   /// Whether another page can be loaded.
   bool get hasNextPage => page < lastPage;
+}
+
+/// One contact together with its data provenance.
+@freezed
+abstract class ContactSnapshot with _$ContactSnapshot {
+  /// Creates an immutable contact snapshot.
+  const factory ContactSnapshot({
+    required ContactRecord contact,
+    @Default(ContactDataSource.remote) ContactDataSource source,
+    DateTime? cachedAt,
+  }) = _ContactSnapshot;
 }
 
 /// Parameters accepted by contact repositories.

@@ -1,6 +1,12 @@
 /// Core environment and application contracts for NGO.Tools mobile apps.
 library;
 
+/// Removes user-bound data when an authenticated session ends.
+abstract interface class MobilePrivateDataPurger {
+  /// Deletes all private data owned by the active app/session scope.
+  Future<void> purgePrivateData();
+}
+
 /// A deployment environment available to an organization app.
 enum MobileEnvironment { development, staging, production }
 

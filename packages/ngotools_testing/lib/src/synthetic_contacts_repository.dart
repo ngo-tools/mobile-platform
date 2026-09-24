@@ -48,8 +48,9 @@ final class SyntheticContactsRepository implements ContactsRepository {
   ];
 
   @override
-  Future<ContactRecord> getById(int contactId) async =>
-      _contacts.singleWhere((contact) => contact.id == contactId);
+  Future<ContactSnapshot> getById(int contactId) async => ContactSnapshot(
+    contact: _contacts.singleWhere((contact) => contact.id == contactId),
+  );
 
   @override
   Future<ContactPage> search(ContactSearch search) async {

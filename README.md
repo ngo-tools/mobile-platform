@@ -69,7 +69,7 @@ marked `available`; it never grants server access.
 - `ngotools_mobile_core`: immutable environment and app configuration
 - `ngotools_auth`: authentication state boundary without exposed raw tokens
 - `ngotools_api`: generated runtime transport and sanitized public contracts
-- `ngotools_contacts`: remote read-only contact search and details
+- `ngotools_contacts`: remote read-only contacts with a scoped encrypted cache
 - `ngotools_design_system`: shared accessible visual foundation
 - `ngotools_navigation`: adaptive auth- and capability-aware navigation
 - `ngotools_testing`: synthetic fixtures for application tests

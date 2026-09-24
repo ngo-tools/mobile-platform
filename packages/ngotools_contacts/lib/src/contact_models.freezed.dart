@@ -214,7 +214,7 @@ return $default(_that.id,_that.type,_that.line1,_that.line2,_that.postalCode,_th
 
 class _ContactAddress implements ContactAddress {
   const _ContactAddress({required this.id, this.type, this.line1, this.line2, this.postalCode, this.city, this.state, this.country});
-  
+
 
 @override final  int id;
 @override final  String? type;
@@ -497,7 +497,7 @@ return $default(_that.id,_that.kind,_that.name,_that.firstName,_that.lastName,_t
 
 class _ContactRecord extends ContactRecord {
   const _ContactRecord({required this.id, required this.kind, this.name, this.firstName, this.lastName, this.email, this.salutation, this.title, this.gender, this.birthday, this.activeAddressId, this.updatedAt, final  List<ContactAddress> addresses = const <ContactAddress>[]}): _addresses = addresses,super._();
-  
+
 
 @override final  int id;
 @override final  ContactKind kind;
@@ -591,7 +591,7 @@ as List<ContactAddress>,
 /// @nodoc
 mixin _$ContactPage {
 
- List<ContactRecord> get items; int get page; int get perPage; int get total; int get lastPage;
+ List<ContactRecord> get items; int get page; int get perPage; int get total; int get lastPage; ContactDataSource get source; DateTime? get cachedAt;
 /// Create a copy of ContactPage
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -602,16 +602,16 @@ $ContactPageCopyWith<ContactPage> get copyWith => _$ContactPageCopyWithImpl<Cont
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactPage&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.page, page) || other.page == page)&&(identical(other.perPage, perPage) || other.perPage == perPage)&&(identical(other.total, total) || other.total == total)&&(identical(other.lastPage, lastPage) || other.lastPage == lastPage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactPage&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.page, page) || other.page == page)&&(identical(other.perPage, perPage) || other.perPage == perPage)&&(identical(other.total, total) || other.total == total)&&(identical(other.lastPage, lastPage) || other.lastPage == lastPage)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),page,perPage,total,lastPage);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),page,perPage,total,lastPage,source,cachedAt);
 
 @override
 String toString() {
-  return 'ContactPage(items: $items, page: $page, perPage: $perPage, total: $total, lastPage: $lastPage)';
+  return 'ContactPage(items: $items, page: $page, perPage: $perPage, total: $total, lastPage: $lastPage, source: $source, cachedAt: $cachedAt)';
 }
 
 
@@ -622,7 +622,7 @@ abstract mixin class $ContactPageCopyWith<$Res>  {
   factory $ContactPageCopyWith(ContactPage value, $Res Function(ContactPage) _then) = _$ContactPageCopyWithImpl;
 @useResult
 $Res call({
- List<ContactRecord> items, int page, int perPage, int total, int lastPage
+ List<ContactRecord> items, int page, int perPage, int total, int lastPage, ContactDataSource source, DateTime? cachedAt
 });
 
 
@@ -639,14 +639,16 @@ class _$ContactPageCopyWithImpl<$Res>
 
 /// Create a copy of ContactPage
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? page = null,Object? perPage = null,Object? total = null,Object? lastPage = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? page = null,Object? perPage = null,Object? total = null,Object? lastPage = null,Object? source = null,Object? cachedAt = freezed,}) {
   return _then(_self.copyWith(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<ContactRecord>,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,perPage: null == perPage ? _self.perPage : perPage // ignore: cast_nullable_to_non_nullable
 as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,lastPage: null == lastPage ? _self.lastPage : lastPage // ignore: cast_nullable_to_non_nullable
-as int,
+as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -731,10 +733,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage,  ContactDataSource source,  DateTime? cachedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ContactPage() when $default != null:
-return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage);case _:
+return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage,_that.source,_that.cachedAt);case _:
   return orElse();
 
 }
@@ -752,10 +754,10 @@ return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage)
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage,  ContactDataSource source,  DateTime? cachedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ContactPage():
-return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage);case _:
+return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage,_that.source,_that.cachedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -772,10 +774,10 @@ return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage)
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<ContactRecord> items,  int page,  int perPage,  int total,  int lastPage,  ContactDataSource source,  DateTime? cachedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ContactPage() when $default != null:
-return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage);case _:
+return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage,_that.source,_that.cachedAt);case _:
   return null;
 
 }
@@ -787,8 +789,8 @@ return $default(_that.items,_that.page,_that.perPage,_that.total,_that.lastPage)
 
 
 class _ContactPage extends ContactPage {
-  const _ContactPage({required final  List<ContactRecord> items, required this.page, required this.perPage, required this.total, required this.lastPage}): _items = items,super._();
-  
+  const _ContactPage({required final  List<ContactRecord> items, required this.page, required this.perPage, required this.total, required this.lastPage, this.source = ContactDataSource.remote, this.cachedAt}): _items = items,super._();
+
 
  final  List<ContactRecord> _items;
 @override List<ContactRecord> get items {
@@ -801,6 +803,8 @@ class _ContactPage extends ContactPage {
 @override final  int perPage;
 @override final  int total;
 @override final  int lastPage;
+@override@JsonKey() final  ContactDataSource source;
+@override final  DateTime? cachedAt;
 
 /// Create a copy of ContactPage
 /// with the given fields replaced by the non-null parameter values.
@@ -812,16 +816,16 @@ _$ContactPageCopyWith<_ContactPage> get copyWith => __$ContactPageCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactPage&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.page, page) || other.page == page)&&(identical(other.perPage, perPage) || other.perPage == perPage)&&(identical(other.total, total) || other.total == total)&&(identical(other.lastPage, lastPage) || other.lastPage == lastPage));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactPage&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.page, page) || other.page == page)&&(identical(other.perPage, perPage) || other.perPage == perPage)&&(identical(other.total, total) || other.total == total)&&(identical(other.lastPage, lastPage) || other.lastPage == lastPage)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),page,perPage,total,lastPage);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),page,perPage,total,lastPage,source,cachedAt);
 
 @override
 String toString() {
-  return 'ContactPage(items: $items, page: $page, perPage: $perPage, total: $total, lastPage: $lastPage)';
+  return 'ContactPage(items: $items, page: $page, perPage: $perPage, total: $total, lastPage: $lastPage, source: $source, cachedAt: $cachedAt)';
 }
 
 
@@ -832,7 +836,7 @@ abstract mixin class _$ContactPageCopyWith<$Res> implements $ContactPageCopyWith
   factory _$ContactPageCopyWith(_ContactPage value, $Res Function(_ContactPage) _then) = __$ContactPageCopyWithImpl;
 @override @useResult
 $Res call({
- List<ContactRecord> items, int page, int perPage, int total, int lastPage
+ List<ContactRecord> items, int page, int perPage, int total, int lastPage, ContactDataSource source, DateTime? cachedAt
 });
 
 
@@ -849,18 +853,301 @@ class __$ContactPageCopyWithImpl<$Res>
 
 /// Create a copy of ContactPage
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? items = null,Object? page = null,Object? perPage = null,Object? total = null,Object? lastPage = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? items = null,Object? page = null,Object? perPage = null,Object? total = null,Object? lastPage = null,Object? source = null,Object? cachedAt = freezed,}) {
   return _then(_ContactPage(
 items: null == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
 as List<ContactRecord>,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
 as int,perPage: null == perPage ? _self.perPage : perPage // ignore: cast_nullable_to_non_nullable
 as int,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,lastPage: null == lastPage ? _self.lastPage : lastPage // ignore: cast_nullable_to_non_nullable
-as int,
+as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
 
+}
+
+/// @nodoc
+mixin _$ContactSnapshot {
+
+ ContactRecord get contact; ContactDataSource get source; DateTime? get cachedAt;
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ContactSnapshotCopyWith<ContactSnapshot> get copyWith => _$ContactSnapshotCopyWithImpl<ContactSnapshot>(this as ContactSnapshot, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContactSnapshot&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,contact,source,cachedAt);
+
+@override
+String toString() {
+  return 'ContactSnapshot(contact: $contact, source: $source, cachedAt: $cachedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ContactSnapshotCopyWith<$Res>  {
+  factory $ContactSnapshotCopyWith(ContactSnapshot value, $Res Function(ContactSnapshot) _then) = _$ContactSnapshotCopyWithImpl;
+@useResult
+$Res call({
+ ContactRecord contact, ContactDataSource source, DateTime? cachedAt
+});
+
+
+$ContactRecordCopyWith<$Res> get contact;
+
+}
+/// @nodoc
+class _$ContactSnapshotCopyWithImpl<$Res>
+    implements $ContactSnapshotCopyWith<$Res> {
+  _$ContactSnapshotCopyWithImpl(this._self, this._then);
+
+  final ContactSnapshot _self;
+  final $Res Function(ContactSnapshot) _then;
+
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? contact = null,Object? source = null,Object? cachedAt = freezed,}) {
+  return _then(_self.copyWith(
+contact: null == contact ? _self.contact : contact // ignore: cast_nullable_to_non_nullable
+as ContactRecord,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ContactRecordCopyWith<$Res> get contact {
+
+  return $ContactRecordCopyWith<$Res>(_self.contact, (value) {
+    return _then(_self.copyWith(contact: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [ContactSnapshot].
+extension ContactSnapshotPatterns on ContactSnapshot {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ContactSnapshot value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ContactSnapshot() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ContactSnapshot value)  $default,){
+final _that = this;
+switch (_that) {
+case _ContactSnapshot():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ContactSnapshot value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ContactSnapshot() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ContactRecord contact,  ContactDataSource source,  DateTime? cachedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ContactSnapshot() when $default != null:
+return $default(_that.contact,_that.source,_that.cachedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ContactRecord contact,  ContactDataSource source,  DateTime? cachedAt)  $default,) {final _that = this;
+switch (_that) {
+case _ContactSnapshot():
+return $default(_that.contact,_that.source,_that.cachedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ContactRecord contact,  ContactDataSource source,  DateTime? cachedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _ContactSnapshot() when $default != null:
+return $default(_that.contact,_that.source,_that.cachedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _ContactSnapshot implements ContactSnapshot {
+  const _ContactSnapshot({required this.contact, this.source = ContactDataSource.remote, this.cachedAt});
+
+
+@override final  ContactRecord contact;
+@override@JsonKey() final  ContactDataSource source;
+@override final  DateTime? cachedAt;
+
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ContactSnapshotCopyWith<_ContactSnapshot> get copyWith => __$ContactSnapshotCopyWithImpl<_ContactSnapshot>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContactSnapshot&&(identical(other.contact, contact) || other.contact == contact)&&(identical(other.source, source) || other.source == source)&&(identical(other.cachedAt, cachedAt) || other.cachedAt == cachedAt));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,contact,source,cachedAt);
+
+@override
+String toString() {
+  return 'ContactSnapshot(contact: $contact, source: $source, cachedAt: $cachedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ContactSnapshotCopyWith<$Res> implements $ContactSnapshotCopyWith<$Res> {
+  factory _$ContactSnapshotCopyWith(_ContactSnapshot value, $Res Function(_ContactSnapshot) _then) = __$ContactSnapshotCopyWithImpl;
+@override @useResult
+$Res call({
+ ContactRecord contact, ContactDataSource source, DateTime? cachedAt
+});
+
+
+@override $ContactRecordCopyWith<$Res> get contact;
+
+}
+/// @nodoc
+class __$ContactSnapshotCopyWithImpl<$Res>
+    implements _$ContactSnapshotCopyWith<$Res> {
+  __$ContactSnapshotCopyWithImpl(this._self, this._then);
+
+  final _ContactSnapshot _self;
+  final $Res Function(_ContactSnapshot) _then;
+
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? contact = null,Object? source = null,Object? cachedAt = freezed,}) {
+  return _then(_ContactSnapshot(
+contact: null == contact ? _self.contact : contact // ignore: cast_nullable_to_non_nullable
+as ContactRecord,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
+as ContactDataSource,cachedAt: freezed == cachedAt ? _self.cachedAt : cachedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of ContactSnapshot
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ContactRecordCopyWith<$Res> get contact {
+
+  return $ContactRecordCopyWith<$Res>(_self.contact, (value) {
+    return _then(_self.copyWith(contact: value));
+  });
+}
 }
 
 /// @nodoc
@@ -1062,7 +1349,7 @@ return $default(_that.query,_that.page,_that.perPage,_that.sort);case _:
 
 class _ContactSearch implements ContactSearch {
   const _ContactSearch({this.query = '', this.page = 1, this.perPage = 25, this.sort = ContactsSort.lastName});
-  
+
 
 @override@JsonKey() final  String query;
 @override@JsonKey() final  int page;
