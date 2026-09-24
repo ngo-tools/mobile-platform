@@ -16,9 +16,12 @@ Nutze dafür den öffentlichen Skill:
 https://github.com/ngo-tools/mobile-platform/tree/main/skills/create-ngo-tools-app
 ```
 
-Mehr musst Du technisch nicht vorbereiten. Ist die Organisation aus dem
-Gespräch nicht eindeutig, fragt der Agent nach ihrem Tenant-Slug oder ihrer
-HTTPS-Adresse. Anschließend erledigt er selbst:
+Mehr musst Du technisch nicht vorbereiten. Der Agent fragt zu Beginn immer
+schlicht nach dem Organisations-Slug. Du gibst den Slug als freie Eingabe ein;
+es gibt keine Auswahl zwischen Demo-, Staging- oder anderen Tenants.
+Danach wählst Du aus, welche verfügbaren Module direkt mitgegeben werden
+sollen. Diese Startauswahl lässt sich später jederzeit um weitere verfügbare
+Module ergänzen. Anschließend erledigt der Agent selbst:
 
 1. den öffentlichen Skill und die Mobile Platform laden;
 2. den vollständigen, geprüften Platform-Commit bestimmen;
@@ -29,13 +32,16 @@ HTTPS-Adresse. Anschließend erledigt er selbst:
 
 Der Agent fragt nur nach Entscheidungen, die er nicht sicher ermitteln darf:
 
-- Zweck und Arbeitsname der App;
+- Module, die direkt mitgegeben werden sollen;
 - iOS, Android oder beide Plattformen;
 - Support- und Datenschutz-URL;
-- Repository- und Distributionsmodell;
 - öffentliche Store-/Signing-Kennungen, falls sie noch nirgends hinterlegt
   sind;
 - optionale Logos, Farben und fachliche Besonderheiten.
+
+Bei Self-Service wird ohne Rückfrage das kundeneigene Repository mit den
+kundeneigenen Store-Konten verwendet. Einen Arbeitsnamen leitet der Agent aus
+dem Organisationsnamen oder Slug ab.
 
 Die Browser-Freigabe bleibt immer eine menschliche Handlung. Sie zeigt die
 konkrete Organisation, App-IDs und Plattformen, bevor NGO.Tools Staging und

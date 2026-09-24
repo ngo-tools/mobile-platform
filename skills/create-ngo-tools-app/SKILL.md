@@ -12,43 +12,67 @@ commit SHAs.
 
 ## Ask only for human decisions
 
-Determine the tenant from the user's explicit organization slug or HTTPS
-tenant URL. If neither is available, ask one short question for it. Never guess
-a production tenant from unrelated files or accounts.
+Start every app-creation workflow by asking one free-form question:
 
-Collect only decisions that cannot safely be discovered:
+> Wie lautet der Organisations-Slug?
 
-- app purpose and working name;
+Require the user to enter the slug. Do not infer it from a URL, conversation,
+file, account, or checkout. Do not offer choices, example tenants, URLs,
+demo tenants, staging tenants, or fallback environments. Use exactly the slug
+the user supplies.
+
+After loading the platform catalog, ask which currently available modules
+should be included initially. Present them as a multiple-choice or multi-select
+question and say explicitly that further available modules can be added later.
+Ask only which modules should be included, not for an app purpose or name in
+the same question. If the interface has no multi-select control, offer complete
+combinations for a small catalog or accept a comma-separated list.
+
+Use the tenant's public display name for the app name when available; otherwise
+derive a readable working name from the supplied slug. Do not ask for a name or
+purpose merely to generate the initial app shell.
+
+Use `customer_owned` for the repository model and the customer's own store
+accounts without asking. Use `managed_by_ngotools` only when the user already
+requested that model explicitly before this workflow.
+
+Collect only remaining decisions that cannot safely be discovered:
+
 - iOS, Android, or both;
-- organization-owned or NGO.Tools-managed repository and distribution;
-- support and privacy URLs;
+- support and privacy URLs when tenant metadata does not provide them;
 - public platform identifiers that the registration still requires, such as
   Apple Team ID or Android signing-certificate fingerprints;
-- optional branding assets.
+- optional branding assets when the user wants custom branding immediately.
 
 Do not ask the user for `REGISTRATION`, `OUTPUT`, or `PLATFORM_SHA`. Resolve
 those values during the workflow.
 
 ## Workflow
 
-1. Use an existing clean `ngo-tools/mobile-platform` checkout when one is in
+1. After the user has supplied the organization slug, use an existing clean
+   `ngo-tools/mobile-platform` checkout when one is in
    scope. Otherwise clone `https://github.com/ngo-tools/mobile-platform.git`
    into the task workspace. Do not overwrite another project.
-2. Use the full lowercase commit SHA of the checked-out, reviewed default
+2. Read the local module catalog and ask which available modules should be
+   included initially. Phrase the question as: "Welche Module sollen direkt
+   mitgegeben werden? Weitere Module können später ergänzt werden." Allow more
+   than one module and do not describe the current catalog as the final limit
+   of the app.
+3. Use the full lowercase commit SHA of the checked-out, reviewed default
    branch as the platform ref. Do not use a moving branch name in generated
    dependencies.
-3. Look only inside the current task workspace for an approved
+4. Look only inside the current task workspace for an approved
    `ngo-tools.mobile.yaml` belonging to the requested tenant. Validate it
    against `schemas/ngo-tools.mobile.schema.json` before use.
-4. If no approved manifest exists, read
+5. If no approved manifest exists, read
    [the registration handshake](references/registration-handshake.md), start
    it against the explicit tenant, present the returned authorization URL, and
    wait for an organization admin to approve it. Keep polling credentials in a
    temporary file or memory only.
-5. Derive a readable sibling output directory from the approved app slug. The
+6. Derive a readable sibling output directory from the approved app slug. The
    target must not exist. If it does exist, verify whether it is the same
    generated app and ask before choosing a different location.
-6. From the Mobile Platform root run:
+7. From the Mobile Platform root run:
 
    ```bash
    dart pub get
@@ -60,23 +84,30 @@ those values during the workflow.
 
    Use task-specific shell variables; do not repurpose `HOME` or
    `CODEX_HOME`.
-7. In the generated repository, read `AGENTS.md`, `APP_BRIEF.md`, and
-   `docs/MODULES.md`. Replace the synthetic brief with the user's actual
-   purpose, users, and intended screens. Do not invent missing business scope.
-8. Reuse only modules marked `available` and approved in the registration.
+8. In the generated repository, read `AGENTS.md`, `APP_BRIEF.md`, and
+   `docs/MODULES.md`. Record the selected starting modules and known user
+   requirements. Leave unknown future product scope open instead of inventing
+   it.
+9. Reuse only modules marked `available` and approved in the registration.
    App and screen code must use repositories from the platform packages, not
    direct HTTP calls. Server capabilities, permissions, and token abilities
    remain authoritative.
-9. Run `flutter pub get`, `flutter analyze`, focused tests for changed code,
+10. Run `flutter pub get`, `flutter analyze`, focused tests for changed code,
    and a debug build using `lib/main_staging.dart`. Leave the complete test
    suite to CI unless the user explicitly requests it.
-10. Report the tenant, selected modules, platform commit, generated location,
+11. Report the tenant, selected modules, platform commit, generated location,
     and verification. Do not commit, push, deploy, sign, or submit to a store
     unless the user explicitly asks.
 
 ## Hard boundaries
 
 - One generated app belongs to one tenant; never add runtime tenant selection.
+- The organization slug is mandatory user input. Never replace it with a
+  guessed, demo, or staging tenant.
+- Initial module selection is not a permanent product limit. Further available
+  modules may be added later through the platform workflow.
+- Self-service apps default to `customer_owned`; do not ask who owns the
+  repository or store accounts.
 - Development is synthetic, staging uses only the provisioned staging tenant,
   and production stays isolated.
 - Registration manifests contain public configuration only. Never place raw
