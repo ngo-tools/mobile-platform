@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:ngotools_api/ngotools_api.dart';
@@ -21,6 +23,8 @@ class GoldenApp extends StatelessWidget {
     this.contactsRepository,
     this.contactDraftManager,
     this.eventsRepository,
+    this.onSignIn,
+    this.onSignOut,
     super.key,
   });
 
@@ -45,6 +49,12 @@ class GoldenApp extends StatelessWidget {
   /// Optional event source supplied by the application composition root.
   final EventsRepository? eventsRepository;
 
+  /// Starts the external-browser sign-in, if the runtime supports it.
+  final Future<void> Function()? onSignIn;
+
+  /// Signs out and removes local private data.
+  final Future<void> Function()? onSignOut;
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -60,6 +70,8 @@ class GoldenApp extends StatelessWidget {
       contactsRepository: contactsRepository,
       contactDraftManager: contactDraftManager,
       eventsRepository: eventsRepository,
+      onSignIn: onSignIn,
+      onSignOut: onSignOut,
     ),
   );
 }
@@ -75,6 +87,8 @@ class GoldenShell extends StatelessWidget {
     this.contactsRepository,
     this.contactDraftManager,
     this.eventsRepository,
+    this.onSignIn,
+    this.onSignOut,
     super.key,
   });
 
@@ -85,6 +99,8 @@ class GoldenShell extends StatelessWidget {
   final ContactsRepository? contactsRepository;
   final ContactDraftManager? contactDraftManager;
   final EventsRepository? eventsRepository;
+  final Future<void> Function()? onSignIn;
+  final Future<void> Function()? onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +118,13 @@ class GoldenShell extends StatelessWidget {
         label: isGerman ? 'Start' : 'Home',
         icon: Icons.home_outlined,
         selectedIcon: Icons.home,
-        builder: (_) => GoldenHome(environment: environment),
+        builder: (_) => GoldenHome(
+          environment: environment,
+          isLivePreview: configuration.appId.startsWith('prv_'),
+          authStatus: authStatus,
+          onSignIn: onSignIn,
+          onSignOut: onSignOut,
+        ),
         requirement: MobileRouteRequirement(requiresAuthentication: false),
       ),
       MobileNavigationItem(
@@ -189,10 +211,29 @@ Widget _notConnected(bool isGerman) => NgoToolsEmptyState(
 /// Displays the selected environment and synthetic-data boundary.
 class GoldenHome extends StatelessWidget {
   /// Creates the Golden Path home screen.
-  const GoldenHome({required this.environment, super.key});
+  const GoldenHome({
+    required this.environment,
+    this.isLivePreview = false,
+    this.authStatus = MobileAuthStatus.signedOut,
+    this.onSignIn,
+    this.onSignOut,
+    super.key,
+  });
 
   /// The environment selected at build time.
   final MobileEnvironment environment;
+
+  /// Whether the app runs as a temporary live preview.
+  final bool isLivePreview;
+
+  /// Current token-free authentication status.
+  final MobileAuthStatus authStatus;
+
+  /// Starts the sign-in, if available.
+  final Future<void> Function()? onSignIn;
+
+  /// Signs out, if available.
+  final Future<void> Function()? onSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +263,57 @@ class GoldenHome extends StatelessWidget {
             ],
           ),
         ),
+        if (onSignIn != null) ...[
+          const SizedBox(height: NgoToolsLayout.spacing),
+          NgoToolsSectionCard(
+            title: isGerman ? 'Anmeldung' : 'Sign-in',
+            leading: const Icon(Icons.login),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isLivePreview) ...[
+                  NgoToolsStatusBanner(
+                    status: NgoToolsStatus.warning,
+                    message: isGerman
+                        ? 'Live-Vorschau mit echten Daten: nur lesend, endet nach 8 Stunden.'
+                        : 'Live preview with real data: read-only, ends after 8 hours.',
+                  ),
+                  const SizedBox(height: NgoToolsLayout.compactSpacing),
+                ],
+                if (authStatus == MobileAuthStatus.failed ||
+                    authStatus == MobileAuthStatus.expired) ...[
+                  NgoToolsStatusBanner(
+                    status: NgoToolsStatus.error,
+                    message: isGerman
+                        ? 'Die Anmeldung ist fehlgeschlagen oder abgelaufen.'
+                        : 'Sign-in failed or expired.',
+                  ),
+                  const SizedBox(height: NgoToolsLayout.compactSpacing),
+                ],
+                if (authStatus == MobileAuthStatus.authenticated)
+                  OutlinedButton(
+                    onPressed: onSignOut == null
+                        ? null
+                        : () => unawaited(onSignOut!()),
+                    child: Text(isGerman ? 'Abmelden' : 'Sign out'),
+                  )
+                else
+                  FilledButton(
+                    onPressed:
+                        authStatus == MobileAuthStatus.authorizing ||
+                            authStatus == MobileAuthStatus.restoring
+                        ? null
+                        : () => unawaited(onSignIn!()),
+                    child: Text(
+                      isGerman
+                          ? 'Mit NGO.Tools anmelden'
+                          : 'Sign in with NGO.Tools',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

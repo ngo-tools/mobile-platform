@@ -10,6 +10,49 @@ import 'package:ngotools_auth/src/internal/token_exchange_client.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 
 void main() {
+  test('exchanges live preview tokens without attestation', () async {
+    final adapter = _BrokerAdapter();
+    final attestation = _CapturingAttestationProvider();
+    final client = NgoToolsTokenExchangeClient(
+      attestationProvider: attestation,
+      dio: Dio()..httpClientAdapter = adapter,
+    );
+    final configuration = MobileAuthConfiguration(
+      appId: 'prv_01J00000000000000000000000',
+      environmentId: 'env_01J00000000000000000000009',
+      tenant: 'synthetic-demo',
+      apiBaseUrl: Uri.https('api.example.invalid', '/api/v2'),
+      issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
+      clientId: 'mobile-preview-synthetic',
+      redirectUri: Uri.parse('ngotools-synthetic-preview://oauth/callback'),
+      scopes: const ['openid', 'profile', 'email'],
+      platform: MobilePlatform.ios,
+      deviceName: 'Synthetic iPhone',
+      buildNumber: '1',
+      attestationMode: MobileAttestationMode.disabled,
+    );
+
+    final session = await client.exchange(
+      configuration: configuration,
+      tokens: const OidcTokenSet(
+        accessToken: 'synthetic-oidc-access',
+        refreshToken: 'synthetic-oidc-refresh',
+      ),
+    );
+
+    expect(adapter.paths, ['/api/auth/exchange']);
+    expect(attestation.request, isNull);
+    expect(adapter.exchangeData, {
+      'kc_access_token': 'synthetic-oidc-access',
+      'device_name': 'Synthetic iPhone',
+      'app_id': 'prv_01J00000000000000000000000',
+      'environment_id': 'env_01J00000000000000000000009',
+      'platform': 'ios',
+      'build_number': '1',
+    });
+    expect(session.apiToken, 'synthetic-api-token');
+  });
+
   test('binds attestation to the challenge and OIDC token hash', () async {
     final adapter = _BrokerAdapter();
     final dio = Dio()..httpClientAdapter = adapter;

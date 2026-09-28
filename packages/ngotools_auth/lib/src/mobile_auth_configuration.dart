@@ -72,6 +72,12 @@ class MobileAuthConfiguration {
   /// A non-secret namespace that prevents sessions crossing app environments.
   String get storageNamespace => '${appId}_$environmentId';
 
+  /// Whether this is a temporary, admin-approved live preview.
+  ///
+  /// Live previews use a short-lived client without `offline_access` and are
+  /// exchanged without attestation; the server limits them to read scopes.
+  bool get isLivePreview => appId.startsWith('prv_');
+
   void _validate() {
     if (appId.isEmpty || environmentId.isEmpty || clientId.isEmpty) {
       throw const FormatException(
@@ -97,9 +103,23 @@ class MobileAuthConfiguration {
       );
     }
 
-    const requiredScopes = {'openid', 'profile', 'offline_access'};
+    if (isLivePreview) {
+      if (!scopes.toSet().containsAll(const {'openid', 'profile'}) ||
+          scopes.contains('offline_access')) {
+        throw const FormatException(
+          'Live preview scopes must include openid and profile but not '
+          'offline_access.',
+        );
+      }
 
-    if (!scopes.toSet().containsAll(requiredScopes)) {
+      if (attestationMode != MobileAttestationMode.disabled) {
+        throw const FormatException('Live previews run without attestation.');
+      }
+    } else if (!scopes.toSet().containsAll(const {
+      'openid',
+      'profile',
+      'offline_access',
+    })) {
       throw const FormatException(
         'OIDC scopes must include openid, profile, and offline_access.',
       );

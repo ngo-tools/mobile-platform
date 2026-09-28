@@ -3,6 +3,7 @@ library;
 
 export 'src/architecture_validator.dart';
 export 'src/generated_api_validator.dart';
+export 'src/live_preview.dart';
 export 'src/manifest_validator.dart';
 export 'src/mobile_module_catalog.dart';
 export 'src/native_configuration_validator.dart';

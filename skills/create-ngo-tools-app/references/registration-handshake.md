@@ -1,7 +1,9 @@
 # NGO.Tools mobile app registration handshake
 
-Read this reference only when no approved `ngo-tools.mobile.yaml` for the
-requested tenant exists in the current task workspace.
+Read this reference only after the user has seen or explicitly declined the
+local preview and has asked to bind or register the app. Skip it when an
+approved `ngo-tools.mobile.yaml` for the requested tenant already exists in the
+current task workspace.
 
 ## Safety
 
