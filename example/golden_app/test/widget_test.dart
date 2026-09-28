@@ -137,4 +137,50 @@ void main() {
     expect(find.text('PLEASE GIVE YOUR AVAILABILITY · 2'), findsOneWidget);
     expect(find.textContaining('@ngo.tools'), findsNothing);
   });
+
+  testWidgets('offers sign-in and marks a live preview', (tester) async {
+    var signIns = 0;
+    final preview = MobileAppConfiguration(
+      appId: 'prv_01J00000000000000000000000',
+      tenant: 'synthetic-demo',
+      defaultLocale: 'de',
+      locales: const ['de', 'en'],
+      environments: {
+        MobileEnvironment.development: MobileEnvironmentConfiguration(
+          environment: MobileEnvironment.development,
+          id: 'env_01J00000000000000000000009',
+          apiBaseUrl: Uri.https('synthetic-demo.example.invalid', '/api/v2'),
+          configRevision: 'cfg_01J00000000000000000000009',
+          attestationMode: MobileAttestationMode.disabled,
+          oidc: MobileOidcConfiguration(
+            issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
+            clientId: 'mobile-preview-01j00000000000000000000000',
+            redirectUri: Uri.parse(
+              'ngotools-01j00000000000000000000000://oauth/callback',
+            ),
+            scopes: const ['openid', 'profile', 'email'],
+          ),
+        ),
+      },
+    );
+
+    await tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        configuration: preview,
+        onSignIn: () async => signIns += 1,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Live preview with real data: read-only, ends after 8 hours.'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Sign in with NGO.Tools'));
+    await tester.pump();
+
+    expect(signIns, 1);
+  });
 }

@@ -79,7 +79,10 @@ void main() {
       pubspec,
       contains('url: https://github.com/ngo-tools/mobile-platform.git'),
     );
-    expect(bootstrap, contains("package:ngo_tools_synthetic_demo/app.dart"));
+    expect(
+      bootstrap,
+      contains("package:ngo_tools_synthetic_demo/runtime.dart"),
+    );
     expect(main, contains("package:ngo_tools_synthetic_demo/bootstrap.dart"));
     expect(
       releaseTool,

@@ -37,6 +37,22 @@ final class NgoToolsTokenExchangeClient implements TokenExchangeClient {
     required MobileAuthConfiguration configuration,
     required OidcTokenSet tokens,
   }) async {
+    if (configuration.isLivePreview) {
+      final previewResponse = await _dio.post<Map<String, Object?>>(
+        configuration.authEndpoint('exchange').toString(),
+        data: {
+          'kc_access_token': tokens.accessToken,
+          'device_name': configuration.deviceName,
+          'app_id': configuration.appId,
+          'environment_id': configuration.environmentId,
+          'platform': configuration.platform.name,
+          'build_number': configuration.buildNumber,
+        },
+      );
+
+      return _parseSession(previewResponse.data, tokens);
+    }
+
     final challengeResponse = await _dio.post<Map<String, Object?>>(
       configuration.authEndpoint('attestation-challenges').toString(),
       data: {

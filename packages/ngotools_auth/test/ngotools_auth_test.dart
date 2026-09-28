@@ -42,6 +42,31 @@ void main() {
     );
   });
 
+  test('accepts live previews without offline access or attestation', () {
+    final preview = _configuration(
+      appId: 'prv_01J00000000000000000000000',
+      scopes: const ['openid', 'profile', 'email'],
+    );
+
+    expect(preview.isLivePreview, isTrue);
+    expect(
+      () => _configuration(
+        appId: 'prv_01J00000000000000000000000',
+        scopes: const ['openid', 'profile', 'offline_access'],
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => _configuration(
+        appId: 'prv_01J00000000000000000000000',
+        scopes: const ['openid', 'profile'],
+        attestationMode: MobileAttestationMode.test,
+      ),
+      throwsFormatException,
+    );
+    expect(_configuration().isLivePreview, isFalse);
+  });
+
   test('selects one tenant environment from the public app config', () {
     final oidc = MobileOidcConfiguration(
       issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
@@ -83,8 +108,10 @@ void main() {
 MobileAuthConfiguration _configuration({
   Uri? redirectUri,
   List<String> scopes = const ['openid', 'profile', 'email', 'offline_access'],
+  String appId = 'mob_01J00000000000000000000000',
+  MobileAttestationMode attestationMode = MobileAttestationMode.disabled,
 }) => MobileAuthConfiguration(
-  appId: 'mob_01J00000000000000000000000',
+  appId: appId,
   environmentId: 'env_01J00000000000000000000000',
   tenant: 'synthetic-demo',
   apiBaseUrl: Uri.https('api.example.invalid', '/api/v2'),
@@ -95,5 +122,5 @@ MobileAuthConfiguration _configuration({
   platform: MobilePlatform.ios,
   deviceName: 'Synthetic iPhone',
   buildNumber: '42',
-  attestationMode: MobileAttestationMode.disabled,
+  attestationMode: attestationMode,
 );
