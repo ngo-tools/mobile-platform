@@ -200,7 +200,11 @@ void main() {
 
     await cubit.load();
     invalidations.add(null);
-    await _waitFor(() => capabilityLoads == 2);
+    await _waitFor(
+      () =>
+          capabilityLoads == 2 &&
+          cubit.state.status == MobileCapabilitiesStatus.ready,
+    );
 
     expect(cubit.state.status, MobileCapabilitiesStatus.ready);
     expect(cubit.state.capabilities?.canImport('contacts'), isTrue);

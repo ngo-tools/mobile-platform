@@ -10,6 +10,23 @@ import 'package:ngotools_api/src/generated/model/contact_sort.dart';
 import 'package:ngotools_api/src/generated/model/create_contact_request.dart';
 import 'package:ngotools_api/src/generated/model/current_user.dart';
 import 'package:ngotools_api/src/generated/model/current_user_response.dart';
+import 'package:ngotools_api/src/generated/model/event_agenda.dart';
+import 'package:ngotools_api/src/generated/model/event_agenda_entry.dart';
+import 'package:ngotools_api/src/generated/model/event_agenda_sub_item.dart';
+import 'package:ngotools_api/src/generated/model/event_assignment.dart';
+import 'package:ngotools_api/src/generated/model/event_assignment_collection_response.dart';
+import 'package:ngotools_api/src/generated/model/event_availability.dart';
+import 'package:ngotools_api/src/generated/model/event_availability_collection_response.dart';
+import 'package:ngotools_api/src/generated/model/event_availability_response.dart';
+import 'package:ngotools_api/src/generated/model/event_collection_response.dart';
+import 'package:ngotools_api/src/generated/model/event_detail.dart';
+import 'package:ngotools_api/src/generated/model/event_person.dart';
+import 'package:ngotools_api/src/generated/model/event_reference.dart';
+import 'package:ngotools_api/src/generated/model/event_response.dart';
+import 'package:ngotools_api/src/generated/model/event_service_reference.dart';
+import 'package:ngotools_api/src/generated/model/event_summary.dart';
+import 'package:ngotools_api/src/generated/model/event_team_slot.dart';
+import 'package:ngotools_api/src/generated/model/event_type_reference.dart';
 import 'package:ngotools_api/src/generated/model/import_capabilities.dart';
 import 'package:ngotools_api/src/generated/model/import_capability.dart';
 import 'package:ngotools_api/src/generated/model/import_limits.dart';
@@ -24,6 +41,7 @@ import 'package:ngotools_api/src/generated/model/pagination_meta.dart';
 import 'package:ngotools_api/src/generated/model/problem_details.dart';
 import 'package:ngotools_api/src/generated/model/runtime_capabilities.dart';
 import 'package:ngotools_api/src/generated/model/update_contact_request.dart';
+import 'package:ngotools_api/src/generated/model/update_event_availability_request.dart';
 
 final _regList = RegExp(r'^List<(.*)>$');
 final _regSet = RegExp(r'^Set<(.*)>$');
@@ -80,6 +98,57 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'CurrentUserResponse':
       return CurrentUserResponse.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'EventAgenda':
+      return EventAgenda.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'EventAgendaEntry':
+      return EventAgendaEntry.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventAgendaSubItem':
+      return EventAgendaSubItem.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventAssignment':
+      return EventAssignment.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventAssignmentCollectionResponse':
+      return EventAssignmentCollectionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'EventAvailability':
+      return EventAvailability.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventAvailabilityCollectionResponse':
+      return EventAvailabilityCollectionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'EventAvailabilityResponse':
+      return EventAvailabilityResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventCollectionResponse':
+      return EventCollectionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventDetail':
+      return EventDetail.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'EventPerson':
+      return EventPerson.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'EventReference':
+      return EventReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventResponse':
+      return EventResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventServiceReference':
+      return EventServiceReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventSummary':
+      return EventSummary.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'EventTeamSlot':
+      return EventTeamSlot.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'EventTypeReference':
+      return EventTypeReference.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'ImportCapabilities':
       return ImportCapabilities.fromJson(value as Map<String, dynamic>)
           as ReturnType;
@@ -124,6 +193,11 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'UpdateContactRequest':
       return UpdateContactRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'UpdateEventAvailabilityRequest':
+      return UpdateEventAvailabilityRequest.fromJson(
+            value as Map<String, dynamic>,
+          )
           as ReturnType;
     default:
       RegExpMatch? match;

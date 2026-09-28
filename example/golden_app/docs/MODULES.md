@@ -20,6 +20,22 @@ Searches and manages contacts with controlled offline behavior.
 
 Durchsucht und verwaltet Kontakte mit kontrolliertem Offline-Verhalten.
 
+## Events (`events`)
+
+- German: Veranstaltungen
+- Status: `available`
+- Delivery: `package` (`ngotools_events`)
+- Required modules: `profile`
+- API scopes: `events:read`, `events:write`
+- Features: `events`
+- Permissions: none
+- Device permissions: none
+- Deep links: `/events/duties`, `/events/{id}`
+
+Shows events with agenda and team, own services, and asks for availability.
+
+Zeigt Termine mit Ablauf und Team, eigene Dienste und fragt die Verfügbarkeit ab.
+
 ## Profile (`profile`)
 
 - German: Profil

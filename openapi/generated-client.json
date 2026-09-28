@@ -2,7 +2,7 @@
   "generator": "openapi-generator-cli",
   "generator_version": "7.25.0",
   "generator_sha256": "41ce4f6b07f196676439d710759fa1ced7a08066d06ff1bf314681470289efae",
-  "spec_sha256": "7fd5c643043bc5d1a8c28be40b5cc135c582345bbffd12480152186a98e0df70",
+  "spec_sha256": "a1455594bd907037e9579e2a237d15b40886d7804a04872a81128772fa4634bd",
   "config_sha256": "6c7d73010f21b022696c7bb49ebd95118ea005b75d5be61538b3dd9d436a869f",
-  "output_sha256": "4d963e735db09a6a9cd2adb540a0690320fa275da661f8eed7d2260cc1051f67"
+  "output_sha256": "552fad54e12625fdcc975cc954bdeafb89e36b3af70d343cf8bda75a84d445a0"
 }

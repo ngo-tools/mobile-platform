@@ -104,4 +104,37 @@ void main() {
     expect(find.textContaining('erika@example.invalid'), findsOneWidget);
     expect(find.textContaining('@ngo.tools'), findsNothing);
   });
+
+  testWidgets('previews events and duties with synthetic data only', (
+    tester,
+  ) async {
+    final capabilities = MobileRuntimeCapabilities(
+      schemaVersion: 1,
+      features: const ['events', 'profile'],
+      permissions: const ['profile:read'],
+      importsEnabled: false,
+      importTypes: const {},
+    );
+
+    await tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
+        capabilities: capabilities,
+        eventsRepository: SyntheticEventsRepository(today: DateTime.now()),
+      ),
+    );
+    await tester.tap(find.text('Events'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mitarbeiterschulung Technik'), findsOneWidget);
+    expect(find.text('You: Technik'), findsOneWidget);
+    expect(find.text('Contacts'), findsNothing);
+
+    await tester.tap(find.text('Duties'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PLEASE GIVE YOUR AVAILABILITY · 2'), findsOneWidget);
+    expect(find.textContaining('@ngo.tools'), findsNothing);
+  });
 }

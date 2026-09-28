@@ -10,6 +10,7 @@ abstract final class ArchitectureValidator {
       'ngotools_design_system',
     },
     'ngotools_design_system': {'ngotools_mobile_core'},
+    'ngotools_events': {'ngotools_api', 'ngotools_design_system'},
     'ngotools_navigation': {
       'ngotools_mobile_core',
       'ngotools_auth',
@@ -21,6 +22,7 @@ abstract final class ArchitectureValidator {
       'ngotools_api',
       'ngotools_contacts',
       'ngotools_design_system',
+      'ngotools_events',
       'ngotools_navigation',
     },
   };

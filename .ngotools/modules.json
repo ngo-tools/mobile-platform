@@ -38,6 +38,40 @@
       ]
     },
     {
+      "id": "events",
+      "name": {
+        "de": "Veranstaltungen",
+        "en": "Events"
+      },
+      "summary": {
+        "de": "Zeigt Termine mit Ablauf und Team, eigene Dienste und fragt die Verfügbarkeit ab.",
+        "en": "Shows events with agenda and team, own services, and asks for availability."
+      },
+      "status": "available",
+      "delivery": {
+        "type": "package",
+        "package": "ngotools_events"
+      },
+      "requires": {
+        "modules": [
+          "profile"
+        ],
+        "api_scopes": [
+          "events:read",
+          "events:write"
+        ],
+        "features": [
+          "events"
+        ],
+        "permissions": [],
+        "device_permissions": []
+      },
+      "deep_links": [
+        "/events/duties",
+        "/events/{id}"
+      ]
+    },
+    {
       "id": "profile",
       "name": {
         "de": "Profil",

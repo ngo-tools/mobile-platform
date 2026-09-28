@@ -120,7 +120,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "enum": ["profile:read", "contacts:read", "contacts:write", "projects:read"]
+            "enum": ["profile:read", "contacts:read", "contacts:write", "events:read", "events:write", "projects:read"]
           }
         },
         "device": {
@@ -138,7 +138,7 @@
         "modules": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"enum": ["profile", "contacts"]}
+          "items": {"enum": ["profile", "contacts", "events"]}
         }
       }
     },
