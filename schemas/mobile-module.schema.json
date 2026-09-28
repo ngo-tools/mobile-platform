@@ -38,7 +38,7 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "enum": ["profile:read", "contacts:read", "contacts:write", "projects:read"]
+            "enum": ["profile:read", "contacts:read", "contacts:write", "events:read", "events:write", "projects:read"]
           }
         },
         "features": {"$ref": "#/definitions/capabilities"},

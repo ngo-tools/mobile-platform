@@ -17,8 +17,13 @@ void main() {
   });
 
   test('loads descriptors in deterministic identifier order', () {
-    expect(catalog.modules.map((module) => module.id), ['contacts', 'profile']);
+    expect(catalog.modules.map((module) => module.id), [
+      'contacts',
+      'events',
+      'profile',
+    ]);
     expect(catalog['contacts']?.status, 'available');
+    expect(catalog['events']?.status, 'available');
     expect(catalog['profile']?.status, 'available');
   });
 
@@ -118,6 +123,9 @@ void main() {
     final contacts = await File(
       path.join(repository.path, 'modules', 'contacts', 'module.yaml'),
     ).readAsString();
+    final events = await File(
+      path.join(repository.path, 'modules', 'events', 'module.yaml'),
+    ).readAsString();
     final profile = await File(
       path.join(repository.path, 'modules', 'profile', 'module.yaml'),
     ).readAsString();
@@ -125,6 +133,7 @@ void main() {
       schemaSource: schema,
       descriptorSources: {
         'modules/profile/module.yaml': profile,
+        'modules/events/module.yaml': events,
         'modules/contacts/module.yaml': contacts,
       },
     ).catalog!;

@@ -6,6 +6,7 @@ import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:uuid/uuid.dart';
 
 import 'generated/api/contacts_api.dart';
+import 'generated/api/events_api.dart';
 import 'generated/api/runtime_api.dart';
 import 'generated/model/contact.dart' as generated;
 import 'generated/model/contact_response.dart' as generated;
@@ -13,18 +14,27 @@ import 'generated/model/contact_search_request.dart' as generated;
 import 'generated/model/contact_search_term.dart' as generated;
 import 'generated/model/contact_sort.dart' as generated;
 import 'generated/model/create_contact_request.dart' as generated;
+import 'generated/model/event_agenda_entry.dart' as generated;
+import 'generated/model/event_agenda_sub_item.dart' as generated;
+import 'generated/model/event_availability.dart' as generated;
+import 'generated/model/event_person.dart' as generated;
+import 'generated/model/event_reference.dart' as generated;
+import 'generated/model/event_service_reference.dart' as generated;
+import 'generated/model/event_summary.dart' as generated;
 import 'generated/model/import_capability.dart' as generated;
 import 'generated/model/update_contact_request.dart' as generated;
+import 'generated/model/update_event_availability_request.dart' as generated;
 import 'internal/mobile_api_interceptors.dart';
 import 'mobile_api_problem.dart';
 import 'mobile_contact.dart';
+import 'mobile_events.dart';
 import 'mobile_runtime_capabilities.dart';
 
 /// Connects the protected authentication session to an HTTP client.
 typedef MobileApiAuthorizer = void Function(Dio client);
 
 /// Secure typed access to the NGO.Tools mobile runtime API.
-final class NgoToolsMobileApi implements MobileContactsApi {
+final class NgoToolsMobileApi implements MobileContactsApi, MobileEventsApi {
   /// Creates the production API pipeline for one fixed environment.
   factory NgoToolsMobileApi({
     required MobileEnvironmentConfiguration environment,
@@ -60,6 +70,7 @@ final class NgoToolsMobileApi implements MobileContactsApi {
            capabilityInvalidations ?? StreamController<void>.broadcast() {
     _runtimeApi = RuntimeApi(_dio);
     _contactsApi = ContactsApi(_dio);
+    _eventsApi = EventsApi(_dio);
     _dio.interceptors.addAll([
       MobileRequestMetadataInterceptor(requestId ?? () => const Uuid().v4()),
       MobileReadRetryInterceptor(_dio),
@@ -71,6 +82,7 @@ final class NgoToolsMobileApi implements MobileContactsApi {
   final StreamController<void> _capabilityInvalidations;
   late final RuntimeApi _runtimeApi;
   late final ContactsApi _contactsApi;
+  late final EventsApi _eventsApi;
 
   /// Emits whenever a denied request may indicate changed server access.
   Stream<void> get capabilityInvalidations => _capabilityInvalidations.stream;
@@ -292,6 +304,170 @@ final class NgoToolsMobileApi implements MobileContactsApi {
     return _mapMutationResponse(response);
   });
 
+  /// Lists visible events starting between the calendar days [from] and [to].
+  @override
+  Future<List<MobileEventSummary>> listEvents({DateTime? from, DateTime? to}) =>
+      _guard(() async {
+        if (from != null &&
+            to != null &&
+            _calendarDay(to).isBefore(_calendarDay(from))) {
+          throw ArgumentError.value(to, 'to', 'Must not be before from.');
+        }
+
+        final response = await _eventsApi.listEvents(
+          from: _formatDate(from),
+          to: _formatDate(to),
+        );
+        final data = response.data;
+
+        if (data == null) {
+          throw _invalidResponse();
+        }
+
+        return data.data.map(_mapEventSummary).toList(growable: false);
+      });
+
+  /// Loads one visible event with its agenda and team.
+  @override
+  Future<MobileEventDetail> fetchEvent(int eventId) => _guard(() async {
+    _requirePositive(eventId, 'eventId');
+
+    final response = await _eventsApi.getEvent(eventId: eventId);
+    final data = response.data?.data;
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    final agenda = data.agenda;
+
+    return MobileEventDetail(
+      summary: _mapEventSummary(
+        generated.EventSummary(
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          start: data.start,
+          end: data.end,
+          allDay: data.allDay,
+          planningCompleted: data.planningCompleted,
+          myServices: data.myServices,
+          availabilityOpen: data.availabilityOpen,
+        ),
+      ),
+      details: data.details,
+      agenda: agenda == null
+          ? null
+          : MobileEventAgenda(
+              completed: agenda.completed,
+              entries: agenda.items.map(_mapAgendaEntry),
+            ),
+      team: data.team.map((slot) {
+        if (slot.required_ < 0 || slot.open < 0) {
+          throw _invalidResponse();
+        }
+
+        return MobileEventTeamSlot(
+          service: _mapService(slot.service),
+          required: slot.required_,
+          open: slot.open,
+          members: slot.members.map(_mapPerson),
+        );
+      }),
+    );
+  });
+
+  /// Lists the user's own assignments for today and upcoming events.
+  @override
+  Future<List<MobileEventAssignment>> listEventAssignments() =>
+      _guard(() async {
+        final response = await _eventsApi.listEventAssignments();
+        final data = response.data;
+
+        if (data == null) {
+          throw _invalidResponse();
+        }
+
+        return data.data
+            .map((assignment) {
+              _requireValidId(assignment.id);
+
+              return MobileEventAssignment(
+                id: assignment.id,
+                event: _mapEventReference(assignment.event),
+                service: _mapService(assignment.service),
+              );
+            })
+            .toList(growable: false);
+      });
+
+  /// Lists upcoming availability requests with the current answer.
+  @override
+  Future<List<MobileEventAvailability>> listEventAvailabilities() =>
+      _guard(() async {
+        final response = await _eventsApi.listEventAvailabilities();
+        final data = response.data;
+
+        if (data == null) {
+          throw _invalidResponse();
+        }
+
+        return data.data.map(_mapAvailability).toList(growable: false);
+      });
+
+  /// Stores the user's answer for [serviceId] of the upcoming [eventId].
+  @override
+  Future<MobileEventAvailability> answerEventAvailability({
+    required int eventId,
+    required int serviceId,
+    required MobileAvailabilityStatus status,
+  }) => _guard(() async {
+    _requirePositive(eventId, 'eventId');
+    _requirePositive(serviceId, 'serviceId');
+
+    final response = await _eventsApi.updateEventAvailability(
+      eventId: eventId,
+      serviceId: serviceId,
+      updateEventAvailabilityRequest: generated.UpdateEventAvailabilityRequest(
+        status: switch (status) {
+          MobileAvailabilityStatus.available =>
+            generated.UpdateEventAvailabilityRequestStatusEnum.available,
+          MobileAvailabilityStatus.ifNeedsMust =>
+            generated.UpdateEventAvailabilityRequestStatusEnum.ifNeedsMust,
+          MobileAvailabilityStatus.notAvailable =>
+            generated.UpdateEventAvailabilityRequestStatusEnum.notAvailable,
+          MobileAvailabilityStatus.notSet => throw ArgumentError.value(
+            status,
+            'status',
+            'Use withdrawEventAvailability to remove an answer.',
+          ),
+        },
+      ),
+    );
+    final data = response.data?.data;
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    return _mapAvailability(data);
+  });
+
+  /// Withdraws the user's answer for [serviceId] of the upcoming [eventId].
+  @override
+  Future<void> withdrawEventAvailability({
+    required int eventId,
+    required int serviceId,
+  }) => _guard(() async {
+    _requirePositive(eventId, 'eventId');
+    _requirePositive(serviceId, 'serviceId');
+
+    await _eventsApi.deleteEventAvailability(
+      eventId: eventId,
+      serviceId: serviceId,
+    );
+  });
+
   /// Releases HTTP and stream resources owned by this client.
   Future<void> close() async {
     _dio.close(force: true);
@@ -387,6 +563,132 @@ final class NgoToolsMobileApi implements MobileContactsApi {
           const [],
     );
   }
+
+  static MobileEventSummary _mapEventSummary(generated.EventSummary event) {
+    _requireValidId(event.id);
+
+    final type = event.type;
+
+    if (type != null) {
+      _requireValidId(type.id);
+    }
+
+    return MobileEventSummary(
+      id: event.id,
+      name: event.name,
+      type: type == null ? null : MobileEventType(id: type.id, name: type.name),
+      start: event.start,
+      end: event.end,
+      allDay: event.allDay,
+      planningCompleted: event.planningCompleted,
+      myServices: event.myServices.map(_mapService),
+      availabilityOpen: event.availabilityOpen,
+    );
+  }
+
+  static MobileEventReference _mapEventReference(
+    generated.EventReference event,
+  ) {
+    _requireValidId(event.id);
+
+    return MobileEventReference(
+      id: event.id,
+      name: event.name,
+      start: event.start,
+      end: event.end,
+      allDay: event.allDay,
+    );
+  }
+
+  static MobileEventService _mapService(
+    generated.EventServiceReference service,
+  ) {
+    _requireValidId(service.id);
+
+    return MobileEventService(id: service.id, name: service.name);
+  }
+
+  static MobileEventPerson _mapPerson(generated.EventPerson person) =>
+      MobileEventPerson(name: person.name, isMe: person.isMe);
+
+  static MobileEventAgendaEntry _mapAgendaEntry(
+    generated.EventAgendaEntry entry,
+  ) {
+    final responsibleService = entry.responsibleService;
+
+    if (entry.durationMinutes != null && entry.durationMinutes! < 0) {
+      throw _invalidResponse();
+    }
+
+    return MobileEventAgendaEntry(
+      item: _mapAgendaItem(
+        generated.EventAgendaSubItem(
+          id: entry.id,
+          type: entry.type,
+          name: entry.name,
+          key: entry.key,
+          language: entry.language,
+          items: entry.items,
+        ),
+      ),
+      startsAt: entry.startsAt,
+      durationMinutes: entry.durationMinutes,
+      responsibleService: responsibleService == null
+          ? null
+          : _mapService(responsibleService),
+      responsible: entry.responsible.map(_mapPerson),
+      isMine: entry.isMine,
+    );
+  }
+
+  static MobileEventAgendaItem _mapAgendaItem(
+    generated.EventAgendaSubItem item,
+  ) {
+    _requireValidId(item.id);
+
+    return MobileEventAgendaItem(
+      id: item.id,
+      type: item.type,
+      name: item.name,
+      key: item.key,
+      language: item.language,
+      children: item.items.map(_mapAgendaItem),
+    );
+  }
+
+  static MobileEventAvailability _mapAvailability(
+    generated.EventAvailability availability,
+  ) => MobileEventAvailability(
+    event: _mapEventReference(availability.event),
+    service: _mapService(availability.service),
+    status: switch (availability.status) {
+      generated.EventAvailabilityStatusEnum.available =>
+        MobileAvailabilityStatus.available,
+      generated.EventAvailabilityStatusEnum.ifNeedsMust =>
+        MobileAvailabilityStatus.ifNeedsMust,
+      generated.EventAvailabilityStatusEnum.notAvailable =>
+        MobileAvailabilityStatus.notAvailable,
+      generated.EventAvailabilityStatusEnum.notSet =>
+        MobileAvailabilityStatus.notSet,
+      generated.EventAvailabilityStatusEnum.unknownDefaultOpenApi =>
+        throw _invalidResponse(),
+    },
+  );
+
+  static void _requireValidId(int id) {
+    if (id < 1) {
+      throw _invalidResponse();
+    }
+  }
+
+  static void _requirePositive(int value, String name) {
+    if (value < 1) {
+      throw ArgumentError.value(value, name, 'Must be at least one.');
+    }
+  }
+
+  static DateTime _calendarDay(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
 
   static MobileContactMutationSuccess _mapMutationResponse(
     Response<generated.ContactResponse> response,

@@ -6,6 +6,7 @@ import 'package:ngotools_auth/ngotools_auth.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 
 export 'src/synthetic_contacts_repository.dart';
+export 'src/synthetic_events_repository.dart';
 
 /// Provides secret-free data for examples and tests.
 abstract final class SyntheticMobileFixture {

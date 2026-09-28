@@ -9,6 +9,7 @@ servers:
 tags:
   - name: Runtime
   - name: Contacts
+  - name: Events
   - name: Release
 paths:
   /api/me:
@@ -206,6 +207,185 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/ContactMutationConflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /api/v2/events:
+    get:
+      operationId: listEvents
+      tags: [Events]
+      summary: List visible events starting in a date range
+      description: >-
+        Events of calendars the user may see, plus events the user's contact serves
+        at or is asked about. Dates are tenant-local calendar days; without a range
+        the server returns today and the next 60 days. A range may span at most 366
+        days.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          required: false
+          description: Tenant-local calendar day in `YYYY-MM-DD` format.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: to
+          in: query
+          required: false
+          description: Tenant-local calendar day in `YYYY-MM-DD` format.
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        '200':
+          description: Events ordered by start
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCollectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /api/v2/events/{eventId}:
+    get:
+      operationId: getEvent
+      tags: [Events]
+      summary: Get one event with agenda and team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v2/event-assignments:
+    get:
+      operationId: listEventAssignments
+      tags: [Events]
+      summary: List the user's own assignments for today and upcoming events
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Own assignments ordered by event start
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAssignmentCollectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v2/event-availabilities:
+    get:
+      operationId: listEventAvailabilities
+      tags: [Events]
+      summary: List upcoming availability requests with the current answer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Availability requests ordered by event start
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAvailabilityCollectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v2/event-availabilities/{eventId}/{serviceId}:
+    put:
+      operationId: updateEventAvailability
+      tags: [Events]
+      summary: Answer whether the user is available for a service of an upcoming event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventAvailabilityRequest'
+      responses:
+        '200':
+          description: Stored availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventAvailabilityResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    delete:
+      operationId: deleteEventAvailability
+      tags: [Events]
+      summary: Withdraw the user's answer for a service of an upcoming event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '204':
+          description: Answer withdrawn
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationFailed'
   /api/v2/mobile-app-releases:
@@ -870,6 +1050,279 @@ components:
         management_url:
           type: string
           format: uri
+    EventCollectionResponse:
+      type: object
+      additionalProperties: true
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventSummary'
+    EventResponse:
+      type: object
+      additionalProperties: true
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EventDetail'
+    EventSummary:
+      type: object
+      additionalProperties: true
+      required: [id, name, start, end, all_day, planning_completed, my_services, availability_open]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/EventTypeReference'
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        all_day:
+          type: boolean
+        planning_completed:
+          type: boolean
+        my_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventServiceReference'
+        availability_open:
+          type: boolean
+    EventDetail:
+      type: object
+      additionalProperties: true
+      required: [id, name, start, end, all_day, planning_completed, my_services, availability_open, team]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/EventTypeReference'
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        all_day:
+          type: boolean
+        planning_completed:
+          type: boolean
+        my_services:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventServiceReference'
+        availability_open:
+          type: boolean
+        details:
+          type: string
+          nullable: true
+        agenda:
+          $ref: '#/components/schemas/EventAgenda'
+        team:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventTeamSlot'
+    EventTypeReference:
+      type: object
+      additionalProperties: true
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    EventServiceReference:
+      type: object
+      additionalProperties: true
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+    EventReference:
+      type: object
+      additionalProperties: true
+      required: [id, name, start, end, all_day]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        all_day:
+          type: boolean
+    EventAgenda:
+      type: object
+      additionalProperties: true
+      required: [completed, items]
+      properties:
+        completed:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAgendaEntry'
+    EventAgendaEntry:
+      type: object
+      additionalProperties: true
+      required: [id, type, starts_at, responsible, is_mine, items]
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        name:
+          type: string
+          nullable: true
+        key:
+          type: string
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAgendaSubItem'
+        starts_at:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+          nullable: true
+        responsible_service:
+          $ref: '#/components/schemas/EventServiceReference'
+        responsible:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventPerson'
+        is_mine:
+          type: boolean
+    EventAgendaSubItem:
+      type: object
+      additionalProperties: true
+      required: [id, type, items]
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        name:
+          type: string
+          nullable: true
+        key:
+          type: string
+          nullable: true
+        language:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAgendaSubItem'
+    EventPerson:
+      type: object
+      additionalProperties: true
+      required: [name, is_me]
+      properties:
+        name:
+          type: string
+        is_me:
+          type: boolean
+    EventTeamSlot:
+      type: object
+      additionalProperties: true
+      required: [service, required, open, members]
+      properties:
+        service:
+          $ref: '#/components/schemas/EventServiceReference'
+        required:
+          type: integer
+          minimum: 0
+        open:
+          type: integer
+          minimum: 0
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventPerson'
+    EventAssignmentCollectionResponse:
+      type: object
+      additionalProperties: true
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAssignment'
+    EventAssignment:
+      type: object
+      additionalProperties: true
+      required: [id, event, service]
+      properties:
+        id:
+          type: integer
+          format: int64
+        event:
+          $ref: '#/components/schemas/EventReference'
+        service:
+          $ref: '#/components/schemas/EventServiceReference'
+    EventAvailabilityCollectionResponse:
+      type: object
+      additionalProperties: true
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventAvailability'
+    EventAvailabilityResponse:
+      type: object
+      additionalProperties: true
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EventAvailability'
+    EventAvailability:
+      type: object
+      additionalProperties: true
+      required: [event, service, status]
+      properties:
+        event:
+          $ref: '#/components/schemas/EventReference'
+        service:
+          $ref: '#/components/schemas/EventServiceReference'
+        status:
+          type: string
+          enum: [available, not-available, if-needs-must, not-set]
+    UpdateEventAvailabilityRequest:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [available, not-available, if-needs-must]
     ProblemDetails:
       type: object
       additionalProperties: true

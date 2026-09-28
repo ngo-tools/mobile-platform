@@ -375,6 +375,7 @@ abstract final class OrganizationAppSetup {
       'ngotools_auth',
       'ngotools_contacts',
       'ngotools_design_system',
+      'ngotools_events',
       'ngotools_mobile_core',
       'ngotools_navigation',
       'ngotools_testing',

@@ -4,6 +4,7 @@ import 'package:ngotools_api/ngotools_api.dart';
 import 'package:ngotools_auth/ngotools_auth.dart';
 import 'package:ngotools_contacts/ngotools_contacts.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
+import 'package:ngotools_events/ngotools_events.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:ngotools_navigation/ngotools_navigation.dart';
 
@@ -19,6 +20,7 @@ class GoldenApp extends StatelessWidget {
     this.capabilities,
     this.contactsRepository,
     this.contactDraftManager,
+    this.eventsRepository,
     super.key,
   });
 
@@ -40,6 +42,9 @@ class GoldenApp extends StatelessWidget {
   /// Optional encrypted draft coordinator supplied by the composition root.
   final ContactDraftManager? contactDraftManager;
 
+  /// Optional event source supplied by the application composition root.
+  final EventsRepository? eventsRepository;
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -54,6 +59,7 @@ class GoldenApp extends StatelessWidget {
       capabilities: capabilities,
       contactsRepository: contactsRepository,
       contactDraftManager: contactDraftManager,
+      eventsRepository: eventsRepository,
     ),
   );
 }
@@ -68,6 +74,7 @@ class GoldenShell extends StatelessWidget {
     this.capabilities,
     this.contactsRepository,
     this.contactDraftManager,
+    this.eventsRepository,
     super.key,
   });
 
@@ -77,6 +84,7 @@ class GoldenShell extends StatelessWidget {
   final MobileRuntimeCapabilities? capabilities;
   final ContactsRepository? contactsRepository;
   final ContactDraftManager? contactDraftManager;
+  final EventsRepository? eventsRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +130,32 @@ class GoldenShell extends StatelessWidget {
         ),
       ),
       MobileNavigationItem(
+        id: 'events',
+        label: isGerman ? 'Termine' : 'Events',
+        icon: Icons.event_outlined,
+        selectedIcon: Icons.event,
+        builder: (_) => eventsRepository == null
+            ? _notConnected(isGerman)
+            : EventsView(
+                repository: eventsRepository!,
+                labels: isGerman ? EventLabels.german : EventLabels.english,
+              ),
+        requirement: MobileRouteRequirement(features: const ['events']),
+      ),
+      MobileNavigationItem(
+        id: 'duties',
+        label: isGerman ? 'Dienste' : 'Duties',
+        icon: Icons.volunteer_activism_outlined,
+        selectedIcon: Icons.volunteer_activism,
+        builder: (_) => eventsRepository == null
+            ? _notConnected(isGerman)
+            : DutiesView(
+                repository: eventsRepository!,
+                labels: isGerman ? EventLabels.german : EventLabels.english,
+              ),
+        requirement: MobileRouteRequirement(features: const ['events']),
+      ),
+      MobileNavigationItem(
         id: 'diagnostics',
         label: isGerman ? 'Diagnose' : 'Diagnostics',
         icon: Icons.health_and_safety_outlined,
@@ -144,6 +178,13 @@ class GoldenShell extends StatelessWidget {
     );
   }
 }
+
+Widget _notConnected(bool isGerman) => NgoToolsEmptyState(
+  title: isGerman ? 'Termine nicht verbunden' : 'Events not connected',
+  message: isGerman
+      ? 'Die App benötigt eine authentifizierte API-Verbindung.'
+      : 'The app requires an authenticated API connection.',
+);
 
 /// Displays the selected environment and synthetic-data boundary.
 class GoldenHome extends StatelessWidget {

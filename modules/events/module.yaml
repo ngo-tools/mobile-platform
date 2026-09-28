@@ -1,0 +1,27 @@
+apiVersion: mobile.ngo.tools/v1alpha1
+kind: MobileModule
+metadata:
+  id: events
+  name:
+    de: Veranstaltungen
+    en: Events
+  summary:
+    de: Zeigt Termine mit Ablauf und Team, eigene Dienste und fragt die Verfügbarkeit ab.
+    en: Shows events with agenda and team, own services, and asks for availability.
+status: available
+delivery:
+  type: package
+  package: ngotools_events
+requires:
+  modules:
+    - profile
+  apiScopes:
+    - events:read
+    - events:write
+  features:
+    - events
+  permissions: []
+  devicePermissions: []
+deepLinks:
+  - /events/duties
+  - /events/{id}
