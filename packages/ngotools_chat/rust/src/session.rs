@@ -97,6 +97,8 @@ pub(crate) async fn build_client(params: ClientParams) -> Result<(Client, Arc<At
     }
 
     let client = builder.build().await?;
+    // Media uploads report progress on their local echo.
+    client.send_queue().enable_upload_progress(true);
 
     // Persist rotated tokens synchronously while the SDK holds its refresh
     // lock, and reload them (another process, e.g. the iOS NSE, may have

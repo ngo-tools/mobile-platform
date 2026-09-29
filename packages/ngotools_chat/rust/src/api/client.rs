@@ -13,13 +13,14 @@ use matrix_sdk::{
         registration::{ApplicationType, ClientMetadata, Localized, OAuthGrantType},
         ClientRegistrationData,
     },
+    notification_settings::NotificationSettings,
     ruma::{serde::Raw, RoomId, UserId},
     store::RoomLoadSettings,
     Client, SessionChange,
 };
 use matrix_sdk_ui::sync_service::{State as SyncState, SyncService};
 use tokio::{
-    sync::{mpsc, Mutex},
+    sync::{mpsc, Mutex, OnceCell},
     task::JoinHandle,
 };
 use url::Url;
@@ -67,6 +68,10 @@ pub struct ChatClient {
     session_task: Mutex<Option<JoinHandle<()>>>,
     pending_login_state: Mutex<Option<String>>,
     refreshes: Arc<AtomicU32>,
+    /// One instance per client: it applies own changes immediately and
+    /// follows push rule updates from sync (a fresh instance would read the
+    /// store, which only changes with the next sync).
+    pub(crate) notification_settings: DropInRuntime<Arc<OnceCell<NotificationSettings>>>,
 }
 
 struct ChatConfigInner {
@@ -103,6 +108,7 @@ impl ChatClient {
                 session_task: Mutex::new(None),
                 pending_login_state: Mutex::new(None),
                 refreshes,
+                notification_settings: DropInRuntime::new(Arc::new(OnceCell::new())),
             })
         })
         .await

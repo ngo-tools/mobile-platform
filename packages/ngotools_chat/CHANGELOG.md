@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Send images with pixel size and an on-device preview
+  (`prepareImageAttachment`), report upload progress on the local echo and
+  fetch scaled previews (`fetchThumbnail`).
+- Add room members, typing (send and watch) and per-room notification modes,
+  including the mode in the room list.
 - Add typed `ChatError`s; offline token refreshes no longer look like an
   expired session.
 - Stream the room list as diffs with filters, paging, unread counts and a

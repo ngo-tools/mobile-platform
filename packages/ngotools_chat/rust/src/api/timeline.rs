@@ -5,6 +5,7 @@ use std::{path::PathBuf, sync::Arc};
 
 use flutter_rust_bridge::frb;
 use futures_util::{pin_mut, StreamExt};
+use matrix_sdk::attachment::{AttachmentInfo, BaseImageInfo, Thumbnail};
 use matrix_sdk::{
     room::edit::EditedContent,
     ruma::{
@@ -12,7 +13,7 @@ use matrix_sdk::{
         events::room::message::{
             MessageType, RoomMessageEventContentWithoutRelation, TextMessageEventContent,
         },
-        EventId, OwnedEventId, OwnedTransactionId, OwnedUserId, RoomId, UserId,
+        EventId, OwnedEventId, OwnedTransactionId, OwnedUserId, RoomId, UInt, UserId,
     },
 };
 use matrix_sdk_ui::timeline::{
@@ -99,9 +100,39 @@ pub struct Sender {
 }
 
 pub enum SendState {
-    Sending,
+    /// Queued or uploading; `progress` is set while media is uploaded.
+    Sending {
+        progress: Option<UploadProgress>,
+    },
     Sent,
-    Failed { recoverable: bool },
+    Failed {
+        recoverable: bool,
+    },
+}
+
+/// Uploaded bytes of a media message (file and thumbnail combined).
+pub struct UploadProgress {
+    pub current_bytes: u64,
+    pub total_bytes: u64,
+}
+
+/// An image to send; `width`/`height` are the pixel size of the file.
+pub struct ImageAttachment {
+    pub file_path: String,
+    pub mime_type: String,
+    pub caption: Option<String>,
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub blurhash: Option<String>,
+    pub thumbnail: Option<ImageThumbnail>,
+}
+
+/// Encoded preview image (e.g. JPEG, longest side ~800 px).
+pub struct ImageThumbnail {
+    pub data: Vec<u8>,
+    pub mime_type: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 pub enum EventContent {
@@ -113,8 +144,12 @@ pub enum EventContent {
         filename: String,
         /// Opaque media reference for the media API.
         media: String,
+        /// Small preview uploaded by the sender (always set for encrypted
+        /// images sent by this app; fetch it with `fetch_media`).
+        thumbnail: Option<String>,
         width: Option<u32>,
         height: Option<u32>,
+        blurhash: Option<String>,
     },
     Video {
         caption: Option<String>,
@@ -196,6 +231,7 @@ pub struct ChatTimeline {
     timeline: DropInRuntime<Arc<Timeline>>,
     own_user_id: OwnedUserId,
     watch_task: Mutex<Option<JoinHandle<()>>>,
+    typing_task: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl ChatClient {
@@ -227,6 +263,7 @@ impl ChatClient {
             timeline: DropInRuntime::new(timeline),
             own_user_id,
             watch_task: Mutex::new(None),
+            typing_task: Mutex::new(None),
         })
     }
 
@@ -260,6 +297,7 @@ impl ChatClient {
             timeline: DropInRuntime::new(timeline),
             own_user_id,
             watch_task: Mutex::new(None),
+            typing_task: Mutex::new(None),
         })
     }
 }
@@ -325,24 +363,31 @@ impl ChatTimeline {
         .await
     }
 
-    pub async fn send_image(
-        &self,
-        file_path: String,
-        mime_type: String,
-        caption: Option<String>,
-    ) -> Result<(), ChatError> {
-        let mime: mime::Mime = mime_type
+    /// Sends an image. Upload progress appears on the local echo
+    /// (`SendState::Sending`). Pass a small `thumbnail` for encrypted rooms:
+    /// the server cannot scale encrypted media.
+    pub async fn send_image(&self, image: ImageAttachment) -> Result<(), ChatError> {
+        let mime: mime::Mime = image
+            .mime_type
             .parse()
             .map_err(|_| ChatError::invalid("invalid mime type"))?;
+        let thumbnail = image.thumbnail.map(thumbnail).transpose()?;
         let timeline = self.timeline.clone();
         on_runtime(async move {
             let config = AttachmentConfig {
-                caption: caption.map(TextMessageEventContent::plain),
+                caption: image.caption.map(TextMessageEventContent::plain),
+                info: Some(AttachmentInfo::Image(BaseImageInfo {
+                    width: image.width.map(UInt::from),
+                    height: image.height.map(UInt::from),
+                    blurhash: image.blurhash,
+                    ..BaseImageInfo::default()
+                })),
+                thumbnail,
                 ..AttachmentConfig::default()
             };
             timeline
                 .send_attachment(
-                    AttachmentSource::File(PathBuf::from(file_path)),
+                    AttachmentSource::File(PathBuf::from(image.file_path)),
                     mime,
                     config,
                 )
@@ -427,9 +472,57 @@ impl ChatTimeline {
         .await
     }
 
+    /// Streams the other members currently typing in this room.
+    pub async fn watch_typing(&self, sink: StreamSink<Vec<Sender>>) -> Result<(), ChatError> {
+        let room = self.timeline.room().clone();
+        let own_user_id = self.own_user_id.clone();
+        let task = runtime().spawn(async move {
+            let (_guard, mut typing) = room.subscribe_to_typing_notifications();
+            if sink.add(Vec::new()).is_err() {
+                return;
+            }
+            while let Ok(user_ids) = typing.recv().await {
+                let mut senders = Vec::new();
+                for user_id in user_ids.iter().filter(|id| **id != own_user_id) {
+                    let member = room.get_member_no_sync(user_id).await.ok().flatten();
+                    senders.push(Sender {
+                        id: user_id.to_string(),
+                        name: member
+                            .as_ref()
+                            .and_then(|member| member.display_name().map(ToOwned::to_owned)),
+                        avatar_url: member
+                            .as_ref()
+                            .and_then(|member| member.avatar_url().map(ToString::to_string)),
+                    });
+                }
+                if sink.add(senders).is_err() {
+                    break;
+                }
+            }
+        });
+        if let Some(previous) = self.typing_task.lock().await.replace(task) {
+            previous.abort();
+        }
+        Ok(())
+    }
+
+    /// Tells the others whether the user is typing (the SDK throttles
+    /// repeated notices and lets them expire).
+    pub async fn set_typing(&self, typing: bool) -> Result<(), ChatError> {
+        let room = self.timeline.room().clone();
+        on_runtime(async move {
+            room.typing_notice(typing).await?;
+            Ok(())
+        })
+        .await
+    }
+
     /// Stops streaming; the timeline can be watched again later.
     pub async fn close(&self) {
         if let Some(task) = self.watch_task.lock().await.take() {
+            task.abort();
+        }
+        if let Some(task) = self.typing_task.lock().await.take() {
             task.abort();
         }
     }
@@ -456,9 +549,11 @@ impl ChatTimeline {
 
 impl Drop for ChatTimeline {
     fn drop(&mut self) {
-        if let Ok(mut task) = self.watch_task.try_lock() {
-            if let Some(task) = task.take() {
-                task.abort();
+        for task in [&self.watch_task, &self.typing_task] {
+            if let Ok(mut task) = task.try_lock() {
+                if let Some(task) = task.take() {
+                    task.abort();
+                }
             }
         }
     }
@@ -581,7 +676,12 @@ fn map_event(event: &EventTimelineItem, own_user_id: &UserId) -> EventItem {
         can_reply: event.can_be_replied_to(),
         send_state: match event.send_state() {
             None | Some(EventSendState::Sent { .. }) => SendState::Sent,
-            Some(EventSendState::NotSentYet { .. }) => SendState::Sending,
+            Some(EventSendState::NotSentYet { progress }) => SendState::Sending {
+                progress: progress.as_ref().map(|upload| UploadProgress {
+                    current_bytes: to_u64(upload.progress.current),
+                    total_bytes: to_u64(upload.progress.total),
+                }),
+            },
             Some(EventSendState::SendingFailed { is_recoverable, .. }) => SendState::Failed {
                 recoverable: *is_recoverable,
             },
@@ -619,8 +719,14 @@ fn event_content(content: &TimelineItemContent) -> EventContent {
                     caption: image.caption().map(ToOwned::to_owned),
                     filename: image.filename().to_owned(),
                     media: media_ref(&image.source),
+                    thumbnail: image
+                        .info
+                        .as_ref()
+                        .and_then(|info| info.thumbnail_source.as_ref())
+                        .map(media_ref),
                     width: image.info.as_ref().and_then(|info| info.width).map(to_u32),
                     height: image.info.as_ref().and_then(|info| info.height).map(to_u32),
+                    blurhash: image.info.as_ref().and_then(|info| info.blurhash.clone()),
                 },
                 MessageType::Video(video) => EventContent::Video {
                     caption: video.caption().map(ToOwned::to_owned),
@@ -720,6 +826,26 @@ fn media_ref(source: &matrix_sdk::ruma::events::room::MediaSource) -> String {
 
 fn to_u32<T: TryInto<u32>>(value: T) -> u32 {
     value.try_into().unwrap_or(u32::MAX)
+}
+
+fn thumbnail(input: ImageThumbnail) -> Result<Thumbnail, ChatError> {
+    let content_type: mime::Mime = input
+        .mime_type
+        .parse()
+        .map_err(|_| ChatError::invalid("invalid thumbnail mime type"))?;
+    let size =
+        UInt::try_from(input.data.len()).map_err(|_| ChatError::invalid("thumbnail too large"))?;
+    Ok(Thumbnail {
+        data: input.data,
+        content_type,
+        width: UInt::from(input.width),
+        height: UInt::from(input.height),
+        size,
+    })
+}
+
+fn to_u64(value: usize) -> u64 {
+    u64::try_from(value).unwrap_or(u64::MAX)
 }
 
 #[cfg(test)]

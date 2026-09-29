@@ -134,6 +134,18 @@ class TestUser {
   }
 }
 
+/// Number of event ids that appear on more than one timeline item.
+int duplicateEventIds(List<TimelineItem> items) {
+  final counts = <String, int>{};
+  for (final eventId in items.map(eventOf).nonNulls.map((e) => e.eventId)) {
+    if (eventId != null) {
+      counts.update(eventId, (count) => count + 1, ifAbsent: () => 1);
+    }
+  }
+
+  return counts.values.where((count) => count > 1).length;
+}
+
 /// Compact view of a timeline for failure diagnostics.
 String describeTimeline(List<TimelineItem> items) => items
     .map((item) {
@@ -144,7 +156,9 @@ String describeTimeline(List<TimelineItem> items) => items
       final content = event.content;
       final text = content is EventContent_Text ? content.body : '';
 
-      return '${event.eventId ?? 'local'}:${content.runtimeType}:$text'
+      final key = event.key is EventKey_Local ? 'L' : 'R';
+
+      return '$key:${event.eventId ?? 'local'}:${content.runtimeType}:$text'
           ':thread=${event.thread?.replyCount}:${event.sendState.runtimeType}';
     })
     .join(' | ');
@@ -321,9 +335,23 @@ Future<Uint8List> renderPng() async {
   return bytes!.buffer.asUint8List();
 }
 
-Future<Map<String, dynamic>> waitForPush(String pushKey, String eventId) async {
+Future<(int, int)> imageSize(Uint8List bytes) async {
+  final codec = await ui.instantiateImageCodec(bytes);
+  final image = (await codec.getNextFrame()).image;
+  final size = (image.width, image.height);
+  image.dispose();
+  codec.dispose();
+
+  return size;
+}
+
+Future<Map<String, dynamic>> waitForPush(
+  String pushKey,
+  String eventId, {
+  Duration timeout = const Duration(seconds: 30),
+}) async {
   final http = HttpClient();
-  final deadline = DateTime.now().add(const Duration(seconds: 30));
+  final deadline = DateTime.now().add(timeout);
 
   try {
     while (DateTime.now().isBefore(deadline)) {
@@ -574,9 +602,21 @@ void main() {
     await bobThread.timeline
         .sendText(body: threadBody)
         .timeout(const Duration(seconds: 60));
+    // Match the remote item: the SDK may keep the local echo of the root
+    // next to it for a while (event ids are not unique, matrix-rust-sdk
+    // #4758); the UI keys items by `TimelineItem.id`.
     await alice.waitForTimeline(
-      (items) => findText(items, rootBody)?.thread?.replyCount == 1,
+      (items) => items
+          .map(eventOf)
+          .nonNulls
+          .where((event) => event.key is EventKey_Remote)
+          .any(
+            (event) =>
+                event.content == EventContent.text(body: rootBody) &&
+                event.thread?.replyCount == 1,
+          ),
     );
+    metric('duplicate_event_items', duplicateEventIds(alice.lastTimeline));
     expect(
       findText(alice.lastTimeline, threadBody),
       isNull,
@@ -624,12 +664,28 @@ void main() {
     final file = File(
       '${(await getTemporaryDirectory()).path}/chat-e2e-$run.png',
     )..writeAsBytesSync(png);
-    stopwatch = Stopwatch()..start();
-    await alice.timeline.sendImage(
+    final attachment = await prepareImageAttachment(
       filePath: file.path,
       mimeType: 'image/png',
       caption: 'Farbverlauf',
     );
+    expect(attachment.thumbnail?.width, 480);
+    var uploadProgressSeen = false;
+    void watchUpload() {
+      uploadProgressSeen |= alice.lastTimeline
+          .map(eventOf)
+          .nonNulls
+          .any(
+            (event) => switch (event.sendState) {
+              SendState_Sending(:final progress) => progress != null,
+              _ => false,
+            },
+          );
+    }
+
+    alice.timelineController!.items.addListener(watchUpload);
+    stopwatch = Stopwatch()..start();
+    await alice.timeline.sendImage(image: attachment);
     final withImage = await bob.waitForTimeline(
       (items) => items
           .map(eventOf)
@@ -652,6 +708,55 @@ void main() {
       reason: 'encrypted rooms use EncryptedFile sources',
     );
     expect(listEquals(downloaded, png), isTrue);
+    await alice.waitForTimeline(
+      (items) => items
+          .map(eventOf)
+          .nonNulls
+          .any(
+            (event) =>
+                event.content is EventContent_Image &&
+                event.sendState is SendState_Sent,
+          ),
+    );
+    alice.timelineController!.items.removeListener(watchUpload);
+    metric('upload_progress_seen', uploadProgressSeen);
+
+    // Encrypted media cannot be scaled by the server: the sender's preview
+    // is used, the thumbnail endpoint falls back to the whole file.
+    expect((image.width, image.height), (800, 600));
+    final preview = await bob.client.fetchMedia(media: image.thumbnail!);
+    expect(await imageSize(preview), (480, 360));
+    expect(
+      listEquals(
+        await bob.client.fetchThumbnail(
+          media: image.media,
+          width: 100,
+          height: 100,
+        ),
+        png,
+      ),
+      isTrue,
+    );
+    metric('image_thumbnail', 'ok');
+
+    // Members and typing.
+    final members = await alice.client.roomMembers(roomId: roomId);
+    expect(
+      {for (final member in members) member.userId: member.isOwn},
+      {'@$aliceName:$serverName': true, '@$bobName:$serverName': false},
+    );
+    final typing = bob.timeline.watchTyping().asBroadcastStream();
+    await alice.timeline.setTyping(typing: true);
+    await typing
+        .firstWhere(
+          (users) => users.any((user) => user.id == '@$aliceName:$serverName'),
+        )
+        .timeout(const Duration(seconds: 30));
+    await alice.timeline.setTyping(typing: false);
+    await typing
+        .firstWhere((users) => users.isEmpty)
+        .timeout(const Duration(seconds: 30));
+    metric('members_typing', 'ok');
 
     // Push: pusher for Bob (event_id_only), notification resolved + decrypted like the FCM handler / NSE.
     final pushKey = 'e2e-$platform-$run';
@@ -682,6 +787,36 @@ void main() {
     );
     metric('notification_resolved_ms', stopwatch.elapsedMilliseconds);
     expect(notification?.body, pushBody);
+
+    // Muting the room stops pushes; restoring follows the default again.
+    final defaults = await bob.client.roomNotificationSettings(roomId: roomId);
+    expect(defaults.isDefault, isTrue);
+    await bob.client.setRoomNotificationMode(
+      roomId: roomId,
+      mode: NotificationMode.mute,
+    );
+    final muted = await bob.client.roomNotificationSettings(roomId: roomId);
+    expect((muted.mode, muted.isDefault), (NotificationMode.mute, false));
+    await bob.waitForRooms(
+      (rooms) => rooms.any(
+        (room) =>
+            room.id == roomId && room.notificationMode == NotificationMode.mute,
+      ),
+    );
+    final mutedBody = 'Stumm ($run)';
+    await alice.timeline.sendText(body: mutedBody);
+    await bob.waitForTimeline((items) => hasText(items, mutedBody));
+    final mutedEventId = findText(bob.lastTimeline, mutedBody)!.eventId!;
+    await expectLater(
+      waitForPush(pushKey, mutedEventId, timeout: const Duration(seconds: 5)),
+      throwsA(isA<TimeoutException>()),
+    );
+    await bob.client.setRoomNotificationMode(roomId: roomId, mode: null);
+    expect(
+      (await bob.client.roomNotificationSettings(roomId: roomId)).isDefault,
+      isTrue,
+    );
+    metric('notification_mode', 'ok');
 
     // Real UI with live data (room list, encrypted DM with image) at Bob.
     await showForScreenshot(

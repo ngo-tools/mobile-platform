@@ -146,11 +146,11 @@ return unsupported(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  String media,  int? width,  int? height)?  image,TResult Function( String? caption,  String filename,  String media)?  video,TResult Function( String filename,  String media)?  audio,TResult Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult Function()?  redacted,TResult Function()?  unableToDecrypt,TResult Function( String userId,  MembershipKind change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult Function( String? caption,  String filename,  String media)?  video,TResult Function( String filename,  String media)?  audio,TResult Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult Function()?  redacted,TResult Function()?  unableToDecrypt,TResult Function( String userId,  MembershipKind change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EventContent_Text() when text != null:
 return text(_that.body);case EventContent_Image() when image != null:
-return image(_that.caption,_that.filename,_that.media,_that.width,_that.height);case EventContent_Video() when video != null:
+return image(_that.caption,_that.filename,_that.media,_that.thumbnail,_that.width,_that.height,_that.blurhash);case EventContent_Video() when video != null:
 return video(_that.caption,_that.filename,_that.media);case EventContent_Audio() when audio != null:
 return audio(_that.filename,_that.media);case EventContent_File() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted() when redacted != null:
@@ -177,11 +177,11 @@ return unsupported();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  String media,  int? width,  int? height)  image,required TResult Function( String? caption,  String filename,  String media)  video,required TResult Function( String filename,  String media)  audio,required TResult Function( String? caption,  String filename,  String media,  BigInt? size)  file,required TResult Function()  redacted,required TResult Function()  unableToDecrypt,required TResult Function( String userId,  MembershipKind change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)  image,required TResult Function( String? caption,  String filename,  String media)  video,required TResult Function( String filename,  String media)  audio,required TResult Function( String? caption,  String filename,  String media,  BigInt? size)  file,required TResult Function()  redacted,required TResult Function()  unableToDecrypt,required TResult Function( String userId,  MembershipKind change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
 switch (_that) {
 case EventContent_Text():
 return text(_that.body);case EventContent_Image():
-return image(_that.caption,_that.filename,_that.media,_that.width,_that.height);case EventContent_Video():
+return image(_that.caption,_that.filename,_that.media,_that.thumbnail,_that.width,_that.height,_that.blurhash);case EventContent_Video():
 return video(_that.caption,_that.filename,_that.media);case EventContent_Audio():
 return audio(_that.filename,_that.media);case EventContent_File():
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted():
@@ -204,11 +204,11 @@ return unsupported();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  String media,  int? width,  int? height)?  image,TResult? Function( String? caption,  String filename,  String media)?  video,TResult? Function( String filename,  String media)?  audio,TResult? Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult? Function()?  redacted,TResult? Function()?  unableToDecrypt,TResult? Function( String userId,  MembershipKind change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult? Function( String? caption,  String filename,  String media)?  video,TResult? Function( String filename,  String media)?  audio,TResult? Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult? Function()?  redacted,TResult? Function()?  unableToDecrypt,TResult? Function( String userId,  MembershipKind change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
 switch (_that) {
 case EventContent_Text() when text != null:
 return text(_that.body);case EventContent_Image() when image != null:
-return image(_that.caption,_that.filename,_that.media,_that.width,_that.height);case EventContent_Video() when video != null:
+return image(_that.caption,_that.filename,_that.media,_that.thumbnail,_that.width,_that.height,_that.blurhash);case EventContent_Video() when video != null:
 return video(_that.caption,_that.filename,_that.media);case EventContent_Audio() when audio != null:
 return audio(_that.filename,_that.media);case EventContent_File() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted() when redacted != null:
@@ -295,15 +295,19 @@ as String,
 
 
 class EventContent_Image extends EventContent {
-  const EventContent_Image({this.caption, required this.filename, required this.media, this.width, this.height}): super._();
+  const EventContent_Image({this.caption, required this.filename, required this.media, this.thumbnail, this.width, this.height, this.blurhash}): super._();
   
 
  final  String? caption;
  final  String filename;
 /// Opaque media reference for the media API.
  final  String media;
+/// Small preview uploaded by the sender (always set for encrypted
+/// images sent by this app; fetch it with `fetch_media`).
+ final  String? thumbnail;
  final  int? width;
  final  int? height;
+ final  String? blurhash;
 
 /// Create a copy of EventContent
 /// with the given fields replaced by the non-null parameter values.
@@ -315,16 +319,16 @@ $EventContent_ImageCopyWith<EventContent_Image> get copyWith => _$EventContent_I
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventContent_Image&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.media, media) || other.media == media)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventContent_Image&&(identical(other.caption, caption) || other.caption == caption)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.media, media) || other.media == media)&&(identical(other.thumbnail, thumbnail) || other.thumbnail == thumbnail)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.blurhash, blurhash) || other.blurhash == blurhash));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,caption,filename,media,width,height);
+int get hashCode => Object.hash(runtimeType,caption,filename,media,thumbnail,width,height,blurhash);
 
 @override
 String toString() {
-  return 'EventContent.image(caption: $caption, filename: $filename, media: $media, width: $width, height: $height)';
+  return 'EventContent.image(caption: $caption, filename: $filename, media: $media, thumbnail: $thumbnail, width: $width, height: $height, blurhash: $blurhash)';
 }
 
 
@@ -335,7 +339,7 @@ abstract mixin class $EventContent_ImageCopyWith<$Res> implements $EventContentC
   factory $EventContent_ImageCopyWith(EventContent_Image value, $Res Function(EventContent_Image) _then) = _$EventContent_ImageCopyWithImpl;
 @useResult
 $Res call({
- String? caption, String filename, String media, int? width, int? height
+ String? caption, String filename, String media, String? thumbnail, int? width, int? height, String? blurhash
 });
 
 
@@ -352,14 +356,16 @@ class _$EventContent_ImageCopyWithImpl<$Res>
 
 /// Create a copy of EventContent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? caption = freezed,Object? filename = null,Object? media = null,Object? width = freezed,Object? height = freezed,}) {
+@pragma('vm:prefer-inline') $Res call({Object? caption = freezed,Object? filename = null,Object? media = null,Object? thumbnail = freezed,Object? width = freezed,Object? height = freezed,Object? blurhash = freezed,}) {
   return _then(EventContent_Image(
 caption: freezed == caption ? _self.caption : caption // ignore: cast_nullable_to_non_nullable
 as String?,filename: null == filename ? _self.filename : filename // ignore: cast_nullable_to_non_nullable
 as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
-as String,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as String,thumbnail: freezed == thumbnail ? _self.thumbnail : thumbnail // ignore: cast_nullable_to_non_nullable
+as String?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as int?,height: freezed == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,blurhash: freezed == blurhash ? _self.blurhash : blurhash // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1875,10 +1881,10 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  sending,TResult Function()?  sent,TResult Function( bool recoverable)?  failed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( UploadProgress? progress)?  sending,TResult Function()?  sent,TResult Function( bool recoverable)?  failed,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case SendState_Sending() when sending != null:
-return sending();case SendState_Sent() when sent != null:
+return sending(_that.progress);case SendState_Sent() when sent != null:
 return sent();case SendState_Failed() when failed != null:
 return failed(_that.recoverable);case _:
   return orElse();
@@ -1898,10 +1904,10 @@ return failed(_that.recoverable);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  sending,required TResult Function()  sent,required TResult Function( bool recoverable)  failed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( UploadProgress? progress)  sending,required TResult Function()  sent,required TResult Function( bool recoverable)  failed,}) {final _that = this;
 switch (_that) {
 case SendState_Sending():
-return sending();case SendState_Sent():
+return sending(_that.progress);case SendState_Sent():
 return sent();case SendState_Failed():
 return failed(_that.recoverable);}
 }
@@ -1917,10 +1923,10 @@ return failed(_that.recoverable);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  sending,TResult? Function()?  sent,TResult? Function( bool recoverable)?  failed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( UploadProgress? progress)?  sending,TResult? Function()?  sent,TResult? Function( bool recoverable)?  failed,}) {final _that = this;
 switch (_that) {
 case SendState_Sending() when sending != null:
-return sending();case SendState_Sent() when sent != null:
+return sending(_that.progress);case SendState_Sent() when sent != null:
 return sent();case SendState_Failed() when failed != null:
 return failed(_that.recoverable);case _:
   return null;
@@ -1934,33 +1940,67 @@ return failed(_that.recoverable);case _:
 
 
 class SendState_Sending extends SendState {
-  const SendState_Sending(): super._();
+  const SendState_Sending({this.progress}): super._();
   
 
+ final  UploadProgress? progress;
 
-
+/// Create a copy of SendState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$SendState_SendingCopyWith<SendState_Sending> get copyWith => _$SendState_SendingCopyWithImpl<SendState_Sending>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendState_Sending);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SendState_Sending&&(identical(other.progress, progress) || other.progress == progress));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,progress);
 
 @override
 String toString() {
-  return 'SendState.sending()';
+  return 'SendState.sending(progress: $progress)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $SendState_SendingCopyWith<$Res> implements $SendStateCopyWith<$Res> {
+  factory $SendState_SendingCopyWith(SendState_Sending value, $Res Function(SendState_Sending) _then) = _$SendState_SendingCopyWithImpl;
+@useResult
+$Res call({
+ UploadProgress? progress
+});
 
 
+
+
+}
+/// @nodoc
+class _$SendState_SendingCopyWithImpl<$Res>
+    implements $SendState_SendingCopyWith<$Res> {
+  _$SendState_SendingCopyWithImpl(this._self, this._then);
+
+  final SendState_Sending _self;
+  final $Res Function(SendState_Sending) _then;
+
+/// Create a copy of SendState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? progress = freezed,}) {
+  return _then(SendState_Sending(
+progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as UploadProgress?,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

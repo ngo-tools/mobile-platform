@@ -6,6 +6,7 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'room.dart';
 import 'timeline.dart';
 part 'rooms.freezed.dart';
 
@@ -113,6 +114,9 @@ class RoomSummary {
   final int unreadMentions;
   final LatestEvent? latest;
 
+  /// Mode set by the user for this room; `None` follows the default.
+  final NotificationMode? notificationMode;
+
   const RoomSummary({
     required this.id,
     required this.name,
@@ -123,6 +127,7 @@ class RoomSummary {
     required this.unreadMessages,
     required this.unreadMentions,
     this.latest,
+    this.notificationMode,
   });
 
   @override
@@ -135,7 +140,8 @@ class RoomSummary {
       isEncrypted.hashCode ^
       unreadMessages.hashCode ^
       unreadMentions.hashCode ^
-      latest.hashCode;
+      latest.hashCode ^
+      notificationMode.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -150,5 +156,6 @@ class RoomSummary {
           isEncrypted == other.isEncrypted &&
           unreadMessages == other.unreadMessages &&
           unreadMentions == other.unreadMentions &&
-          latest == other.latest;
+          latest == other.latest &&
+          notificationMode == other.notificationMode;
 }
