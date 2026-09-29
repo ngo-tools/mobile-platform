@@ -148,6 +148,14 @@ impl ChatClient {
         Ok(())
     }
 
+    /// Stops the room list stream; the Dart stream ends.
+    pub async fn stop_room_list(&self) {
+        self.room_commands.lock().await.take();
+        if let Some(task) = self.room_task.lock().await.take() {
+            task.abort();
+        }
+    }
+
     pub async fn set_room_filter(&self, filter: RoomFilter) -> Result<(), ChatError> {
         self.send_room_command(RoomListCommand::Filter(filter))
             .await

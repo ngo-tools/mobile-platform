@@ -9,6 +9,14 @@
 - Open one `ChatTimeline` per room, streamed as diffs (`TimelineController`)
   with typed content, replies, reactions, edits and thread summaries, and
   actions to reply, edit, redact, react, retry and cancel.
+- Add threads: summaries on thread roots, thread timelines for reading and
+  replying, and a paginated thread overview per room
+  (`ThreadListController`).
+- Fix controllers hanging in `dispose` on an idle stream: they now stop the
+  Rust stream first (`ChatClient.stopRoomList` for the room list).
+- Fix a crash when Dart released a client, timeline or thread list: SDK
+  objects are now dropped inside the facade runtime. Rust panics are
+  written to the log file.
 
 ## 0.1.0-dev.1
 

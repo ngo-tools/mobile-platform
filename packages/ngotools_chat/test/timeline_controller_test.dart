@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ngotools_chat/src/rust/api/timeline.dart';
 import 'package:ngotools_chat/src/timeline_controller.dart';
 
+import 'support/rust_stream.dart';
+
 TimelineItem divider(String id) => TimelineItem(
   id: id,
   kind: const TimelineItemKind.dateDivider(timestampMs: 0),
@@ -62,5 +64,17 @@ void main() {
     await controller.dispose();
     expect(closed, isTrue);
     await diffs.close();
+  });
+
+  test('dispose stops the Rust stream before cancelling it', () async {
+    final source = StreamController<List<TimelineDiff>>();
+    final controller = TimelineController.fromSource(
+      diffs: rustLikeStream(source.stream),
+      paginateBack: (_) async => false,
+      close: source.close,
+    );
+    await pumpEventQueue();
+
+    await controller.dispose().timeout(const Duration(seconds: 1));
   });
 }

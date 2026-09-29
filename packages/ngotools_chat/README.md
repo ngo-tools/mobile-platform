@@ -45,6 +45,15 @@ Actions on `ChatTimeline`: `sendText` (optionally as reply), `sendImage`
 (with caption), `edit`, `redact`, `toggleReaction`, `retry`/`cancel` for
 failed local echoes, `markRead` and `loadReplyDetails`.
 
+## Threads
+
+Threading support is enabled: the room timeline hides thread replies and
+shows a `thread` summary (reply count, latest reply) on the root event.
+`ChatClient.threadTimeline(roomId, rootEventId)` opens a thread; everything
+sent through it (including replies) goes into the thread.
+`ThreadListController` streams the thread overview of a room
+(`ChatClient.threadList`) and loads further pages.
+
 ## Errors
 
 Every facade call throws a typed `ChatError` (`network`, `sessionExpired`,

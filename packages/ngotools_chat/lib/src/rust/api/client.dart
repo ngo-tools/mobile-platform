@@ -9,6 +9,7 @@ import 'error.dart';
 import 'notifications.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'rooms.dart';
+import 'threads.dart';
 import 'timeline.dart';
 
 // These functions are ignored because they are not marked as `pub`: `sync_service`, `watch_session_changes`
@@ -80,7 +81,20 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Starts the sync service (Simplified Sliding Sync + encryption sync).
   Future<void> startSync();
 
+  /// Stops the room list stream; the Dart stream ends.
+  Future<void> stopRoomList();
+
   Future<void> stopSync();
+
+  /// Thread overview of a room. Call `paginate` to load threads.
+  Future<ChatThreadList> threadList({required String roomId});
+
+  /// Opens the timeline of one thread; messages sent through it (including
+  /// replies) are sent into the thread.
+  Future<ChatTimeline> threadTimeline({
+    required String roomId,
+    required String rootEventId,
+  });
 
   /// Opens the live timeline of a room.
   Future<ChatTimeline> timeline({required String roomId});

@@ -9,6 +9,7 @@ import 'api/error.dart';
 import 'api/logging.dart';
 import 'api/notifications.dart';
 import 'api/rooms.dart';
+import 'api/threads.dart';
 import 'api/timeline.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -72,7 +73,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 188949540;
+  int get rustContentHash => -682452945;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -160,7 +161,20 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiClientChatClientStartSync({required ChatClient that});
 
+  Future<void> crateApiClientChatClientStopRoomList({required ChatClient that});
+
   Future<void> crateApiClientChatClientStopSync({required ChatClient that});
+
+  Future<ChatThreadList> crateApiClientChatClientThreadList({
+    required ChatClient that,
+    required String roomId,
+  });
+
+  Future<ChatTimeline> crateApiClientChatClientThreadTimeline({
+    required ChatClient that,
+    required String roomId,
+    required String rootEventId,
+  });
 
   Future<ChatTimeline> crateApiClientChatClientTimeline({
     required ChatClient that,
@@ -182,6 +196,18 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<String> crateApiClientChatClientWhoami({required ChatClient that});
+
+  Future<void> crateApiThreadsChatThreadListClose({
+    required ChatThreadList that,
+  });
+
+  Future<bool> crateApiThreadsChatThreadListPaginate({
+    required ChatThreadList that,
+  });
+
+  Stream<List<ThreadListDiff>> crateApiThreadsChatThreadListWatch({
+    required ChatThreadList that,
+  });
 
   Future<bool> crateApiTimelineChatTimelineCancel({
     required ChatTimeline that,
@@ -255,6 +281,15 @@ abstract class RustLibApi extends BaseApi {
   get rust_arc_decrement_strong_count_ChatClient;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_ChatClientPtr;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_ChatThreadList;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_ChatThreadList;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ChatThreadListPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ChatTimeline;
@@ -927,7 +962,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiClientChatClientStopSync({required ChatClient that}) {
+  Future<void> crateApiClientChatClientStopRoomList({
+    required ChatClient that,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -940,6 +977,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             generalizedFrbRustBinding,
             serializer,
             funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiClientChatClientStopRoomListConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiClientChatClientStopRoomListConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatClient_stop_room_list",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<void> crateApiClientChatClientStopSync({required ChatClient that}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 20,
             port: port_,
           );
         },
@@ -961,6 +1032,86 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<ChatThreadList> crateApiClientChatClientThreadList({
+    required ChatClient that,
+    required String roomId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+            that,
+            serializer,
+          );
+          sse_encode_String(roomId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 21,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList,
+          decodeErrorData: sse_decode_chat_error,
+        ),
+        constMeta: kCrateApiClientChatClientThreadListConstMeta,
+        argValues: [that, roomId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiClientChatClientThreadListConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatClient_thread_list",
+        argNames: ["that", "roomId"],
+      );
+
+  @override
+  Future<ChatTimeline> crateApiClientChatClientThreadTimeline({
+    required ChatClient that,
+    required String roomId,
+    required String rootEventId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+            that,
+            serializer,
+          );
+          sse_encode_String(roomId, serializer);
+          sse_encode_String(rootEventId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 22,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline,
+          decodeErrorData: sse_decode_chat_error,
+        ),
+        constMeta: kCrateApiClientChatClientThreadTimelineConstMeta,
+        argValues: [that, roomId, rootEventId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiClientChatClientThreadTimelineConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatClient_thread_timeline",
+        argNames: ["that", "roomId", "rootEventId"],
+      );
+
+  @override
   Future<ChatTimeline> crateApiClientChatClientTimeline({
     required ChatClient that,
     required String roomId,
@@ -977,7 +1128,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 23,
             port: port_,
           );
         },
@@ -1012,7 +1163,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 24,
             port: port_,
           );
         },
@@ -1045,7 +1196,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 25,
             port: port_,
           );
         },
@@ -1084,7 +1235,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 23,
+              funcId: 26,
               port: port_,
             );
           },
@@ -1125,7 +1276,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 24,
+              funcId: 27,
               port: port_,
             );
           },
@@ -1161,7 +1312,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1180,6 +1331,119 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "ChatClient_whoami", argNames: ["that"]);
 
   @override
+  Future<void> crateApiThreadsChatThreadListClose({
+    required ChatThreadList that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 29,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiThreadsChatThreadListCloseConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiThreadsChatThreadListCloseConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatThreadList_close",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<bool> crateApiThreadsChatThreadListPaginate({
+    required ChatThreadList that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 30,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_chat_error,
+        ),
+        constMeta: kCrateApiThreadsChatThreadListPaginateConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiThreadsChatThreadListPaginateConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatThreadList_paginate",
+        argNames: ["that"],
+      );
+
+  @override
+  Stream<List<ThreadListDiff>> crateApiThreadsChatThreadListWatch({
+    required ChatThreadList that,
+  }) {
+    final sink = RustStreamSink<List<ThreadListDiff>>();
+    unawaited(
+      handler.executeNormal(
+        NormalTask(
+          callFfi: (port_) {
+            final serializer = SseSerializer(generalizedFrbRustBinding);
+            sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+              that,
+              serializer,
+            );
+            sse_encode_StreamSink_list_thread_list_diff_Sse(sink, serializer);
+            pdeCallFfi(
+              generalizedFrbRustBinding,
+              serializer,
+              funcId: 31,
+              port: port_,
+            );
+          },
+          codec: SseCodec(
+            decodeSuccessData: sse_decode_unit,
+            decodeErrorData: sse_decode_chat_error,
+          ),
+          constMeta: kCrateApiThreadsChatThreadListWatchConstMeta,
+          argValues: [that, sink],
+          apiImpl: this,
+        ),
+      ),
+    );
+    return sink.stream;
+  }
+
+  TaskConstMeta get kCrateApiThreadsChatThreadListWatchConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatThreadList_watch",
+        argNames: ["that", "sink"],
+      );
+
+  @override
   Future<bool> crateApiTimelineChatTimelineCancel({
     required ChatTimeline that,
     required EventKey key,
@@ -1196,7 +1460,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1230,7 +1494,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1267,7 +1531,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1305,7 +1569,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1341,7 +1605,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1379,7 +1643,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 37,
             port: port_,
           );
         },
@@ -1419,7 +1683,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1457,7 +1721,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1499,7 +1763,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1539,7 +1803,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1579,7 +1843,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 42,
             port: port_,
           );
         },
@@ -1618,7 +1882,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 37,
+              funcId: 43,
               port: port_,
             );
           },
@@ -1650,7 +1914,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1678,7 +1942,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 45,
             port: port_,
           );
         },
@@ -1705,6 +1969,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient;
 
   RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_ChatThreadList => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_ChatThreadList => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList;
+
+  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ChatTimeline => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline;
 
@@ -1728,6 +2000,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ChatThreadList
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ChatTimeline
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     dynamic raw,
@@ -1743,6 +2024,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return ChatClientImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  ChatThreadList
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -1764,6 +2054,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ChatThreadList
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   ChatTimeline
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     dynamic raw,
@@ -1781,6 +2080,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   RustStreamSink<List<RoomListDiff>>
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  RustStreamSink<List<ThreadListDiff>>
+  dco_decode_StreamSink_list_thread_list_diff_Sse(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     throw UnimplementedError();
   }
@@ -1868,6 +2174,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   SessionInfo dco_decode_box_autoadd_session_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_session_info(raw);
+  }
+
+  @protected
+  ThreadEvent dco_decode_box_autoadd_thread_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_thread_event(raw);
+  }
+
+  @protected
+  ThreadInfo dco_decode_box_autoadd_thread_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_thread_info(raw);
   }
 
   @protected
@@ -2086,6 +2404,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ThreadInfo> dco_decode_list_thread_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_thread_info).toList();
+  }
+
+  @protected
+  List<ThreadListDiff> dco_decode_list_thread_list_diff(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_thread_list_diff).toList();
+  }
+
+  @protected
   List<TimelineDiff> dco_decode_list_timeline_diff(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_timeline_diff).toList();
@@ -2205,6 +2535,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   SessionInfo? dco_decode_opt_box_autoadd_session_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_session_info(raw);
+  }
+
+  @protected
+  ThreadEvent? dco_decode_opt_box_autoadd_thread_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_thread_event(raw);
   }
 
   @protected
@@ -2372,6 +2708,79 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ThreadEvent dco_decode_thread_event(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return ThreadEvent(
+      eventId: dco_decode_String(arr[0]),
+      sender: dco_decode_sender(arr[1]),
+      timestampMs: dco_decode_i_64(arr[2]),
+      isOwn: dco_decode_bool(arr[3]),
+      preview: dco_decode_opt_box_autoadd_message_preview(arr[4]),
+    );
+  }
+
+  @protected
+  ThreadInfo dco_decode_thread_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return ThreadInfo(
+      root: dco_decode_thread_event(arr[0]),
+      latest: dco_decode_opt_box_autoadd_thread_event(arr[1]),
+      replyCount: dco_decode_u_32(arr[2]),
+    );
+  }
+
+  @protected
+  ThreadListDiff dco_decode_thread_list_diff(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ThreadListDiff_Append(
+          values: dco_decode_list_thread_info(raw[1]),
+        );
+      case 1:
+        return ThreadListDiff_Clear();
+      case 2:
+        return ThreadListDiff_PushFront(
+          value: dco_decode_box_autoadd_thread_info(raw[1]),
+        );
+      case 3:
+        return ThreadListDiff_PushBack(
+          value: dco_decode_box_autoadd_thread_info(raw[1]),
+        );
+      case 4:
+        return ThreadListDiff_PopFront();
+      case 5:
+        return ThreadListDiff_PopBack();
+      case 6:
+        return ThreadListDiff_Insert(
+          index: dco_decode_u_32(raw[1]),
+          value: dco_decode_box_autoadd_thread_info(raw[2]),
+        );
+      case 7:
+        return ThreadListDiff_Set(
+          index: dco_decode_u_32(raw[1]),
+          value: dco_decode_box_autoadd_thread_info(raw[2]),
+        );
+      case 8:
+        return ThreadListDiff_Remove(index: dco_decode_u_32(raw[1]));
+      case 9:
+        return ThreadListDiff_Truncate(length: dco_decode_u_32(raw[1]));
+      case 10:
+        return ThreadListDiff_Reset(
+          values: dco_decode_list_thread_info(raw[1]),
+        );
+      default:
+        throw Exception("unreachable");
+    }
+  }
+
+  @protected
   ThreadSummary dco_decode_thread_summary(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -2518,6 +2927,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ChatThreadList
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ChatTimeline
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     SseDeserializer deserializer,
@@ -2536,6 +2957,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return ChatClientImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  ChatThreadList
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -2566,6 +2999,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ChatThreadList
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return ChatThreadListImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   ChatTimeline
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     SseDeserializer deserializer,
@@ -2588,6 +3033,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   RustStreamSink<List<RoomListDiff>>
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    throw UnimplementedError('Unreachable ()');
+  }
+
+  @protected
+  RustStreamSink<List<ThreadListDiff>>
+  sse_decode_StreamSink_list_thread_list_diff_Sse(
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     throw UnimplementedError('Unreachable ()');
   }
@@ -2688,6 +3142,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_session_info(deserializer));
+  }
+
+  @protected
+  ThreadEvent sse_decode_box_autoadd_thread_event(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_thread_event(deserializer));
+  }
+
+  @protected
+  ThreadInfo sse_decode_box_autoadd_thread_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_thread_info(deserializer));
   }
 
   @protected
@@ -2975,6 +3443,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<ThreadInfo> sse_decode_list_thread_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ThreadInfo>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_thread_info(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<ThreadListDiff> sse_decode_list_thread_list_diff(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <ThreadListDiff>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_thread_list_diff(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<TimelineDiff> sse_decode_list_timeline_diff(
     SseDeserializer deserializer,
   ) {
@@ -3168,6 +3662,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ThreadEvent? sse_decode_opt_box_autoadd_thread_event(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_thread_event(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
   ThreadSummary? sse_decode_opt_box_autoadd_thread_summary(
     SseDeserializer deserializer,
   ) {
@@ -3349,6 +3856,79 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  ThreadEvent sse_decode_thread_event(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_eventId = sse_decode_String(deserializer);
+    var var_sender = sse_decode_sender(deserializer);
+    var var_timestampMs = sse_decode_i_64(deserializer);
+    var var_isOwn = sse_decode_bool(deserializer);
+    var var_preview = sse_decode_opt_box_autoadd_message_preview(deserializer);
+    return ThreadEvent(
+      eventId: var_eventId,
+      sender: var_sender,
+      timestampMs: var_timestampMs,
+      isOwn: var_isOwn,
+      preview: var_preview,
+    );
+  }
+
+  @protected
+  ThreadInfo sse_decode_thread_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_root = sse_decode_thread_event(deserializer);
+    var var_latest = sse_decode_opt_box_autoadd_thread_event(deserializer);
+    var var_replyCount = sse_decode_u_32(deserializer);
+    return ThreadInfo(
+      root: var_root,
+      latest: var_latest,
+      replyCount: var_replyCount,
+    );
+  }
+
+  @protected
+  ThreadListDiff sse_decode_thread_list_diff(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        var var_values = sse_decode_list_thread_info(deserializer);
+        return ThreadListDiff_Append(values: var_values);
+      case 1:
+        return ThreadListDiff_Clear();
+      case 2:
+        var var_value = sse_decode_box_autoadd_thread_info(deserializer);
+        return ThreadListDiff_PushFront(value: var_value);
+      case 3:
+        var var_value = sse_decode_box_autoadd_thread_info(deserializer);
+        return ThreadListDiff_PushBack(value: var_value);
+      case 4:
+        return ThreadListDiff_PopFront();
+      case 5:
+        return ThreadListDiff_PopBack();
+      case 6:
+        var var_index = sse_decode_u_32(deserializer);
+        var var_value = sse_decode_box_autoadd_thread_info(deserializer);
+        return ThreadListDiff_Insert(index: var_index, value: var_value);
+      case 7:
+        var var_index = sse_decode_u_32(deserializer);
+        var var_value = sse_decode_box_autoadd_thread_info(deserializer);
+        return ThreadListDiff_Set(index: var_index, value: var_value);
+      case 8:
+        var var_index = sse_decode_u_32(deserializer);
+        return ThreadListDiff_Remove(index: var_index);
+      case 9:
+        var var_length = sse_decode_u_32(deserializer);
+        return ThreadListDiff_Truncate(length: var_length);
+      case 10:
+        var var_values = sse_decode_list_thread_info(deserializer);
+        return ThreadListDiff_Reset(values: var_values);
+      default:
+        throw UnimplementedError('');
+    }
+  }
+
+  @protected
   ThreadSummary sse_decode_thread_summary(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_replyCount = sse_decode_u_32(deserializer);
@@ -3494,6 +4074,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as ChatThreadListImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     ChatTimeline self,
     SseSerializer serializer,
@@ -3520,6 +4113,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as ChatThreadListImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     ChatTimeline self,
     SseSerializer serializer,
@@ -3540,6 +4146,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as ChatClientImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as ChatThreadListImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -3584,6 +4203,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       self.setupAndSerialize(
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_room_list_diff,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+      ),
+      serializer,
+    );
+  }
+
+  @protected
+  void sse_encode_StreamSink_list_thread_list_diff_Sse(
+    RustStreamSink<List<ThreadListDiff>> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(
+      self.setupAndSerialize(
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_thread_list_diff,
           decodeErrorData: sse_decode_AnyhowException,
         ),
       ),
@@ -3711,6 +4347,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_session_info(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_thread_event(
+    ThreadEvent self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_thread_event(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_thread_info(
+    ThreadInfo self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_thread_info(self, serializer);
   }
 
   @protected
@@ -3951,6 +4605,30 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_thread_info(
+    List<ThreadInfo> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_thread_info(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_thread_list_diff(
+    List<ThreadListDiff> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_thread_list_diff(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_timeline_diff(
     List<TimelineDiff> self,
     SseSerializer serializer,
@@ -4134,6 +4812,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_thread_event(
+    ThreadEvent? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_thread_event(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_opt_box_autoadd_thread_summary(
     ThreadSummary? self,
     SseSerializer serializer,
@@ -4283,6 +4974,66 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.userId, serializer);
     sse_encode_String(self.deviceId, serializer);
+  }
+
+  @protected
+  void sse_encode_thread_event(ThreadEvent self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.eventId, serializer);
+    sse_encode_sender(self.sender, serializer);
+    sse_encode_i_64(self.timestampMs, serializer);
+    sse_encode_bool(self.isOwn, serializer);
+    sse_encode_opt_box_autoadd_message_preview(self.preview, serializer);
+  }
+
+  @protected
+  void sse_encode_thread_info(ThreadInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_thread_event(self.root, serializer);
+    sse_encode_opt_box_autoadd_thread_event(self.latest, serializer);
+    sse_encode_u_32(self.replyCount, serializer);
+  }
+
+  @protected
+  void sse_encode_thread_list_diff(
+    ThreadListDiff self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ThreadListDiff_Append(values: final values):
+        sse_encode_i_32(0, serializer);
+        sse_encode_list_thread_info(values, serializer);
+      case ThreadListDiff_Clear():
+        sse_encode_i_32(1, serializer);
+      case ThreadListDiff_PushFront(value: final value):
+        sse_encode_i_32(2, serializer);
+        sse_encode_box_autoadd_thread_info(value, serializer);
+      case ThreadListDiff_PushBack(value: final value):
+        sse_encode_i_32(3, serializer);
+        sse_encode_box_autoadd_thread_info(value, serializer);
+      case ThreadListDiff_PopFront():
+        sse_encode_i_32(4, serializer);
+      case ThreadListDiff_PopBack():
+        sse_encode_i_32(5, serializer);
+      case ThreadListDiff_Insert(index: final index, value: final value):
+        sse_encode_i_32(6, serializer);
+        sse_encode_u_32(index, serializer);
+        sse_encode_box_autoadd_thread_info(value, serializer);
+      case ThreadListDiff_Set(index: final index, value: final value):
+        sse_encode_i_32(7, serializer);
+        sse_encode_u_32(index, serializer);
+        sse_encode_box_autoadd_thread_info(value, serializer);
+      case ThreadListDiff_Remove(index: final index):
+        sse_encode_i_32(8, serializer);
+        sse_encode_u_32(index, serializer);
+      case ThreadListDiff_Truncate(length: final length):
+        sse_encode_i_32(9, serializer);
+        sse_encode_u_32(length, serializer);
+      case ThreadListDiff_Reset(values: final values):
+        sse_encode_i_32(10, serializer);
+        sse_encode_list_thread_info(values, serializer);
+    }
   }
 
   @protected
@@ -4504,8 +5255,29 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
   Future<void> startSync() =>
       RustLib.instance.api.crateApiClientChatClientStartSync(that: this);
 
+  /// Stops the room list stream; the Dart stream ends.
+  Future<void> stopRoomList() =>
+      RustLib.instance.api.crateApiClientChatClientStopRoomList(that: this);
+
   Future<void> stopSync() =>
       RustLib.instance.api.crateApiClientChatClientStopSync(that: this);
+
+  /// Thread overview of a room. Call `paginate` to load threads.
+  Future<ChatThreadList> threadList({required String roomId}) => RustLib
+      .instance
+      .api
+      .crateApiClientChatClientThreadList(that: this, roomId: roomId);
+
+  /// Opens the timeline of one thread; messages sent through it (including
+  /// replies) are sent into the thread.
+  Future<ChatTimeline> threadTimeline({
+    required String roomId,
+    required String rootEventId,
+  }) => RustLib.instance.api.crateApiClientChatClientThreadTimeline(
+    that: this,
+    roomId: roomId,
+    rootEventId: rootEventId,
+  );
 
   /// Opens the live timeline of a room.
   Future<ChatTimeline> timeline({required String roomId}) => RustLib
@@ -4532,6 +5304,38 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
   /// Authenticated round trip (`/whoami`); refreshes an expired access token.
   Future<String> whoami() =>
       RustLib.instance.api.crateApiClientChatClientWhoami(that: this);
+}
+
+@sealed
+class ChatThreadListImpl extends RustOpaque implements ChatThreadList {
+  // Not to be used by end users
+  ChatThreadListImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  ChatThreadListImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_ChatThreadList,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_ChatThreadList,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_ChatThreadListPtr,
+  );
+
+  /// Stops streaming.
+  Future<void> close() =>
+      RustLib.instance.api.crateApiThreadsChatThreadListClose(that: this);
+
+  /// Loads the next page of threads; returns true when all are loaded.
+  Future<bool> paginate() =>
+      RustLib.instance.api.crateApiThreadsChatThreadListPaginate(that: this);
+
+  /// Streams the thread list as diffs; the first batch resets the list.
+  Stream<List<ThreadListDiff>> watch() =>
+      RustLib.instance.api.crateApiThreadsChatThreadListWatch(that: this);
 }
 
 @sealed

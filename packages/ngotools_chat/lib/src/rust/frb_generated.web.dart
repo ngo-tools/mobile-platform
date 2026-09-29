@@ -12,6 +12,7 @@ import 'api/error.dart';
 import 'api/logging.dart';
 import 'api/notifications.dart';
 import 'api/rooms.dart';
+import 'api/threads.dart';
 import 'api/timeline.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -31,6 +32,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient;
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ChatThreadListPtr => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_ChatTimelinePtr => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline;
 
@@ -40,6 +45,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ChatClient
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    dynamic raw,
+  );
+
+  @protected
+  ChatThreadList
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
     dynamic raw,
   );
 
@@ -56,6 +67,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ChatThreadList
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    dynamic raw,
+  );
+
+  @protected
   ChatTimeline
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     dynamic raw,
@@ -64,6 +81,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ChatClient
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    dynamic raw,
+  );
+
+  @protected
+  ChatThreadList
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
     dynamic raw,
   );
 
@@ -79,6 +102,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   RustStreamSink<List<RoomListDiff>>
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw);
+
+  @protected
+  RustStreamSink<List<ThreadListDiff>>
+  dco_decode_StreamSink_list_thread_list_diff_Sse(dynamic raw);
 
   @protected
   RustStreamSink<List<TimelineDiff>>
@@ -122,6 +149,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SessionInfo dco_decode_box_autoadd_session_info(dynamic raw);
+
+  @protected
+  ThreadEvent dco_decode_box_autoadd_thread_event(dynamic raw);
+
+  @protected
+  ThreadInfo dco_decode_box_autoadd_thread_info(dynamic raw);
 
   @protected
   ThreadSummary dco_decode_box_autoadd_thread_summary(dynamic raw);
@@ -172,6 +205,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RoomSummary> dco_decode_list_room_summary(dynamic raw);
 
   @protected
+  List<ThreadInfo> dco_decode_list_thread_info(dynamic raw);
+
+  @protected
+  List<ThreadListDiff> dco_decode_list_thread_list_diff(dynamic raw);
+
+  @protected
   List<TimelineDiff> dco_decode_list_timeline_diff(dynamic raw);
 
   @protected
@@ -216,6 +255,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionInfo? dco_decode_opt_box_autoadd_session_info(dynamic raw);
 
   @protected
+  ThreadEvent? dco_decode_opt_box_autoadd_thread_event(dynamic raw);
+
+  @protected
   ThreadSummary? dco_decode_opt_box_autoadd_thread_summary(dynamic raw);
 
   @protected
@@ -253,6 +295,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SessionInfo dco_decode_session_info(dynamic raw);
+
+  @protected
+  ThreadEvent dco_decode_thread_event(dynamic raw);
+
+  @protected
+  ThreadInfo dco_decode_thread_info(dynamic raw);
+
+  @protected
+  ThreadListDiff dco_decode_thread_list_diff(dynamic raw);
 
   @protected
   ThreadSummary dco_decode_thread_summary(dynamic raw);
@@ -294,6 +345,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ChatThreadList
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChatTimeline
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     SseDeserializer deserializer,
@@ -306,6 +363,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ChatThreadList
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChatTimeline
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     SseDeserializer deserializer,
@@ -314,6 +377,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   ChatClient
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ChatThreadList
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
     SseDeserializer deserializer,
   );
 
@@ -331,6 +400,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   RustStreamSink<List<RoomListDiff>>
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<List<ThreadListDiff>>
+  sse_decode_StreamSink_list_thread_list_diff_Sse(SseDeserializer deserializer);
 
   @protected
   RustStreamSink<List<TimelineDiff>>
@@ -380,6 +453,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SessionInfo sse_decode_box_autoadd_session_info(SseDeserializer deserializer);
+
+  @protected
+  ThreadEvent sse_decode_box_autoadd_thread_event(SseDeserializer deserializer);
+
+  @protected
+  ThreadInfo sse_decode_box_autoadd_thread_info(SseDeserializer deserializer);
 
   @protected
   ThreadSummary sse_decode_box_autoadd_thread_summary(
@@ -434,6 +513,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<RoomSummary> sse_decode_list_room_summary(SseDeserializer deserializer);
+
+  @protected
+  List<ThreadInfo> sse_decode_list_thread_info(SseDeserializer deserializer);
+
+  @protected
+  List<ThreadListDiff> sse_decode_list_thread_list_diff(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<TimelineDiff> sse_decode_list_timeline_diff(
@@ -494,6 +581,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ThreadEvent? sse_decode_opt_box_autoadd_thread_event(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ThreadSummary? sse_decode_opt_box_autoadd_thread_summary(
     SseDeserializer deserializer,
   );
@@ -533,6 +625,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   SessionInfo sse_decode_session_info(SseDeserializer deserializer);
+
+  @protected
+  ThreadEvent sse_decode_thread_event(SseDeserializer deserializer);
+
+  @protected
+  ThreadInfo sse_decode_thread_info(SseDeserializer deserializer);
+
+  @protected
+  ThreadListDiff sse_decode_thread_list_diff(SseDeserializer deserializer);
 
   @protected
   ThreadSummary sse_decode_thread_summary(SseDeserializer deserializer);
@@ -579,6 +680,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     ChatTimeline self,
     SseSerializer serializer,
@@ -588,6 +696,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
     ChatClient self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
     SseSerializer serializer,
   );
 
@@ -607,6 +722,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    ChatThreadList self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     ChatTimeline self,
     SseSerializer serializer,
@@ -621,6 +743,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_StreamSink_list_room_list_diff_Sse(
     RustStreamSink<List<RoomListDiff>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_list_thread_list_diff_Sse(
+    RustStreamSink<List<ThreadListDiff>> self,
     SseSerializer serializer,
   );
 
@@ -697,6 +825,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_thread_event(
+    ThreadEvent self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_thread_info(
+    ThreadInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_thread_summary(
     ThreadSummary self,
     SseSerializer serializer,
@@ -756,6 +896,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_room_summary(
     List<RoomSummary> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_thread_info(
+    List<ThreadInfo> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_thread_list_diff(
+    List<ThreadListDiff> self,
     SseSerializer serializer,
   );
 
@@ -835,6 +987,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_thread_event(
+    ThreadEvent? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_thread_summary(
     ThreadSummary? self,
     SseSerializer serializer,
@@ -878,6 +1036,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_session_info(SessionInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_thread_event(ThreadEvent self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_thread_info(ThreadInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_thread_list_diff(
+    ThreadListDiff self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_thread_summary(ThreadSummary self, SseSerializer serializer);
@@ -935,6 +1105,22 @@ class RustLibWire implements BaseWire {
       );
 
   void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+        ptr,
+      );
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    int ptr,
+  ) => wasmModule
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+        ptr,
+      );
+
+  void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     int ptr,
   ) => wasmModule
@@ -964,6 +1150,16 @@ extension type RustLibWasmModule._(JSObject _) implements JSObject {
 
   external void
   rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    int ptr,
+  );
+
+  external void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
+    int ptr,
+  );
+
+  external void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatThreadList(
     int ptr,
   );
 
