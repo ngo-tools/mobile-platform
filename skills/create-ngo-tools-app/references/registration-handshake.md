@@ -20,7 +20,7 @@ current task workspace.
 POST the app proposal as JSON to:
 
 ```text
-https://TENANT/api/v2/mobile-app-registrations
+https://TENANT/api/v3/mobile-app-registrations
 ```
 
 The request requires the app name and slug, repository model, `de` and `en`
@@ -46,7 +46,7 @@ deny the exact proposal.
 POST only the poll token to:
 
 ```text
-https://TENANT/api/v2/mobile-app-registrations/REGISTRATION_ID/poll
+https://TENANT/api/v3/mobile-app-registrations/REGISTRATION_ID/poll
 ```
 
 Respect `Retry-After` and the returned interval. Handle terminal outcomes:

@@ -213,7 +213,7 @@ final class LivePreviewConfiguration {
   /// Approved platform.
   final String platform;
 
-  /// Tenant API origin with the `/api/v2` path.
+  /// Tenant API origin with the `/api/v3` path.
   final Uri apiBaseUrl;
 
   /// End of the read access.
@@ -292,7 +292,7 @@ final class LivePreviewClient {
     final (
       status,
       body,
-    ) = await _transport(baseUrl.replace(path: '/api/v2/mobile-app-previews'), {
+    ) = await _transport(baseUrl.replace(path: '/api/v3/mobile-app-previews'), {
       'modules': request.modules,
       'platform': request.platform,
       'redirect_uri': request.redirectUri,
@@ -343,7 +343,7 @@ final class LivePreviewClient {
   Future<LivePreviewPoll> poll(LivePreviewStart start) async {
     final (status, body) = await _transport(
       baseUrl.replace(
-        path: '/api/v2/mobile-app-previews/${start.previewId}/poll',
+        path: '/api/v3/mobile-app-previews/${start.previewId}/poll',
       ),
       {'poll_token': start.pollToken},
     );

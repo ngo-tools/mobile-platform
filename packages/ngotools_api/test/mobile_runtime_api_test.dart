@@ -49,7 +49,7 @@ void main() {
   test('retries a transient read exactly once', () async {
     var capabilityAttempts = 0;
     final adapter = StubHttpClientAdapter((options) {
-      if (options.path == '/api/v2/capabilities' && capabilityAttempts++ == 0) {
+      if (options.path == '/api/v3/capabilities' && capabilityAttempts++ == 0) {
         throw DioException(
           requestOptions: options,
           type: DioExceptionType.connectionError,
@@ -184,7 +184,7 @@ void main() {
     final invalidations = StreamController<void>.broadcast();
     var capabilityLoads = 0;
     final adapter = StubHttpClientAdapter((options) {
-      if (options.path == '/api/v2/capabilities') {
+      if (options.path == '/api/v3/capabilities') {
         capabilityLoads += 1;
       }
 
@@ -216,7 +216,7 @@ void main() {
 }
 
 Future<ResponseBody> _successfulResponse(RequestOptions options) async {
-  if (options.path == '/api/me') {
+  if (options.path == '/api/v3/me') {
     return _jsonResponse({
       'user': {
         'id': 42,
@@ -228,7 +228,7 @@ Future<ResponseBody> _successfulResponse(RequestOptions options) async {
     });
   }
 
-  if (options.path == '/api/v2/capabilities') {
+  if (options.path == '/api/v3/capabilities') {
     return _jsonResponse({
       'data': {
         'schema_version': 1,

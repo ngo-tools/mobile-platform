@@ -63,7 +63,7 @@ void main() {
     expect(page.items.last.kind, MobileContactKind.unknown);
     expect(() => page.items.clear(), throwsUnsupportedError);
     final request = adapter.requests.single;
-    expect(request.path, '/api/v2/contacts/search');
+    expect(request.path, '/api/v3/contacts/search');
     expect(request.method, 'POST');
     expect(request.queryParameters, {'page': 2, 'limit': 20});
     expect(jsonDecode(request.data as String), {
@@ -110,7 +110,7 @@ void main() {
     expect(contact.addresses.single.city, 'Berlin');
     expect(() => contact.addresses.clear(), throwsUnsupportedError);
     final request = adapter.requests.single;
-    expect(request.path, '/api/v2/contacts/73');
+    expect(request.path, '/api/v3/contacts/73');
     expect(request.method, 'GET');
     expect(request.queryParameters, {'include': 'addresses'});
 
@@ -156,7 +156,7 @@ void main() {
     expect(success.replayed, isFalse);
     final request = adapter.requests.single;
     expect(request.method, 'POST');
-    expect(request.path, '/api/v2/contact-mutations');
+    expect(request.path, '/api/v3/contact-mutations');
     expect(request.headers['Idempotency-Key'], idempotencyKey);
     expect(jsonDecode(request.data as String), {
       'type': 'person',
@@ -198,7 +198,7 @@ void main() {
     expect(result, isA<MobileContactVersionConflict>());
     final request = adapter.requests.single;
     expect(request.method, 'PATCH');
-    expect(request.path, '/api/v2/contact-mutations/73');
+    expect(request.path, '/api/v3/contact-mutations/73');
     expect(request.headers['Idempotency-Key'], idempotencyKey);
     expect(jsonDecode(request.data as String), {
       'base_version': version,

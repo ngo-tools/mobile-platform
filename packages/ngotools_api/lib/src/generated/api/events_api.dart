@@ -47,7 +47,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/event-availabilities/{eventId}/{serviceId}'
+    final _path = r'/api/v3/event-availabilities/{eventId}/{serviceId}'
         .replaceAll(
           '{'
           r'eventId'
@@ -106,7 +106,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/events/{eventId}'.replaceAll(
+    final _path = r'/api/v3/events/{eventId}'.replaceAll(
       '{'
       r'eventId'
       '}',
@@ -186,7 +186,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/event-assignments';
+    final _path = r'/api/v3/event-assignments';
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{...?headers},
@@ -261,7 +261,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/event-availabilities';
+    final _path = r'/api/v3/event-availabilities';
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{...?headers},
@@ -339,7 +339,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/events';
+    final _path = r'/api/v3/events';
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{...?headers},
@@ -426,7 +426,7 @@ class EventsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/event-availabilities/{eventId}/{serviceId}'
+    final _path = r'/api/v3/event-availabilities/{eventId}/{serviceId}'
         .replaceAll(
           '{'
           r'eventId'

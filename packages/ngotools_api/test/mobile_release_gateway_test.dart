@@ -21,7 +21,7 @@ void main() {
 
   test('keeps polling credentials private and validates no-store', () async {
     final adapter = StubHttpClientAdapter((options) {
-      expect(options.path, '/api/v2/mobile-app-releases');
+      expect(options.path, '/api/v3/mobile-app-releases');
       expect(jsonDecode(options.data as String), {
         'app_id': artifact.appId,
         'platform': 'android',
@@ -75,7 +75,7 @@ void main() {
         return _startResponse();
       }
 
-      expect(options.path, '/api/v2/mobile-app-releases/rrq_synthetic/poll');
+      expect(options.path, '/api/v3/mobile-app-releases/rrq_synthetic/poll');
       expect(jsonDecode(options.data as String), {'poll_token': 'p' * 64});
 
       if (request == 2) {

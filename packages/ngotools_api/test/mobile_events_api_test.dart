@@ -45,7 +45,7 @@ void main() {
       to: DateTime(2026, 10, 31),
     );
 
-    expect(adapter.requests.single.path, '/api/v2/events');
+    expect(adapter.requests.single.path, '/api/v3/events');
     expect(adapter.requests.single.queryParameters, {
       'from': '2026-10-01',
       'to': '2026-10-31',
@@ -158,7 +158,7 @@ void main() {
 
     final event = await api.fetchEvent(7);
 
-    expect(adapter.requests.single.path, '/api/v2/events/7');
+    expect(adapter.requests.single.path, '/api/v3/events/7');
     expect(event.details, 'Mit Kinderbetreuung.');
     expect(event.summary.availabilityOpen, isTrue);
     final agenda = event.agenda!;
@@ -208,7 +208,7 @@ void main() {
   test('lists own assignments and availability requests', () async {
     final adapter = _StubHttpClientAdapter(
       (options) => _jsonResponse({
-        'data': options.path == '/api/v2/event-assignments'
+        'data': options.path == '/api/v3/event-assignments'
             ? [
                 {
                   'id': 11,
@@ -268,12 +268,12 @@ void main() {
 
     expect(answer.status, MobileAvailabilityStatus.available);
     expect(adapter.requests.first.method, 'PUT');
-    expect(adapter.requests.first.path, '/api/v2/event-availabilities/7/3');
+    expect(adapter.requests.first.path, '/api/v3/event-availabilities/7/3');
     expect(jsonDecode(adapter.requests.first.data as String), {
       'status': 'available',
     });
     expect(adapter.requests.last.method, 'DELETE');
-    expect(adapter.requests.last.path, '/api/v2/event-availabilities/7/3');
+    expect(adapter.requests.last.path, '/api/v3/event-availabilities/7/3');
     expect(
       () => api.answerEventAvailability(
         eventId: 7,

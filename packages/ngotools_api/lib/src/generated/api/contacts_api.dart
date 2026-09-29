@@ -46,7 +46,7 @@ class ContactsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/contact-mutations';
+    final _path = r'/api/v3/contact-mutations';
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
@@ -143,7 +143,7 @@ class ContactsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/contacts/{contactId}'.replaceAll(
+    final _path = r'/api/v3/contacts/{contactId}'.replaceAll(
       '{'
       r'contactId'
       '}',
@@ -234,7 +234,7 @@ class ContactsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/contacts/search';
+    final _path = r'/api/v3/contacts/search';
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{...?headers},
@@ -340,7 +340,7 @@ class ContactsApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/contact-mutations/{contactId}'.replaceAll(
+    final _path = r'/api/v3/contact-mutations/{contactId}'.replaceAll(
       '{'
       r'contactId'
       '}',

@@ -12,7 +12,7 @@ tags:
   - name: Events
   - name: Release
 paths:
-  /api/me:
+  /api/v3/me:
     get:
       operationId: getCurrentUser
       tags: [Runtime]
@@ -30,7 +30,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/v2/capabilities:
+  /api/v3/capabilities:
     get:
       operationId: getCapabilities
       tags: [Runtime]
@@ -48,7 +48,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/v2/contacts/search:
+  /api/v3/contacts/search:
     post:
       operationId: searchContacts
       tags: [Contacts]
@@ -90,7 +90,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationFailed'
-  /api/v2/contacts/{contactId}:
+  /api/v3/contacts/{contactId}:
     get:
       operationId: getContact
       tags: [Contacts]
@@ -125,7 +125,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/v2/contact-mutations:
+  /api/v3/contact-mutations:
     post:
       operationId: createContact
       tags: [Contacts]
@@ -167,7 +167,7 @@ paths:
           $ref: '#/components/responses/ContactMutationConflict'
         '422':
           $ref: '#/components/responses/ValidationFailed'
-  /api/v2/contact-mutations/{contactId}:
+  /api/v3/contact-mutations/{contactId}:
     patch:
       operationId: updateContact
       tags: [Contacts]
@@ -209,7 +209,7 @@ paths:
           $ref: '#/components/responses/ContactMutationConflict'
         '422':
           $ref: '#/components/responses/ValidationFailed'
-  /api/v2/events:
+  /api/v3/events:
     get:
       operationId: listEvents
       tags: [Events]
@@ -249,7 +249,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '422':
           $ref: '#/components/responses/ValidationFailed'
-  /api/v2/events/{eventId}:
+  /api/v3/events/{eventId}:
     get:
       operationId: getEvent
       tags: [Events]
@@ -277,7 +277,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/v2/event-assignments:
+  /api/v3/event-assignments:
     get:
       operationId: listEventAssignments
       tags: [Events]
@@ -295,7 +295,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/v2/event-availabilities:
+  /api/v3/event-availabilities:
     get:
       operationId: listEventAvailabilities
       tags: [Events]
@@ -313,7 +313,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/v2/event-availabilities/{eventId}/{serviceId}:
+  /api/v3/event-availabilities/{eventId}/{serviceId}:
     put:
       operationId: updateEventAvailability
       tags: [Events]
@@ -388,7 +388,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationFailed'
-  /api/v2/mobile-app-releases:
+  /api/v3/mobile-app-releases:
     post:
       operationId: startMobileAppRelease
       tags: [Release]
@@ -413,7 +413,7 @@ paths:
           $ref: '#/components/responses/ReleaseError'
         '422':
           $ref: '#/components/responses/ReleaseError'
-  /api/v2/mobile-app-releases/{releaseRequestId}/poll:
+  /api/v3/mobile-app-releases/{releaseRequestId}/poll:
     post:
       operationId: pollMobileAppRelease
       tags: [Release]

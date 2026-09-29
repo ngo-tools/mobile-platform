@@ -21,7 +21,7 @@ backend:
   environments:
     development:
       id: env_01J00000000000000000000000
-      apiBaseUrl: https://development.example.invalid/api/v2
+      apiBaseUrl: https://development.example.invalid/api/v3
       configRevision: cfg_01J00000000000000000000000
       attestationMode: disabled
       oidc:
@@ -31,7 +31,7 @@ backend:
         scopes: [openid, profile, email, offline_access]
     staging:
       id: env_01J00000000000000000000001
-      apiBaseUrl: https://staging.example.invalid/api/v2
+      apiBaseUrl: https://staging.example.invalid/api/v3
       configRevision: cfg_01J00000000000000000000001
       attestationMode: test
       oidc:
@@ -41,7 +41,7 @@ backend:
         scopes: [openid, profile, email, offline_access]
     production:
       id: env_01J00000000000000000000002
-      apiBaseUrl: https://production.example.invalid/api/v2
+      apiBaseUrl: https://production.example.invalid/api/v3
       configRevision: cfg_01J00000000000000000000002
       attestationMode: enforced
       oidc:

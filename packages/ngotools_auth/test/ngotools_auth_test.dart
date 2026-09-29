@@ -83,7 +83,7 @@ void main() {
         MobileEnvironment.staging: MobileEnvironmentConfiguration(
           environment: MobileEnvironment.staging,
           id: 'env_01J00000000000000000000001',
-          apiBaseUrl: Uri.https('staging.example.invalid', '/api/v2'),
+          apiBaseUrl: Uri.https('staging.example.invalid', '/api/v3'),
           configRevision: 'cfg_01J00000000000000000000001',
           attestationMode: MobileAttestationMode.test,
           oidc: oidc,
@@ -114,7 +114,7 @@ MobileAuthConfiguration _configuration({
   appId: appId,
   environmentId: 'env_01J00000000000000000000000',
   tenant: 'synthetic-demo',
-  apiBaseUrl: Uri.https('api.example.invalid', '/api/v2'),
+  apiBaseUrl: Uri.https('api.example.invalid', '/api/v3'),
   issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
   clientId: 'mobile-synthetic',
   redirectUri: redirectUri ?? Uri.parse('ngotools-synthetic://oauth/callback'),

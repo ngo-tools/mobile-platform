@@ -104,8 +104,8 @@ void main() {
     final result = ManifestValidator.validate(
       manifestSource: manifestSource
           .replaceFirst(
-            'https://development.example.invalid/api/v2',
-            'https://user@development.example.invalid/api/v2',
+            'https://development.example.invalid/api/v3',
+            'https://user@development.example.invalid/api/v3',
           )
           .replaceFirst(
             'https://identity.development.example.invalid/realms/synthetic',

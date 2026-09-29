@@ -149,7 +149,7 @@ void main() {
         MobileEnvironment.development: MobileEnvironmentConfiguration(
           environment: MobileEnvironment.development,
           id: 'env_01J00000000000000000000009',
-          apiBaseUrl: Uri.https('synthetic-demo.example.invalid', '/api/v2'),
+          apiBaseUrl: Uri.https('synthetic-demo.example.invalid', '/api/v3'),
           configRevision: 'cfg_01J00000000000000000000009',
           attestationMode: MobileAttestationMode.disabled,
           oidc: MobileOidcConfiguration(
