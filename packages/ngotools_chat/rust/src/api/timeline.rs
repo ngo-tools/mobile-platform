@@ -26,6 +26,47 @@ use crate::{
     runtime::{on_runtime, runtime},
 };
 
+/// Short, localizable description of a message (room list, notifications).
+pub enum MessagePreview {
+    Text {
+        body: String,
+    },
+    Image,
+    Video,
+    Audio,
+    File,
+    Location,
+    Poll,
+    Sticker,
+    Redacted,
+    UnableToDecrypt,
+    /// State changes and anything the app does not render as a message.
+    Other,
+}
+
+pub(crate) fn message_preview(content: &TimelineItemContent) -> MessagePreview {
+    let TimelineItemContent::MsgLike(msg_like) = content else {
+        return MessagePreview::Other;
+    };
+    match &msg_like.kind {
+        MsgLikeKind::Message(message) => match message.msgtype() {
+            MessageType::Image(_) => MessagePreview::Image,
+            MessageType::Video(_) => MessagePreview::Video,
+            MessageType::Audio(_) => MessagePreview::Audio,
+            MessageType::File(_) => MessagePreview::File,
+            MessageType::Location(_) => MessagePreview::Location,
+            _ => MessagePreview::Text {
+                body: message.body().to_owned(),
+            },
+        },
+        MsgLikeKind::Sticker(_) => MessagePreview::Sticker,
+        MsgLikeKind::Poll(_) => MessagePreview::Poll,
+        MsgLikeKind::Redacted => MessagePreview::Redacted,
+        MsgLikeKind::UnableToDecrypt(_) => MessagePreview::UnableToDecrypt,
+        _ => MessagePreview::Other,
+    }
+}
+
 pub enum MessageKind {
     Text {
         body: String,

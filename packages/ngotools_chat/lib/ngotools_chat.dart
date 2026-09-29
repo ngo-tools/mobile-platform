@@ -2,7 +2,9 @@ library;
 
 // Transitional: the generated bindings are exported until the handwritten
 // public API replaces them (M2, work package 6).
+export 'src/diff_list.dart';
 export 'src/platform.dart';
+export 'src/room_list_controller.dart';
 export 'src/rust/api/client.dart';
 export 'src/rust/api/encryption.dart';
 export 'src/rust/api/error.dart';

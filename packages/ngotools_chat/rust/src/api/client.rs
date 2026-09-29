@@ -21,11 +21,14 @@ use matrix_sdk_ui::{
     sync_service::{State as SyncState, SyncService},
     timeline::Timeline,
 };
-use tokio::{sync::Mutex, task::JoinHandle};
+use tokio::{
+    sync::{mpsc, Mutex},
+    task::JoinHandle,
+};
 use url::Url;
 
 use crate::{
-    api::error::ChatError,
+    api::{error::ChatError, rooms::RoomListCommand},
     frb_generated::StreamSink,
     runtime::{on_runtime, runtime},
     session::{
@@ -68,6 +71,7 @@ pub struct ChatClient {
     config: Arc<ChatConfigInner>,
     pub(crate) sync_service: Mutex<Option<Arc<SyncService>>>,
     pub(crate) room_task: Mutex<Option<JoinHandle<()>>>,
+    pub(crate) room_commands: Mutex<Option<mpsc::UnboundedSender<RoomListCommand>>>,
     pub(crate) timeline: Mutex<Option<ActiveTimeline>>,
     session_task: Mutex<Option<JoinHandle<()>>>,
     pending_login_state: Mutex<Option<String>>,
@@ -104,6 +108,7 @@ impl ChatClient {
                 }),
                 sync_service: Mutex::new(None),
                 room_task: Mutex::new(None),
+                room_commands: Mutex::new(None),
                 timeline: Mutex::new(None),
                 session_task: Mutex::new(None),
                 pending_login_state: Mutex::new(None),
@@ -223,6 +228,7 @@ impl ChatClient {
         if let Some(task) = self.room_task.lock().await.take() {
             task.abort();
         }
+        self.room_commands.lock().await.take();
         if let Some(service) = self.sync_service.lock().await.take() {
             on_runtime(async move {
                 service.stop().await;

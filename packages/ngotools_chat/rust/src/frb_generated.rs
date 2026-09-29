@@ -40,7 +40,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1135080426;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1134972926;
 
 // Section: executor
 
@@ -435,6 +435,63 @@ fn wire__crate__api__client__ChatClient_join_room_impl(
                             api_room_id,
                         )
                         .await?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__client__ChatClient_load_more_rooms_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ChatClient_load_more_rooms",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, crate::api::error::ChatError>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::client::ChatClient::load_more_rooms(&*api_that_guard)
+                                .await?;
                         std::result::Result::Ok(output_ok)
                     })()
                     .await,
@@ -1142,6 +1199,66 @@ fn wire__crate__api__client__ChatClient_send_text_impl(
         },
     )
 }
+fn wire__crate__api__client__ChatClient_set_room_filter_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ChatClient_set_room_filter",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
+            >>::sse_decode(&mut deserializer);
+            let api_filter = <crate::api::rooms::RoomFilter>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, crate::api::error::ChatError>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::client::ChatClient::set_room_filter(
+                            &*api_that_guard,
+                            api_filter,
+                        )
+                        .await?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__client__ChatClient_shutdown_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1424,7 +1541,7 @@ fn wire__crate__api__client__ChatClient_verification_state_impl(
         },
     )
 }
-fn wire__crate__api__client__ChatClient_watch_rooms_impl(
+fn wire__crate__api__client__ChatClient_watch_room_list_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -1432,7 +1549,7 @@ fn wire__crate__api__client__ChatClient_watch_rooms_impl(
 ) {
     FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
         flutter_rust_bridge::for_generated::TaskInfo {
-            debug_name: "ChatClient_watch_rooms",
+            debug_name: "ChatClient_watch_room_list",
             port: Some(port_),
             mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
         },
@@ -1450,7 +1567,7 @@ fn wire__crate__api__client__ChatClient_watch_rooms_impl(
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
             >>::sse_decode(&mut deserializer);
             let api_sink = <StreamSink<
-                Vec<crate::api::rooms::RoomSummary>,
+                Vec<crate::api::rooms::RoomListDiff>,
                 flutter_rust_bridge::for_generated::SseCodec,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -1474,9 +1591,11 @@ fn wire__crate__api__client__ChatClient_watch_rooms_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::client::ChatClient::watch_rooms(&*api_that_guard, api_sink)
-                                .await?;
+                        let output_ok = crate::api::client::ChatClient::watch_room_list(
+                            &*api_that_guard,
+                            api_sink,
+                        )
+                        .await?;
                         std::result::Result::Ok(output_ok)
                     })()
                     .await,
@@ -1781,7 +1900,7 @@ impl SseDecode for StreamSink<String, flutter_rust_bridge::for_generated::SseCod
 
 impl SseDecode
     for StreamSink<
-        Vec<crate::api::rooms::RoomSummary>,
+        Vec<crate::api::rooms::RoomListDiff>,
         flutter_rust_bridge::for_generated::SseCodec,
     >
 {
@@ -1917,6 +2036,26 @@ impl SseDecode for i64 {
     }
 }
 
+impl SseDecode for crate::api::rooms::LatestEvent {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_senderId = <String>::sse_decode(deserializer);
+        let mut var_senderName = <Option<String>>::sse_decode(deserializer);
+        let mut var_isOwn = <bool>::sse_decode(deserializer);
+        let mut var_timestampMs = <i64>::sse_decode(deserializer);
+        let mut var_preview = <crate::api::timeline::MessagePreview>::sse_decode(deserializer);
+        let mut var_isUnsent = <bool>::sse_decode(deserializer);
+        return crate::api::rooms::LatestEvent {
+            sender_id: var_senderId,
+            sender_name: var_senderName,
+            is_own: var_isOwn,
+            timestamp_ms: var_timestampMs,
+            preview: var_preview,
+            is_unsent: var_isUnsent,
+        };
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1924,6 +2063,18 @@ impl SseDecode for Vec<u8> {
         let mut ans_ = Vec::with_capacity(len_ as usize);
         for idx_ in 0..len_ {
             ans_.push(<u8>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::rooms::RoomListDiff> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::rooms::RoomListDiff>::sse_decode(deserializer));
         }
         return ans_;
     }
@@ -1952,6 +2103,18 @@ impl SseDecode for Vec<crate::api::timeline::TimelineEntry> {
             ));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::rooms::Membership {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::rooms::Membership::Joined,
+            1 => crate::api::rooms::Membership::Invited,
+            _ => unreachable!("Invalid variant for Membership: {}", inner),
+        };
     }
 }
 
@@ -1987,6 +2150,52 @@ impl SseDecode for crate::api::timeline::MessageKind {
                 return crate::api::timeline::MessageKind::Other {
                     description: var_description,
                 };
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
+impl SseDecode for crate::api::timeline::MessagePreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_body = <String>::sse_decode(deserializer);
+                return crate::api::timeline::MessagePreview::Text { body: var_body };
+            }
+            1 => {
+                return crate::api::timeline::MessagePreview::Image;
+            }
+            2 => {
+                return crate::api::timeline::MessagePreview::Video;
+            }
+            3 => {
+                return crate::api::timeline::MessagePreview::Audio;
+            }
+            4 => {
+                return crate::api::timeline::MessagePreview::File;
+            }
+            5 => {
+                return crate::api::timeline::MessagePreview::Location;
+            }
+            6 => {
+                return crate::api::timeline::MessagePreview::Poll;
+            }
+            7 => {
+                return crate::api::timeline::MessagePreview::Sticker;
+            }
+            8 => {
+                return crate::api::timeline::MessagePreview::Redacted;
+            }
+            9 => {
+                return crate::api::timeline::MessagePreview::UnableToDecrypt;
+            }
+            10 => {
+                return crate::api::timeline::MessagePreview::Other;
             }
             _ => {
                 unimplemented!("");
@@ -2035,11 +2244,11 @@ impl SseDecode for Option<bool> {
     }
 }
 
-impl SseDecode for Option<i64> {
+impl SseDecode for Option<crate::api::rooms::LatestEvent> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
-            return Some(<i64>::sse_decode(deserializer));
+            return Some(<crate::api::rooms::LatestEvent>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -2106,24 +2315,118 @@ impl SseDecode for crate::api::encryption::RecoveryStatus {
     }
 }
 
+impl SseDecode for crate::api::rooms::RoomFilter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::rooms::RoomFilter::All,
+            1 => crate::api::rooms::RoomFilter::People,
+            2 => crate::api::rooms::RoomFilter::Groups,
+            3 => crate::api::rooms::RoomFilter::Invites,
+            4 => crate::api::rooms::RoomFilter::Unread,
+            _ => unreachable!("Invalid variant for RoomFilter: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::rooms::RoomKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::rooms::RoomKind::Direct,
+            1 => crate::api::rooms::RoomKind::Group,
+            _ => unreachable!("Invalid variant for RoomKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::rooms::RoomListDiff {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut tag_ = <i32>::sse_decode(deserializer);
+        match tag_ {
+            0 => {
+                let mut var_values =
+                    <Vec<crate::api::rooms::RoomSummary>>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Append { values: var_values };
+            }
+            1 => {
+                return crate::api::rooms::RoomListDiff::Clear;
+            }
+            2 => {
+                let mut var_value = <crate::api::rooms::RoomSummary>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::PushFront { value: var_value };
+            }
+            3 => {
+                let mut var_value = <crate::api::rooms::RoomSummary>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::PushBack { value: var_value };
+            }
+            4 => {
+                return crate::api::rooms::RoomListDiff::PopFront;
+            }
+            5 => {
+                return crate::api::rooms::RoomListDiff::PopBack;
+            }
+            6 => {
+                let mut var_index = <u32>::sse_decode(deserializer);
+                let mut var_value = <crate::api::rooms::RoomSummary>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Insert {
+                    index: var_index,
+                    value: var_value,
+                };
+            }
+            7 => {
+                let mut var_index = <u32>::sse_decode(deserializer);
+                let mut var_value = <crate::api::rooms::RoomSummary>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Set {
+                    index: var_index,
+                    value: var_value,
+                };
+            }
+            8 => {
+                let mut var_index = <u32>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Remove { index: var_index };
+            }
+            9 => {
+                let mut var_length = <u32>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Truncate { length: var_length };
+            }
+            10 => {
+                let mut var_values =
+                    <Vec<crate::api::rooms::RoomSummary>>::sse_decode(deserializer);
+                return crate::api::rooms::RoomListDiff::Reset { values: var_values };
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseDecode for crate::api::rooms::RoomSummary {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_roomId = <String>::sse_decode(deserializer);
-        let mut var_displayName = <String>::sse_decode(deserializer);
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_name = <String>::sse_decode(deserializer);
+        let mut var_avatarUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_kind = <crate::api::rooms::RoomKind>::sse_decode(deserializer);
+        let mut var_membership = <crate::api::rooms::Membership>::sse_decode(deserializer);
         let mut var_isEncrypted = <bool>::sse_decode(deserializer);
-        let mut var_isDirect = <bool>::sse_decode(deserializer);
-        let mut var_isInvite = <bool>::sse_decode(deserializer);
-        let mut var_unreadCount = <u64>::sse_decode(deserializer);
-        let mut var_latestTimestampMs = <Option<i64>>::sse_decode(deserializer);
+        let mut var_unreadMessages = <u32>::sse_decode(deserializer);
+        let mut var_unreadMentions = <u32>::sse_decode(deserializer);
+        let mut var_latest = <Option<crate::api::rooms::LatestEvent>>::sse_decode(deserializer);
         return crate::api::rooms::RoomSummary {
-            room_id: var_roomId,
-            display_name: var_displayName,
+            id: var_id,
+            name: var_name,
+            avatar_url: var_avatarUrl,
+            kind: var_kind,
+            membership: var_membership,
             is_encrypted: var_isEncrypted,
-            is_direct: var_isDirect,
-            is_invite: var_isInvite,
-            unread_count: var_unreadCount,
-            latest_timestamp_ms: var_latestTimestampMs,
+            unread_messages: var_unreadMessages,
+            unread_mentions: var_unreadMentions,
+            latest: var_latest,
         };
     }
 }
@@ -2275,89 +2578,104 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         7 => wire__crate__api__client__ChatClient_join_room_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__client__ChatClient_login_url_impl(port, ptr, rust_vec_len, data_len),
-        9 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__client__ChatClient_mark_as_read_impl(
+        8 => wire__crate__api__client__ChatClient_load_more_rooms_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        11 => wire__crate__api__client__ChatClient_open_timeline_impl(
+        9 => wire__crate__api__client__ChatClient_login_url_impl(port, ptr, rust_vec_len, data_len),
+        10 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
+        11 => wire__crate__api__client__ChatClient_mark_as_read_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        12 => wire__crate__api__client__ChatClient_paginate_back_impl(
+        12 => wire__crate__api__client__ChatClient_open_timeline_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        13 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
+        13 => wire__crate__api__client__ChatClient_paginate_back_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        14 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__client__ChatClient_recovery_status_impl(
+        14 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__client__ChatClient_register_pusher_impl(
+        15 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__client__ChatClient_recovery_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__client__ChatClient_restore_session_impl(
+        17 => wire__crate__api__client__ChatClient_register_pusher_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => {
+        18 => wire__crate__api__client__ChatClient_restore_session_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        19 => {
             wire__crate__api__client__ChatClient_send_image_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => {
+        20 => {
             wire__crate__api__client__ChatClient_send_text_impl(port, ptr, rust_vec_len, data_len)
         }
-        20 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
-        21 => {
+        21 => wire__crate__api__client__ChatClient_set_room_filter_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        22 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
+        23 => {
             wire__crate__api__client__ChatClient_start_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        22 => {
+        24 => {
             wire__crate__api__client__ChatClient_stop_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        23 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__client__ChatClient_verification_state_impl(
+        25 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__client__ChatClient_verification_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => {
-            wire__crate__api__client__ChatClient_watch_rooms_impl(port, ptr, rust_vec_len, data_len)
-        }
-        26 => wire__crate__api__client__ChatClient_watch_sync_state_impl(
+        27 => wire__crate__api__client__ChatClient_watch_room_list_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => wire__crate__api__client__ChatClient_watch_timeline_impl(
+        28 => wire__crate__api__client__ChatClient_watch_sync_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__client__ChatClient_watch_timeline_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        30 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2458,6 +2776,49 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::error::ChatError>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rooms::LatestEvent {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.sender_id.into_into_dart().into_dart(),
+            self.sender_name.into_into_dart().into_dart(),
+            self.is_own.into_into_dart().into_dart(),
+            self.timestamp_ms.into_into_dart().into_dart(),
+            self.preview.into_into_dart().into_dart(),
+            self.is_unsent.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::rooms::LatestEvent
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rooms::LatestEvent>
+    for crate::api::rooms::LatestEvent
+{
+    fn into_into_dart(self) -> crate::api::rooms::LatestEvent {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rooms::Membership {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Joined => 0.into_dart(),
+            Self::Invited => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::rooms::Membership {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rooms::Membership>
+    for crate::api::rooms::Membership
+{
+    fn into_into_dart(self) -> crate::api::rooms::Membership {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::timeline::MessageKind {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -2496,6 +2857,40 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::timeline::MessageKind>
     for crate::api::timeline::MessageKind
 {
     fn into_into_dart(self) -> crate::api::timeline::MessageKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::timeline::MessagePreview {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::timeline::MessagePreview::Text { body } => {
+                [0.into_dart(), body.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::timeline::MessagePreview::Image => [1.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Video => [2.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Audio => [3.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::File => [4.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Location => [5.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Poll => [6.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Sticker => [7.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Redacted => [8.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::UnableToDecrypt => [9.into_dart()].into_dart(),
+            crate::api::timeline::MessagePreview::Other => [10.into_dart()].into_dart(),
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::timeline::MessagePreview
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::timeline::MessagePreview>
+    for crate::api::timeline::MessagePreview
+{
+    fn into_into_dart(self) -> crate::api::timeline::MessagePreview {
         self
     }
 }
@@ -2547,16 +2942,111 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::encryption::RecoveryStatus>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rooms::RoomFilter {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::All => 0.into_dart(),
+            Self::People => 1.into_dart(),
+            Self::Groups => 2.into_dart(),
+            Self::Invites => 3.into_dart(),
+            Self::Unread => 4.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::rooms::RoomFilter {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rooms::RoomFilter>
+    for crate::api::rooms::RoomFilter
+{
+    fn into_into_dart(self) -> crate::api::rooms::RoomFilter {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rooms::RoomKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Direct => 0.into_dart(),
+            Self::Group => 1.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::rooms::RoomKind {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rooms::RoomKind>
+    for crate::api::rooms::RoomKind
+{
+    fn into_into_dart(self) -> crate::api::rooms::RoomKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::rooms::RoomListDiff {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            crate::api::rooms::RoomListDiff::Append { values } => {
+                [0.into_dart(), values.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::rooms::RoomListDiff::Clear => [1.into_dart()].into_dart(),
+            crate::api::rooms::RoomListDiff::PushFront { value } => {
+                [2.into_dart(), value.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::rooms::RoomListDiff::PushBack { value } => {
+                [3.into_dart(), value.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::rooms::RoomListDiff::PopFront => [4.into_dart()].into_dart(),
+            crate::api::rooms::RoomListDiff::PopBack => [5.into_dart()].into_dart(),
+            crate::api::rooms::RoomListDiff::Insert { index, value } => [
+                6.into_dart(),
+                index.into_into_dart().into_dart(),
+                value.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::rooms::RoomListDiff::Set { index, value } => [
+                7.into_dart(),
+                index.into_into_dart().into_dart(),
+                value.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
+            crate::api::rooms::RoomListDiff::Remove { index } => {
+                [8.into_dart(), index.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::rooms::RoomListDiff::Truncate { length } => {
+                [9.into_dart(), length.into_into_dart().into_dart()].into_dart()
+            }
+            crate::api::rooms::RoomListDiff::Reset { values } => {
+                [10.into_dart(), values.into_into_dart().into_dart()].into_dart()
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::rooms::RoomListDiff
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::rooms::RoomListDiff>
+    for crate::api::rooms::RoomListDiff
+{
+    fn into_into_dart(self) -> crate::api::rooms::RoomListDiff {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::rooms::RoomSummary {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
-            self.room_id.into_into_dart().into_dart(),
-            self.display_name.into_into_dart().into_dart(),
+            self.id.into_into_dart().into_dart(),
+            self.name.into_into_dart().into_dart(),
+            self.avatar_url.into_into_dart().into_dart(),
+            self.kind.into_into_dart().into_dart(),
+            self.membership.into_into_dart().into_dart(),
             self.is_encrypted.into_into_dart().into_dart(),
-            self.is_direct.into_into_dart().into_dart(),
-            self.is_invite.into_into_dart().into_dart(),
-            self.unread_count.into_into_dart().into_dart(),
-            self.latest_timestamp_ms.into_into_dart().into_dart(),
+            self.unread_messages.into_into_dart().into_dart(),
+            self.unread_mentions.into_into_dart().into_dart(),
+            self.latest.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -2696,7 +3186,7 @@ impl SseEncode for StreamSink<String, flutter_rust_bridge::for_generated::SseCod
 
 impl SseEncode
     for StreamSink<
-        Vec<crate::api::rooms::RoomSummary>,
+        Vec<crate::api::rooms::RoomListDiff>,
         flutter_rust_bridge::for_generated::SseCodec,
     >
 {
@@ -2807,12 +3297,34 @@ impl SseEncode for i64 {
     }
 }
 
+impl SseEncode for crate::api::rooms::LatestEvent {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.sender_id, serializer);
+        <Option<String>>::sse_encode(self.sender_name, serializer);
+        <bool>::sse_encode(self.is_own, serializer);
+        <i64>::sse_encode(self.timestamp_ms, serializer);
+        <crate::api::timeline::MessagePreview>::sse_encode(self.preview, serializer);
+        <bool>::sse_encode(self.is_unsent, serializer);
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i32>::sse_encode(self.len() as _, serializer);
         for item in self {
             <u8>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::rooms::RoomListDiff> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::rooms::RoomListDiff>::sse_encode(item, serializer);
         }
     }
 }
@@ -2834,6 +3346,22 @@ impl SseEncode for Vec<crate::api::timeline::TimelineEntry> {
         for item in self {
             <crate::api::timeline::TimelineEntry>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::rooms::Membership {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::rooms::Membership::Joined => 0,
+                crate::api::rooms::Membership::Invited => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
     }
 }
 
@@ -2874,6 +3402,51 @@ impl SseEncode for crate::api::timeline::MessageKind {
     }
 }
 
+impl SseEncode for crate::api::timeline::MessagePreview {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::timeline::MessagePreview::Text { body } => {
+                <i32>::sse_encode(0, serializer);
+                <String>::sse_encode(body, serializer);
+            }
+            crate::api::timeline::MessagePreview::Image => {
+                <i32>::sse_encode(1, serializer);
+            }
+            crate::api::timeline::MessagePreview::Video => {
+                <i32>::sse_encode(2, serializer);
+            }
+            crate::api::timeline::MessagePreview::Audio => {
+                <i32>::sse_encode(3, serializer);
+            }
+            crate::api::timeline::MessagePreview::File => {
+                <i32>::sse_encode(4, serializer);
+            }
+            crate::api::timeline::MessagePreview::Location => {
+                <i32>::sse_encode(5, serializer);
+            }
+            crate::api::timeline::MessagePreview::Poll => {
+                <i32>::sse_encode(6, serializer);
+            }
+            crate::api::timeline::MessagePreview::Sticker => {
+                <i32>::sse_encode(7, serializer);
+            }
+            crate::api::timeline::MessagePreview::Redacted => {
+                <i32>::sse_encode(8, serializer);
+            }
+            crate::api::timeline::MessagePreview::UnableToDecrypt => {
+                <i32>::sse_encode(9, serializer);
+            }
+            crate::api::timeline::MessagePreview::Other => {
+                <i32>::sse_encode(10, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseEncode for crate::api::notifications::NotificationContent {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2905,12 +3478,12 @@ impl SseEncode for Option<bool> {
     }
 }
 
-impl SseEncode for Option<i64> {
+impl SseEncode for Option<crate::api::rooms::LatestEvent> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
-            <i64>::sse_encode(value, serializer);
+            <crate::api::rooms::LatestEvent>::sse_encode(value, serializer);
         }
     }
 }
@@ -2973,16 +3546,107 @@ impl SseEncode for crate::api::encryption::RecoveryStatus {
     }
 }
 
+impl SseEncode for crate::api::rooms::RoomFilter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::rooms::RoomFilter::All => 0,
+                crate::api::rooms::RoomFilter::People => 1,
+                crate::api::rooms::RoomFilter::Groups => 2,
+                crate::api::rooms::RoomFilter::Invites => 3,
+                crate::api::rooms::RoomFilter::Unread => 4,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::rooms::RoomKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::rooms::RoomKind::Direct => 0,
+                crate::api::rooms::RoomKind::Group => 1,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::rooms::RoomListDiff {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        match self {
+            crate::api::rooms::RoomListDiff::Append { values } => {
+                <i32>::sse_encode(0, serializer);
+                <Vec<crate::api::rooms::RoomSummary>>::sse_encode(values, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Clear => {
+                <i32>::sse_encode(1, serializer);
+            }
+            crate::api::rooms::RoomListDiff::PushFront { value } => {
+                <i32>::sse_encode(2, serializer);
+                <crate::api::rooms::RoomSummary>::sse_encode(value, serializer);
+            }
+            crate::api::rooms::RoomListDiff::PushBack { value } => {
+                <i32>::sse_encode(3, serializer);
+                <crate::api::rooms::RoomSummary>::sse_encode(value, serializer);
+            }
+            crate::api::rooms::RoomListDiff::PopFront => {
+                <i32>::sse_encode(4, serializer);
+            }
+            crate::api::rooms::RoomListDiff::PopBack => {
+                <i32>::sse_encode(5, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Insert { index, value } => {
+                <i32>::sse_encode(6, serializer);
+                <u32>::sse_encode(index, serializer);
+                <crate::api::rooms::RoomSummary>::sse_encode(value, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Set { index, value } => {
+                <i32>::sse_encode(7, serializer);
+                <u32>::sse_encode(index, serializer);
+                <crate::api::rooms::RoomSummary>::sse_encode(value, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Remove { index } => {
+                <i32>::sse_encode(8, serializer);
+                <u32>::sse_encode(index, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Truncate { length } => {
+                <i32>::sse_encode(9, serializer);
+                <u32>::sse_encode(length, serializer);
+            }
+            crate::api::rooms::RoomListDiff::Reset { values } => {
+                <i32>::sse_encode(10, serializer);
+                <Vec<crate::api::rooms::RoomSummary>>::sse_encode(values, serializer);
+            }
+            _ => {
+                unimplemented!("");
+            }
+        }
+    }
+}
+
 impl SseEncode for crate::api::rooms::RoomSummary {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <String>::sse_encode(self.room_id, serializer);
-        <String>::sse_encode(self.display_name, serializer);
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.name, serializer);
+        <Option<String>>::sse_encode(self.avatar_url, serializer);
+        <crate::api::rooms::RoomKind>::sse_encode(self.kind, serializer);
+        <crate::api::rooms::Membership>::sse_encode(self.membership, serializer);
         <bool>::sse_encode(self.is_encrypted, serializer);
-        <bool>::sse_encode(self.is_direct, serializer);
-        <bool>::sse_encode(self.is_invite, serializer);
-        <u64>::sse_encode(self.unread_count, serializer);
-        <Option<i64>>::sse_encode(self.latest_timestamp_ms, serializer);
+        <u32>::sse_encode(self.unread_messages, serializer);
+        <u32>::sse_encode(self.unread_mentions, serializer);
+        <Option<crate::api::rooms::LatestEvent>>::sse_encode(self.latest, serializer);
     }
 }
 

@@ -8,7 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'timeline.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_timeline`, `apply_diff`, `describe_state`, `map_timeline_item`
+// These functions are ignored because they are not marked as `pub`: `active_timeline`, `apply_diff`, `describe_state`, `map_timeline_item`, `message_preview`
 
 @freezed
 sealed class MessageKind with _$MessageKind {
@@ -25,6 +25,27 @@ sealed class MessageKind with _$MessageKind {
   const factory MessageKind.redacted() = MessageKind_Redacted;
   const factory MessageKind.other({required String description}) =
       MessageKind_Other;
+}
+
+@freezed
+sealed class MessagePreview with _$MessagePreview {
+  const MessagePreview._();
+
+  const factory MessagePreview.text({required String body}) =
+      MessagePreview_Text;
+  const factory MessagePreview.image() = MessagePreview_Image;
+  const factory MessagePreview.video() = MessagePreview_Video;
+  const factory MessagePreview.audio() = MessagePreview_Audio;
+  const factory MessagePreview.file() = MessagePreview_File;
+  const factory MessagePreview.location() = MessagePreview_Location;
+  const factory MessagePreview.poll() = MessagePreview_Poll;
+  const factory MessagePreview.sticker() = MessagePreview_Sticker;
+  const factory MessagePreview.redacted() = MessagePreview_Redacted;
+  const factory MessagePreview.unableToDecrypt() =
+      MessagePreview_UnableToDecrypt;
+
+  /// State changes and anything the app does not render as a message.
+  const factory MessagePreview.other() = MessagePreview_Other;
 }
 
 @freezed

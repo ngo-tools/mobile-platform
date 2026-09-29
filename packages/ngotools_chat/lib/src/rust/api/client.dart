@@ -42,6 +42,9 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> joinRoom({required String roomId});
 
+  /// Extends the visible room list by one page.
+  Future<void> loadMoreRooms();
+
   /// Starts an OAuth 2.0 authorization code flow with PKCE against MAS
   /// (dynamic client registration) and returns the URL for the system
   /// browser.
@@ -80,6 +83,8 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> sendText({required String body});
 
+  Future<void> setRoomFilter({required RoomFilter filter});
+
   /// Stops all background work so that another client may open the store.
   Future<void> shutdown();
 
@@ -93,9 +98,9 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// `verified` once this device is cross-signed (e.g. after recovery).
   Future<String> verificationState();
 
-  /// Streams the complete room list (joined + invited) as snapshots,
-  /// driven by `RoomListService` diffs.
-  Stream<List<RoomSummary>> watchRooms();
+  /// Streams the room list as diffs. The first batch resets the list.
+  /// Starting a new watch replaces the previous one.
+  Stream<List<RoomListDiff>> watchRoomList();
 
   /// Streams the sync service state as text (`idle`, `running`, `terminated`, `error`, `offline`).
   Stream<String> watchSyncState();

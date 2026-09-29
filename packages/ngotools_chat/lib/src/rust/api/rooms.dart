@@ -5,48 +5,150 @@
 
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
+import 'timeline.dart';
+part 'rooms.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `summarize_room`
+// These functions are ignored because they are not marked as `pub`: `display_name`, `filter_for`, `latest_event`, `map_diff`, `send_room_command`, `summarize_all`, `summarize`, `to_u32`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `RoomListCommand`
 
-class RoomSummary {
-  final String roomId;
-  final String displayName;
-  final bool isEncrypted;
-  final bool isDirect;
-  final bool isInvite;
-  final BigInt unreadCount;
-  final PlatformInt64? latestTimestampMs;
+class LatestEvent {
+  final String senderId;
+  final String? senderName;
+  final bool isOwn;
+  final PlatformInt64 timestampMs;
+  final MessagePreview preview;
 
-  const RoomSummary({
-    required this.roomId,
-    required this.displayName,
-    required this.isEncrypted,
-    required this.isDirect,
-    required this.isInvite,
-    required this.unreadCount,
-    this.latestTimestampMs,
+  /// A local echo that is still being sent or failed to send.
+  final bool isUnsent;
+
+  const LatestEvent({
+    required this.senderId,
+    this.senderName,
+    required this.isOwn,
+    required this.timestampMs,
+    required this.preview,
+    required this.isUnsent,
   });
 
   @override
   int get hashCode =>
-      roomId.hashCode ^
-      displayName.hashCode ^
+      senderId.hashCode ^
+      senderName.hashCode ^
+      isOwn.hashCode ^
+      timestampMs.hashCode ^
+      preview.hashCode ^
+      isUnsent.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LatestEvent &&
+          runtimeType == other.runtimeType &&
+          senderId == other.senderId &&
+          senderName == other.senderName &&
+          isOwn == other.isOwn &&
+          timestampMs == other.timestampMs &&
+          preview == other.preview &&
+          isUnsent == other.isUnsent;
+}
+
+enum Membership { joined, invited }
+
+enum RoomFilter {
+  /// Joined rooms and invites.
+  all,
+
+  /// Direct messages.
+  people,
+
+  /// Group and event rooms.
+  groups,
+  invites,
+
+  /// Rooms with unread messages.
+  unread,
+}
+
+enum RoomKind { direct, group }
+
+@freezed
+sealed class RoomListDiff with _$RoomListDiff {
+  const RoomListDiff._();
+
+  const factory RoomListDiff.append({required List<RoomSummary> values}) =
+      RoomListDiff_Append;
+  const factory RoomListDiff.clear() = RoomListDiff_Clear;
+  const factory RoomListDiff.pushFront({required RoomSummary value}) =
+      RoomListDiff_PushFront;
+  const factory RoomListDiff.pushBack({required RoomSummary value}) =
+      RoomListDiff_PushBack;
+  const factory RoomListDiff.popFront() = RoomListDiff_PopFront;
+  const factory RoomListDiff.popBack() = RoomListDiff_PopBack;
+  const factory RoomListDiff.insert({
+    required int index,
+    required RoomSummary value,
+  }) = RoomListDiff_Insert;
+  const factory RoomListDiff.set_({
+    required int index,
+    required RoomSummary value,
+  }) = RoomListDiff_Set;
+  const factory RoomListDiff.remove({required int index}) = RoomListDiff_Remove;
+  const factory RoomListDiff.truncate({required int length}) =
+      RoomListDiff_Truncate;
+  const factory RoomListDiff.reset({required List<RoomSummary> values}) =
+      RoomListDiff_Reset;
+}
+
+class RoomSummary {
+  final String id;
+  final String name;
+
+  /// `mxc://` URI of the room avatar (fetch via the media API).
+  final String? avatarUrl;
+  final RoomKind kind;
+  final Membership membership;
+  final bool isEncrypted;
+  final int unreadMessages;
+  final int unreadMentions;
+  final LatestEvent? latest;
+
+  const RoomSummary({
+    required this.id,
+    required this.name,
+    this.avatarUrl,
+    required this.kind,
+    required this.membership,
+    required this.isEncrypted,
+    required this.unreadMessages,
+    required this.unreadMentions,
+    this.latest,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      name.hashCode ^
+      avatarUrl.hashCode ^
+      kind.hashCode ^
+      membership.hashCode ^
       isEncrypted.hashCode ^
-      isDirect.hashCode ^
-      isInvite.hashCode ^
-      unreadCount.hashCode ^
-      latestTimestampMs.hashCode;
+      unreadMessages.hashCode ^
+      unreadMentions.hashCode ^
+      latest.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is RoomSummary &&
           runtimeType == other.runtimeType &&
-          roomId == other.roomId &&
-          displayName == other.displayName &&
+          id == other.id &&
+          name == other.name &&
+          avatarUrl == other.avatarUrl &&
+          kind == other.kind &&
+          membership == other.membership &&
           isEncrypted == other.isEncrypted &&
-          isDirect == other.isDirect &&
-          isInvite == other.isInvite &&
-          unreadCount == other.unreadCount &&
-          latestTimestampMs == other.latestTimestampMs;
+          unreadMessages == other.unreadMessages &&
+          unreadMentions == other.unreadMentions &&
+          latest == other.latest;
 }
