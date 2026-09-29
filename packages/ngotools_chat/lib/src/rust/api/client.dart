@@ -12,7 +12,7 @@ import 'rooms.dart';
 import 'timeline.dart';
 
 // These functions are ignored because they are not marked as `pub`: `sync_service`, `watch_session_changes`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveTimeline`, `ChatConfigInner`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ChatConfigInner`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>>
 abstract class ChatClient implements RustOpaqueInterface {
@@ -27,8 +27,9 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// that the user has to write down.
   Future<String> enableRecovery();
 
-  /// Downloads (and decrypts) authenticated media referenced by a timeline item.
-  Future<Uint8List> fetchMedia({required String sourceJson});
+  /// Downloads (and decrypts) media referenced by a timeline item
+  /// (`EventContent::*::media`). Uses the SDK media cache.
+  Future<Uint8List> fetchMedia({required String media});
 
   /// Completes the OAuth flow with the redirect URL received by the app.
   Future<SessionInfo> finishLogin({required String callbackUrl});
@@ -52,14 +53,6 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> logout();
 
-  Future<void> markAsRead();
-
-  /// Opens the timeline of a room; subsequent timeline calls act on it.
-  Future<void> openTimeline({required String roomId});
-
-  /// Loads older events; returns true when the start of the room was reached.
-  Future<bool> paginateBack({required int count});
-
   /// Number of token refreshes persisted by this client instance.
   Future<int> persistedRefreshes();
 
@@ -79,10 +72,6 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Restores a previously persisted session from the encrypted store.
   Future<SessionInfo?> restoreSession();
 
-  Future<void> sendImage({required String filePath, required String mimeType});
-
-  Future<void> sendText({required String body});
-
   Future<void> setRoomFilter({required RoomFilter filter});
 
   /// Stops all background work so that another client may open the store.
@@ -92,6 +81,9 @@ abstract class ChatClient implements RustOpaqueInterface {
   Future<void> startSync();
 
   Future<void> stopSync();
+
+  /// Opens the live timeline of a room.
+  Future<ChatTimeline> timeline({required String roomId});
 
   Future<String?> userId();
 
@@ -104,9 +96,6 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   /// Streams the sync service state as text (`idle`, `running`, `terminated`, `error`, `offline`).
   Stream<String> watchSyncState();
-
-  /// Streams snapshots of the open timeline.
-  Stream<List<TimelineEntry>> watchTimeline();
 
   /// Authenticated round trip (`/whoami`); refreshes an expired access token.
   Future<String> whoami();

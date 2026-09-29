@@ -4,27 +4,197 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'error.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'timeline.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_timeline`, `apply_diff`, `describe_state`, `map_timeline_item`, `message_preview`
+// These functions are ignored because they are not marked as `pub`: `event_content`, `item_id`, `map_diff`, `map_event`, `map_item`, `media_ref`, `message_preview`, `parse_event_id`, `reactions`, `ready`, `reply_preview`, `send_handle`, `sender`, `to_u32`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `drop`, `eq`, `eq`, `fmt`, `fmt`
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatTimeline>>
+abstract class ChatTimeline implements RustOpaqueInterface {
+  /// Cancels a pending or failed local echo; returns false if it was
+  /// already sent.
+  Future<bool> cancel({required EventKey key});
+
+  /// Stops streaming; the timeline can be watched again later.
+  Future<void> close();
+
+  /// Replaces the text of an own message.
+  Future<void> edit({required EventKey key, required String body});
+
+  /// Loads the replied-to event of `event_id` so that its `reply_to`
+  /// preview gets sender and content (arrives as a diff).
+  Future<void> loadReplyDetails({required String eventId});
+
+  /// Moves the read receipt to the latest event.
+  Future<void> markRead();
+
+  /// Loads older events; returns true when the start of the room was reached.
+  Future<bool> paginateBack({required int count});
+
+  /// Deletes a message (own messages, or others' with moderation rights).
+  Future<void> redact({required EventKey key, String? reason});
+
+  /// Retries a local echo whose sending failed.
+  Future<void> retry({required EventKey key});
+
+  Future<void> sendImage({
+    required String filePath,
+    required String mimeType,
+    String? caption,
+  });
+
+  /// Sends a plain-text message, optionally as a reply to `reply_to`.
+  Future<void> sendText({required String body, String? replyTo});
+
+  /// Adds or removes an own reaction; returns true if it is now set.
+  Future<bool> toggleReaction({
+    required EventKey key,
+    required String reaction,
+  });
+
+  /// Streams the timeline as diffs; the first batch resets the list.
+  /// Starting a new watch replaces the previous one.
+  Stream<List<TimelineDiff>> watch();
+}
 
 @freezed
-sealed class MessageKind with _$MessageKind {
-  const MessageKind._();
+sealed class EventContent with _$EventContent {
+  const EventContent._();
 
-  const factory MessageKind.text({required String body}) = MessageKind_Text;
-  const factory MessageKind.image({
-    required String body,
-    required String sourceJson,
+  const factory EventContent.text({required String body}) = EventContent_Text;
+  const factory EventContent.image({
+    String? caption,
+    required String filename,
+
+    /// Opaque media reference for the media API.
+    required String media,
     int? width,
     int? height,
-  }) = MessageKind_Image;
-  const factory MessageKind.unableToDecrypt() = MessageKind_UnableToDecrypt;
-  const factory MessageKind.redacted() = MessageKind_Redacted;
-  const factory MessageKind.other({required String description}) =
-      MessageKind_Other;
+  }) = EventContent_Image;
+  const factory EventContent.video({
+    String? caption,
+    required String filename,
+    required String media,
+  }) = EventContent_Video;
+  const factory EventContent.audio({
+    required String filename,
+    required String media,
+  }) = EventContent_Audio;
+  const factory EventContent.file({
+    String? caption,
+    required String filename,
+    required String media,
+    BigInt? size,
+  }) = EventContent_File;
+  const factory EventContent.redacted() = EventContent_Redacted;
+  const factory EventContent.unableToDecrypt() = EventContent_UnableToDecrypt;
+  const factory EventContent.membership({
+    required String userId,
+    required MembershipKind change,
+  }) = EventContent_Membership;
+  const factory EventContent.profileChange({required String userId}) =
+      EventContent_ProfileChange;
+  const factory EventContent.roomState({required String eventType}) =
+      EventContent_RoomState;
+  const factory EventContent.unsupported() = EventContent_Unsupported;
+}
+
+class EventItem {
+  final EventKey key;
+  final String? eventId;
+  final Sender sender;
+  final PlatformInt64 timestampMs;
+  final bool isOwn;
+  final bool canEdit;
+  final bool canReply;
+  final SendState sendState;
+  final EventContent content;
+  final ReplyPreview? replyTo;
+  final List<Reaction> reactions;
+  final bool isEdited;
+
+  /// Set when this event belongs to a thread (event id of the root).
+  final String? threadRoot;
+
+  /// Set on a thread root: number of replies and the latest reply.
+  final ThreadSummary? thread;
+
+  const EventItem({
+    required this.key,
+    this.eventId,
+    required this.sender,
+    required this.timestampMs,
+    required this.isOwn,
+    required this.canEdit,
+    required this.canReply,
+    required this.sendState,
+    required this.content,
+    this.replyTo,
+    required this.reactions,
+    required this.isEdited,
+    this.threadRoot,
+    this.thread,
+  });
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      eventId.hashCode ^
+      sender.hashCode ^
+      timestampMs.hashCode ^
+      isOwn.hashCode ^
+      canEdit.hashCode ^
+      canReply.hashCode ^
+      sendState.hashCode ^
+      content.hashCode ^
+      replyTo.hashCode ^
+      reactions.hashCode ^
+      isEdited.hashCode ^
+      threadRoot.hashCode ^
+      thread.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EventItem &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          eventId == other.eventId &&
+          sender == other.sender &&
+          timestampMs == other.timestampMs &&
+          isOwn == other.isOwn &&
+          canEdit == other.canEdit &&
+          canReply == other.canReply &&
+          sendState == other.sendState &&
+          content == other.content &&
+          replyTo == other.replyTo &&
+          reactions == other.reactions &&
+          isEdited == other.isEdited &&
+          threadRoot == other.threadRoot &&
+          thread == other.thread;
+}
+
+@freezed
+sealed class EventKey with _$EventKey {
+  const EventKey._();
+
+  const factory EventKey.local({required String transactionId}) =
+      EventKey_Local;
+  const factory EventKey.remote({required String eventId}) = EventKey_Remote;
+}
+
+enum MembershipKind {
+  joined,
+  left,
+  invited,
+  invitationAccepted,
+  invitationRejected,
+  kicked,
+  banned,
+  other,
 }
 
 @freezed
@@ -48,31 +218,162 @@ sealed class MessagePreview with _$MessagePreview {
   const factory MessagePreview.other() = MessagePreview_Other;
 }
 
-@freezed
-sealed class TimelineEntry with _$TimelineEntry {
-  const TimelineEntry._();
+class Reaction {
+  final String key;
+  final int count;
+  final bool byMe;
 
-  const factory TimelineEntry.message({
-    required String uniqueId,
-    String? eventId,
-    required String senderId,
-    String? senderName,
+  const Reaction({required this.key, required this.count, required this.byMe});
+
+  @override
+  int get hashCode => key.hashCode ^ count.hashCode ^ byMe.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Reaction &&
+          runtimeType == other.runtimeType &&
+          key == other.key &&
+          count == other.count &&
+          byMe == other.byMe;
+}
+
+class ReplyPreview {
+  final String eventId;
+
+  /// `None` until the replied-to event is loaded (see `load_reply_details`).
+  final Sender? sender;
+  final MessagePreview? preview;
+
+  const ReplyPreview({required this.eventId, this.sender, this.preview});
+
+  @override
+  int get hashCode => eventId.hashCode ^ sender.hashCode ^ preview.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReplyPreview &&
+          runtimeType == other.runtimeType &&
+          eventId == other.eventId &&
+          sender == other.sender &&
+          preview == other.preview;
+}
+
+@freezed
+sealed class SendState with _$SendState {
+  const SendState._();
+
+  const factory SendState.sending() = SendState_Sending;
+  const factory SendState.sent() = SendState_Sent;
+  const factory SendState.failed({required bool recoverable}) =
+      SendState_Failed;
+}
+
+class Sender {
+  final String id;
+  final String? name;
+
+  /// `mxc://` URI of the avatar.
+  final String? avatarUrl;
+
+  const Sender({required this.id, this.name, this.avatarUrl});
+
+  @override
+  int get hashCode => id.hashCode ^ name.hashCode ^ avatarUrl.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Sender &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          name == other.name &&
+          avatarUrl == other.avatarUrl;
+}
+
+class ThreadSummary {
+  final int replyCount;
+  final Sender? latestSender;
+  final MessagePreview? latestPreview;
+
+  const ThreadSummary({
+    required this.replyCount,
+    this.latestSender,
+    this.latestPreview,
+  });
+
+  @override
+  int get hashCode =>
+      replyCount.hashCode ^ latestSender.hashCode ^ latestPreview.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ThreadSummary &&
+          runtimeType == other.runtimeType &&
+          replyCount == other.replyCount &&
+          latestSender == other.latestSender &&
+          latestPreview == other.latestPreview;
+}
+
+@freezed
+sealed class TimelineDiff with _$TimelineDiff {
+  const TimelineDiff._();
+
+  const factory TimelineDiff.append({required List<TimelineItem> values}) =
+      TimelineDiff_Append;
+  const factory TimelineDiff.clear() = TimelineDiff_Clear;
+  const factory TimelineDiff.pushFront({required TimelineItem value}) =
+      TimelineDiff_PushFront;
+  const factory TimelineDiff.pushBack({required TimelineItem value}) =
+      TimelineDiff_PushBack;
+  const factory TimelineDiff.popFront() = TimelineDiff_PopFront;
+  const factory TimelineDiff.popBack() = TimelineDiff_PopBack;
+  const factory TimelineDiff.insert({
+    required int index,
+    required TimelineItem value,
+  }) = TimelineDiff_Insert;
+  const factory TimelineDiff.set_({
+    required int index,
+    required TimelineItem value,
+  }) = TimelineDiff_Set;
+  const factory TimelineDiff.remove({required int index}) = TimelineDiff_Remove;
+  const factory TimelineDiff.truncate({required int length}) =
+      TimelineDiff_Truncate;
+  const factory TimelineDiff.reset({required List<TimelineItem> values}) =
+      TimelineDiff_Reset;
+}
+
+class TimelineItem {
+  /// Stable id of the item across diffs.
+  final String id;
+  final TimelineItemKind kind;
+
+  const TimelineItem({required this.id, required this.kind});
+
+  @override
+  int get hashCode => id.hashCode ^ kind.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TimelineItem &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          kind == other.kind;
+}
+
+@freezed
+sealed class TimelineItemKind with _$TimelineItemKind {
+  const TimelineItemKind._();
+
+  const factory TimelineItemKind.event({required EventItem event}) =
+      TimelineItemKind_Event;
+  const factory TimelineItemKind.dateDivider({
     required PlatformInt64 timestampMs,
-    required bool isOwn,
-    required bool isSending,
-    required bool isFailed,
-    required MessageKind kind,
-  }) = TimelineEntry_Message;
-  const factory TimelineEntry.state({
-    required String uniqueId,
-    required String description,
-  }) = TimelineEntry_State;
-  const factory TimelineEntry.dayDivider({
-    required String uniqueId,
-    required PlatformInt64 timestampMs,
-  }) = TimelineEntry_DayDivider;
-  const factory TimelineEntry.readMarker({required String uniqueId}) =
-      TimelineEntry_ReadMarker;
-  const factory TimelineEntry.timelineStart({required String uniqueId}) =
-      TimelineEntry_TimelineStart;
+  }) = TimelineItemKind_DateDivider;
+  const factory TimelineItemKind.readMarker() = TimelineItemKind_ReadMarker;
+  const factory TimelineItemKind.timelineStart() =
+      TimelineItemKind_TimelineStart;
 }

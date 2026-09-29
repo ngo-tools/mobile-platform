@@ -6,6 +6,9 @@
   expired session.
 - Stream the room list as diffs with filters, paging, unread counts and a
   typed preview of the latest message (`RoomListController`).
+- Open one `ChatTimeline` per room, streamed as diffs (`TimelineController`)
+  with typed content, replies, reactions, edits and thread summaries, and
+  actions to reply, edit, redact, react, retry and cancel.
 
 ## 0.1.0-dev.1
 
