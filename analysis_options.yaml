@@ -6,6 +6,8 @@ analyzer:
     # flutter_rust_bridge output and vendored cargokit build tool
     - packages/ngotools_chat/lib/src/rust/**
     - packages/ngotools_chat/cargokit/**
+    # Android builds copy the build tool into the example's build output
+    - packages/ngotools_chat/example/build/**
   language:
     strict-casts: true
     strict-inference: true

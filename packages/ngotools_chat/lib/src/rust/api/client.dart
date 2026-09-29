@@ -4,22 +4,21 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'encryption.dart';
+import 'error.dart';
+import 'notifications.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
-import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
-part 'chat.freezed.dart';
+import 'rooms.dart';
+import 'timeline.dart';
 
-// These functions are ignored because they are not marked as `pub`: `active_timeline`, `apply_diff`, `block_on_runtime`, `build_client`, `describe_notification_event`, `describe_state`, `map_timeline_item`, `on_runtime`, `persist_session`, `read_stored_session`, `restore_stored_session`, `runtime`, `summarize_room`, `sync_service`, `watch_session_changes`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveTimeline`, `ChatConfigInner`, `ClientParams`, `StoredSession`
-
-/// Writes SDK logs to a file (stdout is not visible on iOS/Android).
-Future<void> initLogging({required String logFile}) =>
-    RustLib.instance.api.crateApiChatInitLogging(logFile: logFile);
+// These functions are ignored because they are not marked as `pub`: `sync_service`, `watch_session_changes`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `ActiveTimeline`, `ChatConfigInner`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>>
 abstract class ChatClient implements RustOpaqueInterface {
   /// Builds the client with encrypted SQLite stores. No network access.
   static Future<ChatClient> create({required ChatConfig config}) =>
-      RustLib.instance.api.crateApiChatChatClientCreate(config: config);
+      RustLib.instance.api.crateApiClientChatClientCreate(config: config);
 
   /// Creates (or reuses) an encrypted DM with the given user.
   Future<String> createDm({required String userId});
@@ -52,7 +51,6 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> markAsRead();
 
-  /// Opens the timeline of a room and streams snapshots of its items.
   /// Opens the timeline of a room; subsequent timeline calls act on it.
   Future<void> openTimeline({required String roomId});
 
@@ -125,7 +123,7 @@ class ChatConfig {
   final String redirectUri;
 
   /// Extra trusted root CA (PEM) for local development servers only (not
-  /// supported on Android, use the network security config there).
+  /// supported on Android; install a user CA there).
   final String? devRootCertificatePem;
 
   /// Holder name for the cross-process store/refresh lock. Required on iOS
@@ -172,103 +170,6 @@ class ChatConfig {
           crossProcessHolder == other.crossProcessHolder;
 }
 
-@freezed
-sealed class MessageKind with _$MessageKind {
-  const MessageKind._();
-
-  const factory MessageKind.text({required String body}) = MessageKind_Text;
-  const factory MessageKind.image({
-    required String body,
-    required String sourceJson,
-    int? width,
-    int? height,
-  }) = MessageKind_Image;
-  const factory MessageKind.unableToDecrypt() = MessageKind_UnableToDecrypt;
-  const factory MessageKind.redacted() = MessageKind_Redacted;
-  const factory MessageKind.other({required String description}) =
-      MessageKind_Other;
-}
-
-class NotificationContent {
-  final String roomName;
-  final String? senderName;
-  final String body;
-  final bool isDirect;
-  final bool? isEncrypted;
-
-  const NotificationContent({
-    required this.roomName,
-    this.senderName,
-    required this.body,
-    required this.isDirect,
-    this.isEncrypted,
-  });
-
-  @override
-  int get hashCode =>
-      roomName.hashCode ^
-      senderName.hashCode ^
-      body.hashCode ^
-      isDirect.hashCode ^
-      isEncrypted.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is NotificationContent &&
-          runtimeType == other.runtimeType &&
-          roomName == other.roomName &&
-          senderName == other.senderName &&
-          body == other.body &&
-          isDirect == other.isDirect &&
-          isEncrypted == other.isEncrypted;
-}
-
-enum RecoveryStatus { unknown, enabled, disabled, incomplete }
-
-class RoomSummary {
-  final String roomId;
-  final String displayName;
-  final bool isEncrypted;
-  final bool isDirect;
-  final bool isInvite;
-  final BigInt unreadCount;
-  final PlatformInt64? latestTimestampMs;
-
-  const RoomSummary({
-    required this.roomId,
-    required this.displayName,
-    required this.isEncrypted,
-    required this.isDirect,
-    required this.isInvite,
-    required this.unreadCount,
-    this.latestTimestampMs,
-  });
-
-  @override
-  int get hashCode =>
-      roomId.hashCode ^
-      displayName.hashCode ^
-      isEncrypted.hashCode ^
-      isDirect.hashCode ^
-      isInvite.hashCode ^
-      unreadCount.hashCode ^
-      latestTimestampMs.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is RoomSummary &&
-          runtimeType == other.runtimeType &&
-          roomId == other.roomId &&
-          displayName == other.displayName &&
-          isEncrypted == other.isEncrypted &&
-          isDirect == other.isDirect &&
-          isInvite == other.isInvite &&
-          unreadCount == other.unreadCount &&
-          latestTimestampMs == other.latestTimestampMs;
-}
-
 class SessionInfo {
   final String userId;
   final String deviceId;
@@ -285,33 +186,4 @@ class SessionInfo {
           runtimeType == other.runtimeType &&
           userId == other.userId &&
           deviceId == other.deviceId;
-}
-
-@freezed
-sealed class TimelineEntry with _$TimelineEntry {
-  const TimelineEntry._();
-
-  const factory TimelineEntry.message({
-    required String uniqueId,
-    String? eventId,
-    required String senderId,
-    String? senderName,
-    required PlatformInt64 timestampMs,
-    required bool isOwn,
-    required bool isSending,
-    required bool isFailed,
-    required MessageKind kind,
-  }) = TimelineEntry_Message;
-  const factory TimelineEntry.state({
-    required String uniqueId,
-    required String description,
-  }) = TimelineEntry_State;
-  const factory TimelineEntry.dayDivider({
-    required String uniqueId,
-    required PlatformInt64 timestampMs,
-  }) = TimelineEntry_DayDivider;
-  const factory TimelineEntry.readMarker({required String uniqueId}) =
-      TimelineEntry_ReadMarker;
-  const factory TimelineEntry.timelineStart({required String uniqueId}) =
-      TimelineEntry_TimelineStart;
 }

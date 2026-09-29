@@ -2409,6 +2409,7 @@ dependencies = [
  "matrix-sdk",
  "matrix-sdk-ui",
  "mime",
+ "oauth2",
  "rustls-platform-verifier",
  "serde",
  "serde_json",

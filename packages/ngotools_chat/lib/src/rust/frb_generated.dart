@@ -3,7 +3,13 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
-import 'api/chat.dart';
+import 'api/client.dart';
+import 'api/encryption.dart';
+import 'api/error.dart';
+import 'api/logging.dart';
+import 'api/notifications.dart';
+import 'api/rooms.dart';
+import 'api/timeline.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -55,7 +61,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   @override
   Future<void> executeRustInitializers() async {
-    await api.crateApiChatInitApp();
+    await api.crateApiLoggingInitApp();
   }
 
   @override
@@ -66,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 201347134;
+  int get rustContentHash => -1135080426;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -78,68 +84,70 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<ChatClient> crateApiChatChatClientCreate({required ChatConfig config});
+  Future<ChatClient> crateApiClientChatClientCreate({
+    required ChatConfig config,
+  });
 
-  Future<String> crateApiChatChatClientCreateDm({
+  Future<String> crateApiClientChatClientCreateDm({
     required ChatClient that,
     required String userId,
   });
 
-  Future<String> crateApiChatChatClientEnableRecovery({
+  Future<String> crateApiClientChatClientEnableRecovery({
     required ChatClient that,
   });
 
-  Future<Uint8List> crateApiChatChatClientFetchMedia({
+  Future<Uint8List> crateApiClientChatClientFetchMedia({
     required ChatClient that,
     required String sourceJson,
   });
 
-  Future<SessionInfo> crateApiChatChatClientFinishLogin({
+  Future<SessionInfo> crateApiClientChatClientFinishLogin({
     required ChatClient that,
     required String callbackUrl,
   });
 
-  Future<NotificationContent?> crateApiChatChatClientGetNotification({
+  Future<NotificationContent?> crateApiClientChatClientGetNotification({
     required ChatClient that,
     required String roomId,
     required String eventId,
   });
 
-  Future<void> crateApiChatChatClientJoinRoom({
+  Future<void> crateApiClientChatClientJoinRoom({
     required ChatClient that,
     required String roomId,
   });
 
-  Future<String> crateApiChatChatClientLoginUrl({required ChatClient that});
+  Future<String> crateApiClientChatClientLoginUrl({required ChatClient that});
 
-  Future<void> crateApiChatChatClientLogout({required ChatClient that});
+  Future<void> crateApiClientChatClientLogout({required ChatClient that});
 
-  Future<void> crateApiChatChatClientMarkAsRead({required ChatClient that});
+  Future<void> crateApiClientChatClientMarkAsRead({required ChatClient that});
 
-  Future<void> crateApiChatChatClientOpenTimeline({
+  Future<void> crateApiClientChatClientOpenTimeline({
     required ChatClient that,
     required String roomId,
   });
 
-  Future<bool> crateApiChatChatClientPaginateBack({
+  Future<bool> crateApiClientChatClientPaginateBack({
     required ChatClient that,
     required int count,
   });
 
-  Future<int> crateApiChatChatClientPersistedRefreshes({
+  Future<int> crateApiClientChatClientPersistedRefreshes({
     required ChatClient that,
   });
 
-  Future<void> crateApiChatChatClientRecover({
+  Future<void> crateApiClientChatClientRecover({
     required ChatClient that,
     required String recoveryKey,
   });
 
-  Future<RecoveryStatus> crateApiChatChatClientRecoveryStatus({
+  Future<RecoveryStatus> crateApiClientChatClientRecoveryStatus({
     required ChatClient that,
   });
 
-  Future<void> crateApiChatChatClientRegisterPusher({
+  Future<void> crateApiClientChatClientRegisterPusher({
     required ChatClient that,
     required String pushKey,
     required String appId,
@@ -147,50 +155,50 @@ abstract class RustLibApi extends BaseApi {
     required String deviceName,
   });
 
-  Future<SessionInfo?> crateApiChatChatClientRestoreSession({
+  Future<SessionInfo?> crateApiClientChatClientRestoreSession({
     required ChatClient that,
   });
 
-  Future<void> crateApiChatChatClientSendImage({
+  Future<void> crateApiClientChatClientSendImage({
     required ChatClient that,
     required String filePath,
     required String mimeType,
   });
 
-  Future<void> crateApiChatChatClientSendText({
+  Future<void> crateApiClientChatClientSendText({
     required ChatClient that,
     required String body,
   });
 
-  Future<void> crateApiChatChatClientShutdown({required ChatClient that});
+  Future<void> crateApiClientChatClientShutdown({required ChatClient that});
 
-  Future<void> crateApiChatChatClientStartSync({required ChatClient that});
+  Future<void> crateApiClientChatClientStartSync({required ChatClient that});
 
-  Future<void> crateApiChatChatClientStopSync({required ChatClient that});
+  Future<void> crateApiClientChatClientStopSync({required ChatClient that});
 
-  Future<String?> crateApiChatChatClientUserId({required ChatClient that});
+  Future<String?> crateApiClientChatClientUserId({required ChatClient that});
 
-  Future<String> crateApiChatChatClientVerificationState({
+  Future<String> crateApiClientChatClientVerificationState({
     required ChatClient that,
   });
 
-  Stream<List<RoomSummary>> crateApiChatChatClientWatchRooms({
+  Stream<List<RoomSummary>> crateApiClientChatClientWatchRooms({
     required ChatClient that,
   });
 
-  Stream<String> crateApiChatChatClientWatchSyncState({
+  Stream<String> crateApiClientChatClientWatchSyncState({
     required ChatClient that,
   });
 
-  Stream<List<TimelineEntry>> crateApiChatChatClientWatchTimeline({
+  Stream<List<TimelineEntry>> crateApiClientChatClientWatchTimeline({
     required ChatClient that,
   });
 
-  Future<String> crateApiChatChatClientWhoami({required ChatClient that});
+  Future<String> crateApiClientChatClientWhoami({required ChatClient that});
 
-  Future<void> crateApiChatInitApp();
+  Future<void> crateApiLoggingInitApp();
 
-  Future<void> crateApiChatInitLogging({required String logFile});
+  Future<void> crateApiLoggingInitLogging({required String logFile});
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ChatClient;
@@ -210,7 +218,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<ChatClient> crateApiChatChatClientCreate({
+  Future<ChatClient> crateApiClientChatClientCreate({
     required ChatConfig config,
   }) {
     return handler.executeNormal(
@@ -228,20 +236,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         codec: SseCodec(
           decodeSuccessData:
               sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientCreateConstMeta,
+        constMeta: kCrateApiClientChatClientCreateConstMeta,
         argValues: [config],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientCreateConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientCreateConstMeta =>
       const TaskConstMeta(debugName: "ChatClient_create", argNames: ["config"]);
 
   @override
-  Future<String> crateApiChatChatClientCreateDm({
+  Future<String> crateApiClientChatClientCreateDm({
     required ChatClient that,
     required String userId,
   }) {
@@ -263,23 +271,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientCreateDmConstMeta,
+        constMeta: kCrateApiClientChatClientCreateDmConstMeta,
         argValues: [that, userId],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientCreateDmConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientCreateDmConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_create_dm",
         argNames: ["that", "userId"],
       );
 
   @override
-  Future<String> crateApiChatChatClientEnableRecovery({
+  Future<String> crateApiClientChatClientEnableRecovery({
     required ChatClient that,
   }) {
     return handler.executeNormal(
@@ -299,23 +307,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientEnableRecoveryConstMeta,
+        constMeta: kCrateApiClientChatClientEnableRecoveryConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientEnableRecoveryConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientEnableRecoveryConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_enable_recovery",
         argNames: ["that"],
       );
 
   @override
-  Future<Uint8List> crateApiChatChatClientFetchMedia({
+  Future<Uint8List> crateApiClientChatClientFetchMedia({
     required ChatClient that,
     required String sourceJson,
   }) {
@@ -337,23 +345,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientFetchMediaConstMeta,
+        constMeta: kCrateApiClientChatClientFetchMediaConstMeta,
         argValues: [that, sourceJson],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientFetchMediaConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientFetchMediaConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_fetch_media",
         argNames: ["that", "sourceJson"],
       );
 
   @override
-  Future<SessionInfo> crateApiChatChatClientFinishLogin({
+  Future<SessionInfo> crateApiClientChatClientFinishLogin({
     required ChatClient that,
     required String callbackUrl,
   }) {
@@ -375,23 +383,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_session_info,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientFinishLoginConstMeta,
+        constMeta: kCrateApiClientChatClientFinishLoginConstMeta,
         argValues: [that, callbackUrl],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientFinishLoginConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientFinishLoginConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_finish_login",
         argNames: ["that", "callbackUrl"],
       );
 
   @override
-  Future<NotificationContent?> crateApiChatChatClientGetNotification({
+  Future<NotificationContent?> crateApiClientChatClientGetNotification({
     required ChatClient that,
     required String roomId,
     required String eventId,
@@ -415,23 +423,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_notification_content,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientGetNotificationConstMeta,
+        constMeta: kCrateApiClientChatClientGetNotificationConstMeta,
         argValues: [that, roomId, eventId],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientGetNotificationConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientGetNotificationConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_get_notification",
         argNames: ["that", "roomId", "eventId"],
       );
 
   @override
-  Future<void> crateApiChatChatClientJoinRoom({
+  Future<void> crateApiClientChatClientJoinRoom({
     required ChatClient that,
     required String roomId,
   }) {
@@ -453,23 +461,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientJoinRoomConstMeta,
+        constMeta: kCrateApiClientChatClientJoinRoomConstMeta,
         argValues: [that, roomId],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientJoinRoomConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientJoinRoomConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_join_room",
         argNames: ["that", "roomId"],
       );
 
   @override
-  Future<String> crateApiChatChatClientLoginUrl({required ChatClient that}) {
+  Future<String> crateApiClientChatClientLoginUrl({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -487,23 +495,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientLoginUrlConstMeta,
+        constMeta: kCrateApiClientChatClientLoginUrlConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientLoginUrlConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientLoginUrlConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_login_url",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientLogout({required ChatClient that}) {
+  Future<void> crateApiClientChatClientLogout({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -521,20 +529,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientLogoutConstMeta,
+        constMeta: kCrateApiClientChatClientLogoutConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientLogoutConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientLogoutConstMeta =>
       const TaskConstMeta(debugName: "ChatClient_logout", argNames: ["that"]);
 
   @override
-  Future<void> crateApiChatChatClientMarkAsRead({required ChatClient that}) {
+  Future<void> crateApiClientChatClientMarkAsRead({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -552,23 +560,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientMarkAsReadConstMeta,
+        constMeta: kCrateApiClientChatClientMarkAsReadConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientMarkAsReadConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientMarkAsReadConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_mark_as_read",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientOpenTimeline({
+  Future<void> crateApiClientChatClientOpenTimeline({
     required ChatClient that,
     required String roomId,
   }) {
@@ -590,23 +598,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientOpenTimelineConstMeta,
+        constMeta: kCrateApiClientChatClientOpenTimelineConstMeta,
         argValues: [that, roomId],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientOpenTimelineConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientOpenTimelineConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_open_timeline",
         argNames: ["that", "roomId"],
       );
 
   @override
-  Future<bool> crateApiChatChatClientPaginateBack({
+  Future<bool> crateApiClientChatClientPaginateBack({
     required ChatClient that,
     required int count,
   }) {
@@ -628,23 +636,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientPaginateBackConstMeta,
+        constMeta: kCrateApiClientChatClientPaginateBackConstMeta,
         argValues: [that, count],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientPaginateBackConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientPaginateBackConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_paginate_back",
         argNames: ["that", "count"],
       );
 
   @override
-  Future<int> crateApiChatChatClientPersistedRefreshes({
+  Future<int> crateApiClientChatClientPersistedRefreshes({
     required ChatClient that,
   }) {
     return handler.executeNormal(
@@ -666,21 +674,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_u_32,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiChatChatClientPersistedRefreshesConstMeta,
+        constMeta: kCrateApiClientChatClientPersistedRefreshesConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientPersistedRefreshesConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientPersistedRefreshesConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_persisted_refreshes",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientRecover({
+  Future<void> crateApiClientChatClientRecover({
     required ChatClient that,
     required String recoveryKey,
   }) {
@@ -702,23 +710,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientRecoverConstMeta,
+        constMeta: kCrateApiClientChatClientRecoverConstMeta,
         argValues: [that, recoveryKey],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientRecoverConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientRecoverConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_recover",
         argNames: ["that", "recoveryKey"],
       );
 
   @override
-  Future<RecoveryStatus> crateApiChatChatClientRecoveryStatus({
+  Future<RecoveryStatus> crateApiClientChatClientRecoveryStatus({
     required ChatClient that,
   }) {
     return handler.executeNormal(
@@ -738,23 +746,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_recovery_status,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientRecoveryStatusConstMeta,
+        constMeta: kCrateApiClientChatClientRecoveryStatusConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientRecoveryStatusConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientRecoveryStatusConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_recovery_status",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientRegisterPusher({
+  Future<void> crateApiClientChatClientRegisterPusher({
     required ChatClient that,
     required String pushKey,
     required String appId,
@@ -782,23 +790,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientRegisterPusherConstMeta,
+        constMeta: kCrateApiClientChatClientRegisterPusherConstMeta,
         argValues: [that, pushKey, appId, gatewayUrl, deviceName],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientRegisterPusherConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientRegisterPusherConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_register_pusher",
         argNames: ["that", "pushKey", "appId", "gatewayUrl", "deviceName"],
       );
 
   @override
-  Future<SessionInfo?> crateApiChatChatClientRestoreSession({
+  Future<SessionInfo?> crateApiClientChatClientRestoreSession({
     required ChatClient that,
   }) {
     return handler.executeNormal(
@@ -818,23 +826,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_session_info,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientRestoreSessionConstMeta,
+        constMeta: kCrateApiClientChatClientRestoreSessionConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientRestoreSessionConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientRestoreSessionConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_restore_session",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientSendImage({
+  Future<void> crateApiClientChatClientSendImage({
     required ChatClient that,
     required String filePath,
     required String mimeType,
@@ -858,23 +866,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientSendImageConstMeta,
+        constMeta: kCrateApiClientChatClientSendImageConstMeta,
         argValues: [that, filePath, mimeType],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientSendImageConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientSendImageConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_send_image",
         argNames: ["that", "filePath", "mimeType"],
       );
 
   @override
-  Future<void> crateApiChatChatClientSendText({
+  Future<void> crateApiClientChatClientSendText({
     required ChatClient that,
     required String body,
   }) {
@@ -896,23 +904,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientSendTextConstMeta,
+        constMeta: kCrateApiClientChatClientSendTextConstMeta,
         argValues: [that, body],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientSendTextConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientSendTextConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_send_text",
         argNames: ["that", "body"],
       );
 
   @override
-  Future<void> crateApiChatChatClientShutdown({required ChatClient that}) {
+  Future<void> crateApiClientChatClientShutdown({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -930,20 +938,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientShutdownConstMeta,
+        constMeta: kCrateApiClientChatClientShutdownConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientShutdownConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientShutdownConstMeta =>
       const TaskConstMeta(debugName: "ChatClient_shutdown", argNames: ["that"]);
 
   @override
-  Future<void> crateApiChatChatClientStartSync({required ChatClient that}) {
+  Future<void> crateApiClientChatClientStartSync({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -961,23 +969,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientStartSyncConstMeta,
+        constMeta: kCrateApiClientChatClientStartSyncConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientStartSyncConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientStartSyncConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_start_sync",
         argNames: ["that"],
       );
 
   @override
-  Future<void> crateApiChatChatClientStopSync({required ChatClient that}) {
+  Future<void> crateApiClientChatClientStopSync({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -995,23 +1003,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientStopSyncConstMeta,
+        constMeta: kCrateApiClientChatClientStopSyncConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientStopSyncConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientStopSyncConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_stop_sync",
         argNames: ["that"],
       );
 
   @override
-  Future<String?> crateApiChatChatClientUserId({required ChatClient that}) {
+  Future<String?> crateApiClientChatClientUserId({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1031,18 +1039,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_opt_String,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiChatChatClientUserIdConstMeta,
+        constMeta: kCrateApiClientChatClientUserIdConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientUserIdConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientUserIdConstMeta =>
       const TaskConstMeta(debugName: "ChatClient_user_id", argNames: ["that"]);
 
   @override
-  Future<String> crateApiChatChatClientVerificationState({
+  Future<String> crateApiClientChatClientVerificationState({
     required ChatClient that,
   }) {
     return handler.executeNormal(
@@ -1062,23 +1070,23 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientVerificationStateConstMeta,
+        constMeta: kCrateApiClientChatClientVerificationStateConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientVerificationStateConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientVerificationStateConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_verification_state",
         argNames: ["that"],
       );
 
   @override
-  Stream<List<RoomSummary>> crateApiChatChatClientWatchRooms({
+  Stream<List<RoomSummary>> crateApiClientChatClientWatchRooms({
     required ChatClient that,
   }) {
     final sink = RustStreamSink<List<RoomSummary>>();
@@ -1101,9 +1109,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: sse_decode_chat_error,
           ),
-          constMeta: kCrateApiChatChatClientWatchRoomsConstMeta,
+          constMeta: kCrateApiClientChatClientWatchRoomsConstMeta,
           argValues: [that, sink],
           apiImpl: this,
         ),
@@ -1112,14 +1120,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return sink.stream;
   }
 
-  TaskConstMeta get kCrateApiChatChatClientWatchRoomsConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientWatchRoomsConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_watch_rooms",
         argNames: ["that", "sink"],
       );
 
   @override
-  Stream<String> crateApiChatChatClientWatchSyncState({
+  Stream<String> crateApiClientChatClientWatchSyncState({
     required ChatClient that,
   }) {
     final sink = RustStreamSink<String>();
@@ -1142,9 +1150,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: sse_decode_chat_error,
           ),
-          constMeta: kCrateApiChatChatClientWatchSyncStateConstMeta,
+          constMeta: kCrateApiClientChatClientWatchSyncStateConstMeta,
           argValues: [that, sink],
           apiImpl: this,
         ),
@@ -1153,14 +1161,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return sink.stream;
   }
 
-  TaskConstMeta get kCrateApiChatChatClientWatchSyncStateConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientWatchSyncStateConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_watch_sync_state",
         argNames: ["that", "sink"],
       );
 
   @override
-  Stream<List<TimelineEntry>> crateApiChatChatClientWatchTimeline({
+  Stream<List<TimelineEntry>> crateApiClientChatClientWatchTimeline({
     required ChatClient that,
   }) {
     final sink = RustStreamSink<List<TimelineEntry>>();
@@ -1183,9 +1191,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           },
           codec: SseCodec(
             decodeSuccessData: sse_decode_unit,
-            decodeErrorData: sse_decode_AnyhowException,
+            decodeErrorData: sse_decode_chat_error,
           ),
-          constMeta: kCrateApiChatChatClientWatchTimelineConstMeta,
+          constMeta: kCrateApiClientChatClientWatchTimelineConstMeta,
           argValues: [that, sink],
           apiImpl: this,
         ),
@@ -1194,14 +1202,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return sink.stream;
   }
 
-  TaskConstMeta get kCrateApiChatChatClientWatchTimelineConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientWatchTimelineConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_watch_timeline",
         argNames: ["that", "sink"],
       );
 
   @override
-  Future<String> crateApiChatChatClientWhoami({required ChatClient that}) {
+  Future<String> crateApiClientChatClientWhoami({required ChatClient that}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1219,20 +1227,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatChatClientWhoamiConstMeta,
+        constMeta: kCrateApiClientChatClientWhoamiConstMeta,
         argValues: [that],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatChatClientWhoamiConstMeta =>
+  TaskConstMeta get kCrateApiClientChatClientWhoamiConstMeta =>
       const TaskConstMeta(debugName: "ChatClient_whoami", argNames: ["that"]);
 
   @override
-  Future<void> crateApiChatInitApp() {
+  Future<void> crateApiLoggingInitApp() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1248,18 +1256,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: null,
         ),
-        constMeta: kCrateApiChatInitAppConstMeta,
+        constMeta: kCrateApiLoggingInitAppConstMeta,
         argValues: [],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatInitAppConstMeta =>
+  TaskConstMeta get kCrateApiLoggingInitAppConstMeta =>
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
-  Future<void> crateApiChatInitLogging({required String logFile}) {
+  Future<void> crateApiLoggingInitLogging({required String logFile}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1274,16 +1282,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
+          decodeErrorData: sse_decode_chat_error,
         ),
-        constMeta: kCrateApiChatInitLoggingConstMeta,
+        constMeta: kCrateApiLoggingInitLoggingConstMeta,
         argValues: [logFile],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiChatInitLoggingConstMeta =>
+  TaskConstMeta get kCrateApiLoggingInitLoggingConstMeta =>
       const TaskConstMeta(debugName: "init_logging", argNames: ["logFile"]);
 
   RustArcIncrementStrongCountFnType
@@ -1403,6 +1411,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_u_64(raw);
+  }
+
+  @protected
   ChatConfig dco_decode_chat_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1419,6 +1433,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       devRootCertificatePem: dco_decode_opt_String(arr[7]),
       crossProcessHolder: dco_decode_opt_String(arr[8]),
     );
+  }
+
+  @protected
+  ChatError dco_decode_chat_error(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    switch (raw[0]) {
+      case 0:
+        return ChatError_Network();
+      case 1:
+        return ChatError_SessionExpired();
+      case 2:
+        return ChatError_AccountLocked();
+      case 3:
+        return ChatError_Forbidden();
+      case 4:
+        return ChatError_NotFound();
+      case 5:
+        return ChatError_RateLimited(
+          retryAfterMs: dco_decode_opt_box_autoadd_u_64(raw[1]),
+        );
+      case 6:
+        return ChatError_Crypto(message: dco_decode_String(raw[1]));
+      case 7:
+        return ChatError_Storage(message: dco_decode_String(raw[1]));
+      case 8:
+        return ChatError_InvalidInput(message: dco_decode_String(raw[1]));
+      case 9:
+        return ChatError_Internal(message: dco_decode_String(raw[1]));
+      default:
+        throw Exception("unreachable");
+    }
   }
 
   @protected
@@ -1528,6 +1573,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_64(raw);
   }
 
   @protected
@@ -1764,6 +1815,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_64(deserializer));
+  }
+
+  @protected
   ChatConfig sse_decode_chat_config(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_homeserverUrl = sse_decode_String(deserializer);
@@ -1786,6 +1843,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       devRootCertificatePem: var_devRootCertificatePem,
       crossProcessHolder: var_crossProcessHolder,
     );
+  }
+
+  @protected
+  ChatError sse_decode_chat_error(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var tag_ = sse_decode_i_32(deserializer);
+    switch (tag_) {
+      case 0:
+        return ChatError_Network();
+      case 1:
+        return ChatError_SessionExpired();
+      case 2:
+        return ChatError_AccountLocked();
+      case 3:
+        return ChatError_Forbidden();
+      case 4:
+        return ChatError_NotFound();
+      case 5:
+        var var_retryAfterMs = sse_decode_opt_box_autoadd_u_64(deserializer);
+        return ChatError_RateLimited(retryAfterMs: var_retryAfterMs);
+      case 6:
+        var var_message = sse_decode_String(deserializer);
+        return ChatError_Crypto(message: var_message);
+      case 7:
+        var var_message = sse_decode_String(deserializer);
+        return ChatError_Storage(message: var_message);
+      case 8:
+        var var_message = sse_decode_String(deserializer);
+        return ChatError_InvalidInput(message: var_message);
+      case 9:
+        var var_message = sse_decode_String(deserializer);
+        return ChatError_Internal(message: var_message);
+      default:
+        throw UnimplementedError('');
+    }
   }
 
   @protected
@@ -1949,6 +2042,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_u_32(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_64(deserializer));
     } else {
       return null;
     }
@@ -2246,6 +2350,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self, serializer);
+  }
+
+  @protected
   void sse_encode_chat_config(ChatConfig self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.homeserverUrl, serializer);
@@ -2257,6 +2367,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.redirectUri, serializer);
     sse_encode_opt_String(self.devRootCertificatePem, serializer);
     sse_encode_opt_String(self.crossProcessHolder, serializer);
+  }
+
+  @protected
+  void sse_encode_chat_error(ChatError self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    switch (self) {
+      case ChatError_Network():
+        sse_encode_i_32(0, serializer);
+      case ChatError_SessionExpired():
+        sse_encode_i_32(1, serializer);
+      case ChatError_AccountLocked():
+        sse_encode_i_32(2, serializer);
+      case ChatError_Forbidden():
+        sse_encode_i_32(3, serializer);
+      case ChatError_NotFound():
+        sse_encode_i_32(4, serializer);
+      case ChatError_RateLimited(retryAfterMs: final retryAfterMs):
+        sse_encode_i_32(5, serializer);
+        sse_encode_opt_box_autoadd_u_64(retryAfterMs, serializer);
+      case ChatError_Crypto(message: final message):
+        sse_encode_i_32(6, serializer);
+        sse_encode_String(message, serializer);
+      case ChatError_Storage(message: final message):
+        sse_encode_i_32(7, serializer);
+        sse_encode_String(message, serializer);
+      case ChatError_InvalidInput(message: final message):
+        sse_encode_i_32(8, serializer);
+        sse_encode_String(message, serializer);
+      case ChatError_Internal(message: final message):
+        sse_encode_i_32(9, serializer);
+        sse_encode_String(message, serializer);
+    }
   }
 
   @protected
@@ -2416,6 +2558,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_64(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_recovery_status(
     RecoveryStatus self,
     SseSerializer serializer,
@@ -2548,70 +2700,70 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
 
   /// Creates (or reuses) an encrypted DM with the given user.
   Future<String> createDm({required String userId}) => RustLib.instance.api
-      .crateApiChatChatClientCreateDm(that: this, userId: userId);
+      .crateApiClientChatClientCreateDm(that: this, userId: userId);
 
   /// Enables key backup + secret storage and returns the recovery key
   /// that the user has to write down.
   Future<String> enableRecovery() =>
-      RustLib.instance.api.crateApiChatChatClientEnableRecovery(that: this);
+      RustLib.instance.api.crateApiClientChatClientEnableRecovery(that: this);
 
   /// Downloads (and decrypts) authenticated media referenced by a timeline item.
   Future<Uint8List> fetchMedia({required String sourceJson}) => RustLib
       .instance
       .api
-      .crateApiChatChatClientFetchMedia(that: this, sourceJson: sourceJson);
+      .crateApiClientChatClientFetchMedia(that: this, sourceJson: sourceJson);
 
   /// Completes the OAuth flow with the redirect URL received by the app.
-  Future<SessionInfo> finishLogin({required String callbackUrl}) => RustLib
-      .instance
-      .api
-      .crateApiChatChatClientFinishLogin(that: this, callbackUrl: callbackUrl);
+  Future<SessionInfo> finishLogin({required String callbackUrl}) =>
+      RustLib.instance.api.crateApiClientChatClientFinishLogin(
+        that: this,
+        callbackUrl: callbackUrl,
+      );
 
   /// Resolves and decrypts a pushed event (`event_id_only` payload) the way
   /// the Android FCM handler / iOS Notification Service Extension would.
   Future<NotificationContent?> getNotification({
     required String roomId,
     required String eventId,
-  }) => RustLib.instance.api.crateApiChatChatClientGetNotification(
+  }) => RustLib.instance.api.crateApiClientChatClientGetNotification(
     that: this,
     roomId: roomId,
     eventId: eventId,
   );
 
   Future<void> joinRoom({required String roomId}) => RustLib.instance.api
-      .crateApiChatChatClientJoinRoom(that: this, roomId: roomId);
+      .crateApiClientChatClientJoinRoom(that: this, roomId: roomId);
 
   /// Starts an OAuth 2.0 authorization code flow with PKCE against MAS
   /// (dynamic client registration) and returns the URL for the system
   /// browser.
   Future<String> loginUrl() =>
-      RustLib.instance.api.crateApiChatChatClientLoginUrl(that: this);
+      RustLib.instance.api.crateApiClientChatClientLoginUrl(that: this);
 
   Future<void> logout() =>
-      RustLib.instance.api.crateApiChatChatClientLogout(that: this);
+      RustLib.instance.api.crateApiClientChatClientLogout(that: this);
 
   Future<void> markAsRead() =>
-      RustLib.instance.api.crateApiChatChatClientMarkAsRead(that: this);
+      RustLib.instance.api.crateApiClientChatClientMarkAsRead(that: this);
 
-  /// Opens the timeline of a room and streams snapshots of its items.
   /// Opens the timeline of a room; subsequent timeline calls act on it.
   Future<void> openTimeline({required String roomId}) => RustLib.instance.api
-      .crateApiChatChatClientOpenTimeline(that: this, roomId: roomId);
+      .crateApiClientChatClientOpenTimeline(that: this, roomId: roomId);
 
   /// Loads older events; returns true when the start of the room was reached.
   Future<bool> paginateBack({required int count}) => RustLib.instance.api
-      .crateApiChatChatClientPaginateBack(that: this, count: count);
+      .crateApiClientChatClientPaginateBack(that: this, count: count);
 
   /// Number of token refreshes persisted by this client instance.
-  Future<int> persistedRefreshes() =>
-      RustLib.instance.api.crateApiChatChatClientPersistedRefreshes(that: this);
+  Future<int> persistedRefreshes() => RustLib.instance.api
+      .crateApiClientChatClientPersistedRefreshes(that: this);
 
   /// Restores cross-signing and the key backup on a new device.
   Future<void> recover({required String recoveryKey}) => RustLib.instance.api
-      .crateApiChatChatClientRecover(that: this, recoveryKey: recoveryKey);
+      .crateApiClientChatClientRecover(that: this, recoveryKey: recoveryKey);
 
   Future<RecoveryStatus> recoveryStatus() =>
-      RustLib.instance.api.crateApiChatChatClientRecoveryStatus(that: this);
+      RustLib.instance.api.crateApiClientChatClientRecoveryStatus(that: this);
 
   /// Registers an HTTP pusher (Sygnal) with `event_id_only` payloads.
   Future<void> registerPusher({
@@ -2619,7 +2771,7 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
     required String appId,
     required String gatewayUrl,
     required String deviceName,
-  }) => RustLib.instance.api.crateApiChatChatClientRegisterPusher(
+  }) => RustLib.instance.api.crateApiClientChatClientRegisterPusher(
     that: this,
     pushKey: pushKey,
     appId: appId,
@@ -2629,52 +2781,52 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
 
   /// Restores a previously persisted session from the encrypted store.
   Future<SessionInfo?> restoreSession() =>
-      RustLib.instance.api.crateApiChatChatClientRestoreSession(that: this);
+      RustLib.instance.api.crateApiClientChatClientRestoreSession(that: this);
 
   Future<void> sendImage({
     required String filePath,
     required String mimeType,
-  }) => RustLib.instance.api.crateApiChatChatClientSendImage(
+  }) => RustLib.instance.api.crateApiClientChatClientSendImage(
     that: this,
     filePath: filePath,
     mimeType: mimeType,
   );
 
   Future<void> sendText({required String body}) => RustLib.instance.api
-      .crateApiChatChatClientSendText(that: this, body: body);
+      .crateApiClientChatClientSendText(that: this, body: body);
 
   /// Stops all background work so that another client may open the store.
   Future<void> shutdown() =>
-      RustLib.instance.api.crateApiChatChatClientShutdown(that: this);
+      RustLib.instance.api.crateApiClientChatClientShutdown(that: this);
 
   /// Starts the sync service (Simplified Sliding Sync + encryption sync).
   Future<void> startSync() =>
-      RustLib.instance.api.crateApiChatChatClientStartSync(that: this);
+      RustLib.instance.api.crateApiClientChatClientStartSync(that: this);
 
   Future<void> stopSync() =>
-      RustLib.instance.api.crateApiChatChatClientStopSync(that: this);
+      RustLib.instance.api.crateApiClientChatClientStopSync(that: this);
 
   Future<String?> userId() =>
-      RustLib.instance.api.crateApiChatChatClientUserId(that: this);
+      RustLib.instance.api.crateApiClientChatClientUserId(that: this);
 
   /// `verified` once this device is cross-signed (e.g. after recovery).
-  Future<String> verificationState() =>
-      RustLib.instance.api.crateApiChatChatClientVerificationState(that: this);
+  Future<String> verificationState() => RustLib.instance.api
+      .crateApiClientChatClientVerificationState(that: this);
 
   /// Streams the complete room list (joined + invited) as snapshots,
   /// driven by `RoomListService` diffs.
   Stream<List<RoomSummary>> watchRooms() =>
-      RustLib.instance.api.crateApiChatChatClientWatchRooms(that: this);
+      RustLib.instance.api.crateApiClientChatClientWatchRooms(that: this);
 
   /// Streams the sync service state as text (`idle`, `running`, `terminated`, `error`, `offline`).
   Stream<String> watchSyncState() =>
-      RustLib.instance.api.crateApiChatChatClientWatchSyncState(that: this);
+      RustLib.instance.api.crateApiClientChatClientWatchSyncState(that: this);
 
   /// Streams snapshots of the open timeline.
   Stream<List<TimelineEntry>> watchTimeline() =>
-      RustLib.instance.api.crateApiChatChatClientWatchTimeline(that: this);
+      RustLib.instance.api.crateApiClientChatClientWatchTimeline(that: this);
 
   /// Authenticated round trip (`/whoami`); refreshes an expired access token.
   Future<String> whoami() =>
-      RustLib.instance.api.crateApiChatChatClientWhoami(that: this);
+      RustLib.instance.api.crateApiClientChatClientWhoami(that: this);
 }
