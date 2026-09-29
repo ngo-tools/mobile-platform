@@ -33,6 +33,18 @@ and paging are forwarded to the list task in Rust. Each `RoomSummary`
 carries kind, membership, unread counts and a typed `MessagePreview` of the
 latest event, which the app localizes.
 
+## Timeline
+
+`ChatClient.timeline(roomId)` returns a `ChatTimeline` per room;
+`TimelineController` applies its diff stream (`TimelineDiff`) and guards back
+pagination. Each `EventItem` carries a stable `EventKey` (local transaction
+id or event id), sender, send state, typed content (text, image, video,
+audio, file, membership and state changes, redacted, undecryptable), reply
+preview, reactions (with `byMe`), edit marker and thread information.
+Actions on `ChatTimeline`: `sendText` (optionally as reply), `sendImage`
+(with caption), `edit`, `redact`, `toggleReaction`, `retry`/`cancel` for
+failed local echoes, `markRead` and `loadReplyDetails`.
+
 ## Errors
 
 Every facade call throws a typed `ChatError` (`network`, `sessionExpired`,

@@ -95,39 +95,63 @@ class TestUser {
     }
   }
 
-  Stream<List<TimelineEntry>>? timeline;
-  List<TimelineEntry> lastTimeline = const [];
+  TimelineController? timelineController;
+
+  ChatTimeline get timeline => timelineController!.timeline;
+
+  List<TimelineItem> get lastTimeline =>
+      timelineController?.items.value ?? const [];
 
   Future<void> openTimeline(String roomId) async {
-    await client.openTimeline(roomId: roomId);
-    final stream = client.watchTimeline().asBroadcastStream();
-    stream.listen((entries) => lastTimeline = entries);
-    timeline = stream;
+    timelineController = await TimelineController.open(client, roomId);
   }
 
-  Future<List<TimelineEntry>> waitForTimeline(
-    bool Function(List<TimelineEntry>) predicate, {
+  /// Completes once the timeline (diff-driven) satisfies [predicate].
+  Future<List<TimelineItem>> waitForTimeline(
+    bool Function(List<TimelineItem>) predicate, {
     Duration timeout = const Duration(seconds: 60),
   }) async {
     if (predicate(lastTimeline)) {
       return lastTimeline;
     }
-    return timeline!.firstWhere(predicate).timeout(timeout);
+
+    final completer = Completer<List<TimelineItem>>();
+    void check() {
+      if (!completer.isCompleted && predicate(lastTimeline)) {
+        completer.complete(lastTimeline);
+      }
+    }
+
+    timelineController!.items.addListener(check);
+    try {
+      return await completer.future.timeout(timeout);
+    } finally {
+      timelineController!.items.removeListener(check);
+    }
   }
 }
 
-bool hasText(
-  List<TimelineEntry> entries,
-  String body, {
-  bool confirmed = false,
-}) {
-  return entries.any(
-    (entry) =>
-        entry is TimelineEntry_Message &&
-        entry.kind is MessageKind_Text &&
-        (entry.kind as MessageKind_Text).body == body &&
-        (!confirmed || !entry.isSending),
-  );
+EventItem? eventOf(TimelineItem item) => switch (item.kind) {
+  TimelineItemKind_Event(:final event) => event,
+  _ => null,
+};
+
+/// The latest event whose text is [body], if any.
+EventItem? findText(List<TimelineItem> items, String body) => items
+    .map(eventOf)
+    .nonNulls
+    .where(
+      (event) => switch (event.content) {
+        EventContent_Text(body: final text) => text == body,
+        _ => false,
+      },
+    )
+    .lastOrNull;
+
+bool hasText(List<TimelineItem> items, String body, {bool confirmed = false}) {
+  final event = findText(items, body);
+
+  return event != null && (!confirmed || event.sendState is SendState_Sent);
 }
 
 Future<Uint8List> storeKey(String name) async {
@@ -402,7 +426,7 @@ void main() {
     for (var i = 1; i <= 5; i++) {
       final body = 'Hallo Bob $i ($run)';
       final sent = Stopwatch()..start();
-      await alice.client.sendText(body: body);
+      await alice.timeline.sendText(body: body);
       await alice.waitForTimeline(
         (entries) => hasText(entries, body, confirmed: true),
       );
@@ -430,8 +454,69 @@ void main() {
     metric('room_list_filters', 'ok');
 
     final reply = 'Hallo Alice ($run)';
-    await bob.client.sendText(body: reply);
+    await bob.timeline.sendText(body: reply);
     await alice.waitForTimeline((entries) => hasText(entries, reply));
+
+    // Timeline actions: reply, edit, reaction and redaction.
+    final firstBody = 'Hallo Bob 1 ($run)';
+    final first = findText(alice.lastTimeline, firstBody)!;
+    final replyBody = 'Antwort auf 1 ($run)';
+    await bob.timeline.sendText(body: replyBody, replyTo: first.eventId);
+    final withReply = await alice.waitForTimeline(
+      (items) => findText(items, replyBody)?.replyTo != null,
+    );
+    final replyEvent = findText(withReply, replyBody)!;
+    expect(replyEvent.replyTo!.eventId, first.eventId);
+    if (replyEvent.replyTo!.preview == null) {
+      await alice.timeline.loadReplyDetails(eventId: replyEvent.eventId!);
+    }
+    await alice.waitForTimeline(
+      (items) =>
+          findText(items, replyBody)?.replyTo?.preview ==
+          MessagePreview.text(body: firstBody),
+    );
+
+    final second = findText(alice.lastTimeline, 'Hallo Bob 2 ($run)')!;
+    final editedBody = 'Hallo Bob 2, bearbeitet ($run)';
+    expect(second.canEdit, isTrue);
+    await alice.timeline.edit(key: second.key, body: editedBody);
+    await bob.waitForTimeline(
+      (items) => findText(items, editedBody)?.isEdited ?? false,
+    );
+
+    final thirdBody = 'Hallo Bob 3 ($run)';
+    final third = findText(bob.lastTimeline, thirdBody)!;
+    await bob.timeline.toggleReaction(key: third.key, reaction: '👍');
+    await alice.waitForTimeline(
+      (items) =>
+          findText(items, thirdBody)?.reactions.any(
+            (reaction) =>
+                reaction.key == '👍' && reaction.count == 1 && !reaction.byMe,
+          ) ??
+          false,
+    );
+    await bob.waitForTimeline(
+      (items) =>
+          findText(
+            items,
+            thirdBody,
+          )?.reactions.any((reaction) => reaction.byMe) ??
+          false,
+    );
+
+    final fourth = findText(alice.lastTimeline, 'Hallo Bob 4 ($run)')!;
+    await alice.timeline.redact(key: fourth.key);
+    await bob.waitForTimeline(
+      (items) => items
+          .map(eventOf)
+          .nonNulls
+          .any(
+            (event) =>
+                event.eventId == fourth.eventId &&
+                event.content is EventContent_Redacted,
+          ),
+    );
+    metric('timeline_actions', 'ok');
 
     // Image (encrypted attachment, authenticated media download at Bob).
     final png = await renderPng();
@@ -439,25 +524,29 @@ void main() {
       '${(await getTemporaryDirectory()).path}/chat-e2e-$run.png',
     )..writeAsBytesSync(png);
     stopwatch = Stopwatch()..start();
-    await alice.client.sendImage(filePath: file.path, mimeType: 'image/png');
+    await alice.timeline.sendImage(
+      filePath: file.path,
+      mimeType: 'image/png',
+      caption: 'Farbverlauf',
+    );
     final withImage = await bob.waitForTimeline(
-      (entries) => entries.any(
-        (entry) =>
-            entry is TimelineEntry_Message && entry.kind is MessageKind_Image,
-      ),
+      (items) => items
+          .map(eventOf)
+          .nonNulls
+          .any((event) => event.content is EventContent_Image),
     );
     final image = withImage
-        .whereType<TimelineEntry_Message>()
-        .map((entry) => entry.kind)
-        .whereType<MessageKind_Image>()
+        .map(eventOf)
+        .nonNulls
+        .map((event) => event.content)
+        .whereType<EventContent_Image>()
         .last;
-    final downloaded = await bob.client.fetchMedia(
-      sourceJson: image.sourceJson,
-    );
+    expect(image.caption, 'Farbverlauf');
+    final downloaded = await bob.client.fetchMedia(media: image.media);
     metric('image_bytes', png.length);
     metric('image_send_to_download_ms', stopwatch.elapsedMilliseconds);
     expect(
-      image.sourceJson,
+      image.media,
       contains('"file"'),
       reason: 'encrypted rooms use EncryptedFile sources',
     );
@@ -472,18 +561,11 @@ void main() {
       deviceName: 'E2E $platform',
     );
     final pushBody = 'Push an Bob ($run)';
-    await alice.client.sendText(body: pushBody);
+    await alice.timeline.sendText(body: pushBody);
     await alice.waitForTimeline(
       (entries) => hasText(entries, pushBody, confirmed: true),
     );
-    final eventId = alice.lastTimeline
-        .whereType<TimelineEntry_Message>()
-        .lastWhere(
-          (entry) =>
-              entry.kind is MessageKind_Text &&
-              (entry.kind as MessageKind_Text).body == pushBody,
-        )
-        .eventId;
+    final eventId = findText(alice.lastTimeline, pushBody)!.eventId;
     stopwatch = Stopwatch()..start();
     final push = await waitForPush(pushKey, eventId!);
     metric('push_received_ms', stopwatch.elapsedMilliseconds);
@@ -516,7 +598,6 @@ void main() {
       'dm-timeline',
     );
     await tester.pumpWidget(const SizedBox());
-    await bob.client.openTimeline(roomId: roomId);
 
     // Session persistence: reopen Alice's store without logging in again.
     await alice.client.shutdown();
@@ -564,7 +645,7 @@ void main() {
         deviceName: 'E2E iOS NSE',
       );
       final nseBody = 'Für die NSE ($run)';
-      await bob.client.sendText(body: nseBody);
+      await bob.timeline.sendText(body: nseBody);
       final nsePushEventId = await waitForAnyPush(alicePushKey);
       debugPrint('E2E_NSE_PUSH $roomId $nsePushEventId');
       final resultFile = File(
@@ -603,9 +684,10 @@ void main() {
     stopwatch.reset();
     await secondDevice.openTimeline(roomId);
     final firstMessage = 'Hallo Bob 1 ($run)';
-    var reachedStart = false;
-    while (!hasText(secondDevice.lastTimeline, firstMessage) && !reachedStart) {
-      reachedStart = await secondDevice.client.paginateBack(count: 20);
+    final history = secondDevice.timelineController!;
+    while (!hasText(secondDevice.lastTimeline, firstMessage) &&
+        !history.reachedStart.value) {
+      await history.paginateBack(count: 20);
     }
     await secondDevice.waitForTimeline(
       (entries) => hasText(entries, firstMessage),

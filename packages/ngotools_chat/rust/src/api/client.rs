@@ -17,10 +17,7 @@ use matrix_sdk::{
     store::RoomLoadSettings,
     Client, SessionChange,
 };
-use matrix_sdk_ui::{
-    sync_service::{State as SyncState, SyncService},
-    timeline::Timeline,
-};
+use matrix_sdk_ui::sync_service::{State as SyncState, SyncService};
 use tokio::{
     sync::{mpsc, Mutex},
     task::JoinHandle,
@@ -60,11 +57,6 @@ pub struct SessionInfo {
     pub device_id: String,
 }
 
-pub(crate) struct ActiveTimeline {
-    pub(crate) timeline: Arc<Timeline>,
-    pub(crate) task: Option<JoinHandle<()>>,
-}
-
 #[frb(opaque)]
 pub struct ChatClient {
     pub(crate) client: Client,
@@ -72,7 +64,6 @@ pub struct ChatClient {
     pub(crate) sync_service: Mutex<Option<Arc<SyncService>>>,
     pub(crate) room_task: Mutex<Option<JoinHandle<()>>>,
     pub(crate) room_commands: Mutex<Option<mpsc::UnboundedSender<RoomListCommand>>>,
-    pub(crate) timeline: Mutex<Option<ActiveTimeline>>,
     session_task: Mutex<Option<JoinHandle<()>>>,
     pending_login_state: Mutex<Option<String>>,
     refreshes: Arc<AtomicU32>,
@@ -109,7 +100,6 @@ impl ChatClient {
                 sync_service: Mutex::new(None),
                 room_task: Mutex::new(None),
                 room_commands: Mutex::new(None),
-                timeline: Mutex::new(None),
                 session_task: Mutex::new(None),
                 pending_login_state: Mutex::new(None),
                 refreshes,
@@ -308,12 +298,6 @@ impl ChatClient {
     /// Stops all background work so that another client may open the store.
     pub async fn shutdown(&self) -> Result<(), ChatError> {
         if let Some(task) = self.session_task.lock().await.take() {
-            task.abort();
-        }
-        if let Some(ActiveTimeline {
-            task: Some(task), ..
-        }) = self.timeline.lock().await.take()
-        {
             task.abort();
         }
         self.stop_sync().await

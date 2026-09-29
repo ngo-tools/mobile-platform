@@ -13,3 +13,4 @@ export 'src/rust/api/notifications.dart';
 export 'src/rust/api/rooms.dart';
 export 'src/rust/api/timeline.dart';
 export 'src/rust/frb_generated.dart' show RustLib;
+export 'src/timeline_controller.dart';

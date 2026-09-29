@@ -387,34 +387,40 @@ class RoomScreen extends StatefulWidget {
 class _RoomScreenState extends State<RoomScreen> {
   final _input = TextEditingController();
   final _pendingSends = <String, Stopwatch>{};
-  Stream<List<TimelineEntry>>? _timeline;
-  bool _reachedStart = false;
+  final _opened = Stopwatch()..start();
+  TimelineController? _controller;
 
   @override
   void initState() {
     super.initState();
-    final opened = Stopwatch()..start();
-    _timeline =
-        Stream.fromFuture(
-          widget.client.openTimeline(roomId: widget.roomId),
-        ).asyncExpand((_) => widget.client.watchTimeline()).map((entries) {
-          metrics.record(
-            'timeline_update_after_open',
-            opened.elapsedMilliseconds,
-          );
-          _trackSendLatency(entries);
-          return entries;
-        });
+    unawaited(_open());
   }
 
-  void _trackSendLatency(List<TimelineEntry> entries) {
-    for (final entry in entries) {
-      if (entry case TimelineEntry_Message(
-        :final isOwn,
-        :final isSending,
-        :final kind,
-      ) when isOwn && !isSending && kind is MessageKind_Text) {
-        final stopwatch = _pendingSends.remove(kind.body);
+  Future<void> _open() async {
+    final controller = await TimelineController.open(
+      widget.client,
+      widget.roomId,
+    );
+    controller.items.addListener(() => _onItems(controller.items.value));
+
+    if (!mounted) {
+      await controller.dispose();
+      return;
+    }
+
+    setState(() => _controller = controller);
+  }
+
+  void _onItems(List<TimelineItem> items) {
+    metrics.record('timeline_update_after_open', _opened.elapsedMilliseconds);
+
+    for (final item in items) {
+      if (item.kind case TimelineItemKind_Event(:final event)
+          when event.isOwn &&
+              event.sendState is SendState_Sent &&
+              event.content is EventContent_Text) {
+        final body = (event.content as EventContent_Text).body;
+        final stopwatch = _pendingSends.remove(body);
 
         if (stopwatch != null) {
           metrics.record('send_latency', stopwatch.elapsedMilliseconds);
@@ -425,74 +431,76 @@ class _RoomScreenState extends State<RoomScreen> {
 
   Future<void> _send() async {
     final body = _input.text.trim();
+    final controller = _controller;
 
-    if (body.isEmpty) {
+    if (body.isEmpty || controller == null) {
       return;
     }
 
     _input.clear();
     _pendingSends[body] = Stopwatch()..start();
-    await widget.client.sendText(body: body);
+    await controller.timeline.sendText(body: body);
   }
 
   Future<void> _sendImage() async {
+    final controller = _controller;
     final image = await ImagePicker().pickImage(
       source: ImageSource.gallery,
       maxWidth: 2048,
     );
 
-    if (image == null) {
+    if (image == null || controller == null) {
       return;
     }
 
-    await widget.client.sendImage(
+    await controller.timeline.sendImage(
       filePath: image.path,
       mimeType: image.mimeType ?? 'image/jpeg',
     );
   }
 
-  Future<void> _loadMore() async {
-    final reachedStart = await widget.client.paginateBack(count: 30);
-    setState(() => _reachedStart = reachedStart);
-  }
-
   @override
   void dispose() {
     _input.dispose();
+    unawaited(_controller?.dispose());
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = _controller;
+
     return Scaffold(
       appBar: AppBar(title: Text(widget.title)),
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<TimelineEntry>>(
-              stream: _timeline,
-              builder: (context, snapshot) {
-                final entries = snapshot.data?.reversed.toList() ?? const [];
+            child: controller == null
+                ? const Center(child: CircularProgressIndicator())
+                : ValueListenableBuilder<List<TimelineItem>>(
+                    valueListenable: controller.items,
+                    builder: (context, items, _) {
+                      final newestFirst = items.reversed.toList();
 
-                return NotificationListener<ScrollEndNotification>(
-                  onNotification: (notification) {
-                    if (!_reachedStart &&
-                        notification.metrics.extentAfter < 200) {
-                      unawaited(_loadMore());
-                    }
-                    return false;
-                  },
-                  child: ListView.builder(
-                    reverse: true,
-                    itemCount: entries.length,
-                    itemBuilder: (context, index) => TimelineTile(
-                      client: widget.client,
-                      entry: entries[index],
-                    ),
+                      return NotificationListener<ScrollEndNotification>(
+                        onNotification: (notification) {
+                          if (notification.metrics.extentAfter < 200) {
+                            unawaited(controller.paginateBack());
+                          }
+                          return false;
+                        },
+                        child: ListView.builder(
+                          reverse: true,
+                          itemCount: newestFirst.length,
+                          itemBuilder: (context, index) => TimelineTile(
+                            client: widget.client,
+                            timeline: controller.timeline,
+                            item: newestFirst[index],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
           SafeArea(
             child: Row(
@@ -525,83 +533,138 @@ class _RoomScreenState extends State<RoomScreen> {
 }
 
 class TimelineTile extends StatelessWidget {
-  const TimelineTile({super.key, required this.client, required this.entry});
+  const TimelineTile({
+    super.key,
+    required this.client,
+    required this.timeline,
+    required this.item,
+  });
 
   final ChatClient client;
-  final TimelineEntry entry;
+  final ChatTimeline timeline;
+  final TimelineItem item;
 
   @override
   Widget build(BuildContext context) {
-    return switch (entry) {
-      TimelineEntry_Message(
-        :final senderId,
-        :final senderName,
-        :final isOwn,
-        :final isSending,
-        :final isFailed,
-        :final kind,
-      ) =>
-        Align(
-          alignment: isOwn ? Alignment.centerRight : Alignment.centerLeft,
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+    final textTheme = Theme.of(context).textTheme;
+
+    return switch (item.kind) {
+      TimelineItemKind_Event(:final event) => Align(
+        alignment: event.isOwn ? Alignment.centerRight : Alignment.centerLeft,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.sender.name ?? event.sender.id,
+                  style: textTheme.labelSmall,
+                ),
+                if (event.replyTo case final reply?)
                   Text(
-                    senderName ?? senderId,
-                    style: Theme.of(context).textTheme.labelSmall,
+                    '↪ ${reply.sender?.name ?? reply.sender?.id ?? '…'}: '
+                    '${reply.preview == null ? '…' : _preview(reply.preview!)}',
+                    style: textTheme.bodySmall,
                   ),
-                  _content(kind),
-                  if (isSending)
-                    const Text('sendet …', style: TextStyle(fontSize: 10)),
-                  if (isFailed)
-                    const Text(
-                      'fehlgeschlagen',
-                      style: TextStyle(color: Colors.red),
+                _content(event.content),
+                if (event.reactions.isNotEmpty)
+                  Wrap(
+                    spacing: 4,
+                    children: [
+                      for (final reaction in event.reactions)
+                        ActionChip(
+                          label: Text('${reaction.key} ${reaction.count}'),
+                          backgroundColor: reaction.byMe
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : null,
+                          onPressed: () => timeline.toggleReaction(
+                            key: event.key,
+                            reaction: reaction.key,
+                          ),
+                        ),
+                    ],
+                  ),
+                if (event.isEdited)
+                  Text('bearbeitet', style: textTheme.labelSmall),
+                if (event.thread case final thread?)
+                  Text(
+                    '${thread.replyCount} Antworten im Thread',
+                    style: textTheme.labelSmall,
+                  ),
+                switch (event.sendState) {
+                  SendState_Sending() => const Text(
+                    'sendet …',
+                    style: TextStyle(fontSize: 10),
+                  ),
+                  SendState_Failed(:final recoverable) => TextButton(
+                    onPressed: recoverable
+                        ? () => timeline.retry(key: event.key)
+                        : () => timeline.cancel(key: event.key),
+                    child: Text(
+                      recoverable
+                          ? 'fehlgeschlagen – erneut senden'
+                          : 'fehlgeschlagen – verwerfen',
                     ),
-                ],
-              ),
+                  ),
+                  SendState_Sent() => const SizedBox.shrink(),
+                },
+              ],
             ),
           ),
         ),
-      TimelineEntry_State(:final description) => Center(
-        child: Text(description, style: Theme.of(context).textTheme.bodySmall),
       ),
-      TimelineEntry_DayDivider(:final timestampMs) => Center(
+      TimelineItemKind_DateDivider(:final timestampMs) => Center(
         child: Text(
           DateTime.fromMillisecondsSinceEpoch(
             timestampMs,
           ).toLocal().toString().substring(0, 10),
         ),
       ),
-      TimelineEntry_ReadMarker() => const Divider(color: Colors.red),
-      TimelineEntry_TimelineStart() => const Center(
+      TimelineItemKind_ReadMarker() => const Divider(color: Colors.red),
+      TimelineItemKind_TimelineStart() => const Center(
         child: Text('Anfang des Raums'),
       ),
     };
   }
 
-  Widget _content(MessageKind kind) {
-    return switch (kind) {
-      MessageKind_Text(:final body) => Text(body),
-      MessageKind_Image(:final sourceJson, :final body) =>
+  Widget _content(EventContent content) {
+    return switch (content) {
+      EventContent_Text(:final body) => Text(body),
+      EventContent_Image(:final media, :final caption, :final filename) =>
         FutureBuilder<Uint8List>(
-          future: client.fetchMedia(sourceJson: sourceJson),
+          future: client.fetchMedia(media: media),
           builder: (context, snapshot) => snapshot.hasData
-              ? Image.memory(snapshot.data!, width: 220)
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.memory(snapshot.data!, width: 220),
+                    if (caption != null) Text(caption),
+                  ],
+                )
               : Text(
                   snapshot.hasError
                       ? 'Bild nicht ladbar: ${snapshot.error}'
-                      : 'Lade $body …',
+                      : 'Lade $filename …',
                 ),
         ),
-      MessageKind_UnableToDecrypt() => const Text(
+      EventContent_Video(:final filename) => Text('Video: $filename'),
+      EventContent_Audio(:final filename) => Text('Audio: $filename'),
+      EventContent_File(:final filename) => Text('Datei: $filename'),
+      EventContent_UnableToDecrypt() => const Text(
         '🔒 Nachricht kann nicht entschlüsselt werden',
       ),
-      MessageKind_Redacted() => const Text('Nachricht gelöscht'),
-      MessageKind_Other(:final description) => Text(description),
+      EventContent_Redacted() => const Text('Nachricht gelöscht'),
+      EventContent_Membership(:final userId, :final change) => Text(
+        '$userId: ${change.name}',
+      ),
+      EventContent_ProfileChange(:final userId) => Text(
+        '$userId hat das Profil geändert',
+      ),
+      EventContent_RoomState(:final eventType) => Text(
+        'Raumänderung ($eventType)',
+      ),
+      EventContent_Unsupported() => const Text('Nicht unterstützter Inhalt'),
     };
   }
 }

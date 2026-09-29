@@ -28,6 +28,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   get rust_arc_decrement_strong_count_ChatClientPtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClientPtr;
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_ChatTimelinePtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimelinePtr;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
 
@@ -38,14 +42,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ChatTimeline
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    dynamic raw,
+  );
+
+  @protected
   ChatClient
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
     dynamic raw,
   );
 
   @protected
+  ChatTimeline
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    dynamic raw,
+  );
+
+  @protected
   ChatClient
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    dynamic raw,
+  );
+
+  @protected
+  ChatTimeline
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     dynamic raw,
   );
 
@@ -57,8 +79,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw);
 
   @protected
-  RustStreamSink<List<TimelineEntry>>
-  dco_decode_StreamSink_list_timeline_entry_Sse(dynamic raw);
+  RustStreamSink<List<TimelineDiff>>
+  dco_decode_StreamSink_list_timeline_diff_Sse(dynamic raw);
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -73,19 +95,37 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChatConfig dco_decode_box_autoadd_chat_config(dynamic raw);
 
   @protected
+  EventItem dco_decode_box_autoadd_event_item(dynamic raw);
+
+  @protected
+  EventKey dco_decode_box_autoadd_event_key(dynamic raw);
+
+  @protected
   LatestEvent dco_decode_box_autoadd_latest_event(dynamic raw);
 
   @protected
-  MessageKind dco_decode_box_autoadd_message_kind(dynamic raw);
+  MessagePreview dco_decode_box_autoadd_message_preview(dynamic raw);
 
   @protected
   NotificationContent dco_decode_box_autoadd_notification_content(dynamic raw);
 
   @protected
+  ReplyPreview dco_decode_box_autoadd_reply_preview(dynamic raw);
+
+  @protected
   RoomSummary dco_decode_box_autoadd_room_summary(dynamic raw);
 
   @protected
+  Sender dco_decode_box_autoadd_sender(dynamic raw);
+
+  @protected
   SessionInfo dco_decode_box_autoadd_session_info(dynamic raw);
+
+  @protected
+  ThreadSummary dco_decode_box_autoadd_thread_summary(dynamic raw);
+
+  @protected
+  TimelineItem dco_decode_box_autoadd_timeline_item(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
@@ -100,6 +140,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChatError dco_decode_chat_error(dynamic raw);
 
   @protected
+  EventContent dco_decode_event_content(dynamic raw);
+
+  @protected
+  EventItem dco_decode_event_item(dynamic raw);
+
+  @protected
+  EventKey dco_decode_event_key(dynamic raw);
+
+  @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
@@ -112,19 +161,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<Reaction> dco_decode_list_reaction(dynamic raw);
+
+  @protected
   List<RoomListDiff> dco_decode_list_room_list_diff(dynamic raw);
 
   @protected
   List<RoomSummary> dco_decode_list_room_summary(dynamic raw);
 
   @protected
-  List<TimelineEntry> dco_decode_list_timeline_entry(dynamic raw);
+  List<TimelineDiff> dco_decode_list_timeline_diff(dynamic raw);
+
+  @protected
+  List<TimelineItem> dco_decode_list_timeline_item(dynamic raw);
 
   @protected
   Membership dco_decode_membership(dynamic raw);
 
   @protected
-  MessageKind dco_decode_message_kind(dynamic raw);
+  MembershipKind dco_decode_membership_kind(dynamic raw);
 
   @protected
   MessagePreview dco_decode_message_preview(dynamic raw);
@@ -142,12 +197,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   LatestEvent? dco_decode_opt_box_autoadd_latest_event(dynamic raw);
 
   @protected
+  MessagePreview? dco_decode_opt_box_autoadd_message_preview(dynamic raw);
+
+  @protected
   NotificationContent? dco_decode_opt_box_autoadd_notification_content(
     dynamic raw,
   );
 
   @protected
+  ReplyPreview? dco_decode_opt_box_autoadd_reply_preview(dynamic raw);
+
+  @protected
+  Sender? dco_decode_opt_box_autoadd_sender(dynamic raw);
+
+  @protected
   SessionInfo? dco_decode_opt_box_autoadd_session_info(dynamic raw);
+
+  @protected
+  ThreadSummary? dco_decode_opt_box_autoadd_thread_summary(dynamic raw);
 
   @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
@@ -156,7 +223,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
+  Reaction dco_decode_reaction(dynamic raw);
+
+  @protected
   RecoveryStatus dco_decode_recovery_status(dynamic raw);
+
+  @protected
+  ReplyPreview dco_decode_reply_preview(dynamic raw);
 
   @protected
   RoomFilter dco_decode_room_filter(dynamic raw);
@@ -171,10 +244,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RoomSummary dco_decode_room_summary(dynamic raw);
 
   @protected
+  SendState dco_decode_send_state(dynamic raw);
+
+  @protected
+  Sender dco_decode_sender(dynamic raw);
+
+  @protected
   SessionInfo dco_decode_session_info(dynamic raw);
 
   @protected
-  TimelineEntry dco_decode_timeline_entry(dynamic raw);
+  ThreadSummary dco_decode_thread_summary(dynamic raw);
+
+  @protected
+  TimelineDiff dco_decode_timeline_diff(dynamic raw);
+
+  @protected
+  TimelineItem dco_decode_timeline_item(dynamic raw);
+
+  @protected
+  TimelineItemKind dco_decode_timeline_item_kind(dynamic raw);
 
   @protected
   int dco_decode_u_16(dynamic raw);
@@ -204,14 +292,32 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ChatTimeline
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChatClient
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
     SseDeserializer deserializer,
   );
 
   @protected
+  ChatTimeline
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChatClient
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ChatTimeline
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
     SseDeserializer deserializer,
   );
 
@@ -225,8 +331,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer);
 
   @protected
-  RustStreamSink<List<TimelineEntry>>
-  sse_decode_StreamSink_list_timeline_entry_Sse(SseDeserializer deserializer);
+  RustStreamSink<List<TimelineDiff>>
+  sse_decode_StreamSink_list_timeline_diff_Sse(SseDeserializer deserializer);
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -241,10 +347,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChatConfig sse_decode_box_autoadd_chat_config(SseDeserializer deserializer);
 
   @protected
+  EventItem sse_decode_box_autoadd_event_item(SseDeserializer deserializer);
+
+  @protected
+  EventKey sse_decode_box_autoadd_event_key(SseDeserializer deserializer);
+
+  @protected
   LatestEvent sse_decode_box_autoadd_latest_event(SseDeserializer deserializer);
 
   @protected
-  MessageKind sse_decode_box_autoadd_message_kind(SseDeserializer deserializer);
+  MessagePreview sse_decode_box_autoadd_message_preview(
+    SseDeserializer deserializer,
+  );
 
   @protected
   NotificationContent sse_decode_box_autoadd_notification_content(
@@ -252,10 +366,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  ReplyPreview sse_decode_box_autoadd_reply_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RoomSummary sse_decode_box_autoadd_room_summary(SseDeserializer deserializer);
 
   @protected
+  Sender sse_decode_box_autoadd_sender(SseDeserializer deserializer);
+
+  @protected
   SessionInfo sse_decode_box_autoadd_session_info(SseDeserializer deserializer);
+
+  @protected
+  ThreadSummary sse_decode_box_autoadd_thread_summary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  TimelineItem sse_decode_box_autoadd_timeline_item(
+    SseDeserializer deserializer,
+  );
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
@@ -270,6 +402,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ChatError sse_decode_chat_error(SseDeserializer deserializer);
 
   @protected
+  EventContent sse_decode_event_content(SseDeserializer deserializer);
+
+  @protected
+  EventItem sse_decode_event_item(SseDeserializer deserializer);
+
+  @protected
+  EventKey sse_decode_event_key(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
@@ -282,6 +423,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<Reaction> sse_decode_list_reaction(SseDeserializer deserializer);
+
+  @protected
   List<RoomListDiff> sse_decode_list_room_list_diff(
     SseDeserializer deserializer,
   );
@@ -290,7 +434,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RoomSummary> sse_decode_list_room_summary(SseDeserializer deserializer);
 
   @protected
-  List<TimelineEntry> sse_decode_list_timeline_entry(
+  List<TimelineDiff> sse_decode_list_timeline_diff(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<TimelineItem> sse_decode_list_timeline_item(
     SseDeserializer deserializer,
   );
 
@@ -298,7 +447,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Membership sse_decode_membership(SseDeserializer deserializer);
 
   @protected
-  MessageKind sse_decode_message_kind(SseDeserializer deserializer);
+  MembershipKind sse_decode_membership_kind(SseDeserializer deserializer);
 
   @protected
   MessagePreview sse_decode_message_preview(SseDeserializer deserializer);
@@ -320,12 +469,30 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  MessagePreview? sse_decode_opt_box_autoadd_message_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   NotificationContent? sse_decode_opt_box_autoadd_notification_content(
     SseDeserializer deserializer,
   );
 
   @protected
+  ReplyPreview? sse_decode_opt_box_autoadd_reply_preview(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Sender? sse_decode_opt_box_autoadd_sender(SseDeserializer deserializer);
+
+  @protected
   SessionInfo? sse_decode_opt_box_autoadd_session_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ThreadSummary? sse_decode_opt_box_autoadd_thread_summary(
     SseDeserializer deserializer,
   );
 
@@ -336,7 +503,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  Reaction sse_decode_reaction(SseDeserializer deserializer);
+
+  @protected
   RecoveryStatus sse_decode_recovery_status(SseDeserializer deserializer);
+
+  @protected
+  ReplyPreview sse_decode_reply_preview(SseDeserializer deserializer);
 
   @protected
   RoomFilter sse_decode_room_filter(SseDeserializer deserializer);
@@ -351,10 +524,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   RoomSummary sse_decode_room_summary(SseDeserializer deserializer);
 
   @protected
+  SendState sse_decode_send_state(SseDeserializer deserializer);
+
+  @protected
+  Sender sse_decode_sender(SseDeserializer deserializer);
+
+  @protected
   SessionInfo sse_decode_session_info(SseDeserializer deserializer);
 
   @protected
-  TimelineEntry sse_decode_timeline_entry(SseDeserializer deserializer);
+  ThreadSummary sse_decode_thread_summary(SseDeserializer deserializer);
+
+  @protected
+  TimelineDiff sse_decode_timeline_diff(SseDeserializer deserializer);
+
+  @protected
+  TimelineItem sse_decode_timeline_item(SseDeserializer deserializer);
+
+  @protected
+  TimelineItemKind sse_decode_timeline_item_kind(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_16(SseDeserializer deserializer);
@@ -389,6 +577,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    ChatTimeline self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
     ChatClient self,
     SseSerializer serializer,
@@ -396,8 +591,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    ChatTimeline self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
     ChatClient self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    ChatTimeline self,
     SseSerializer serializer,
   );
 
@@ -414,8 +623,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_StreamSink_list_timeline_entry_Sse(
-    RustStreamSink<List<TimelineEntry>> self,
+  void sse_encode_StreamSink_list_timeline_diff_Sse(
+    RustStreamSink<List<TimelineDiff>> self,
     SseSerializer serializer,
   );
 
@@ -435,14 +644,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_event_item(
+    EventItem self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_event_key(
+    EventKey self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_latest_event(
     LatestEvent self,
     SseSerializer serializer,
   );
 
   @protected
-  void sse_encode_box_autoadd_message_kind(
-    MessageKind self,
+  void sse_encode_box_autoadd_message_preview(
+    MessagePreview self,
     SseSerializer serializer,
   );
 
@@ -453,14 +674,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_reply_preview(
+    ReplyPreview self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_room_summary(
     RoomSummary self,
     SseSerializer serializer,
   );
 
   @protected
+  void sse_encode_box_autoadd_sender(Sender self, SseSerializer serializer);
+
+  @protected
   void sse_encode_box_autoadd_session_info(
     SessionInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_thread_summary(
+    ThreadSummary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_timeline_item(
+    TimelineItem self,
     SseSerializer serializer,
   );
 
@@ -475,6 +717,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_chat_error(ChatError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_event_content(EventContent self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_event_item(EventItem self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_event_key(EventKey self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -492,6 +743,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_reaction(List<Reaction> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_room_list_diff(
     List<RoomListDiff> self,
     SseSerializer serializer,
@@ -504,8 +758,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_timeline_entry(
-    List<TimelineEntry> self,
+  void sse_encode_list_timeline_diff(
+    List<TimelineDiff> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_timeline_item(
+    List<TimelineItem> self,
     SseSerializer serializer,
   );
 
@@ -513,7 +773,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_membership(Membership self, SseSerializer serializer);
 
   @protected
-  void sse_encode_message_kind(MessageKind self, SseSerializer serializer);
+  void sse_encode_membership_kind(
+    MembershipKind self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_message_preview(
@@ -540,8 +803,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_message_preview(
+    MessagePreview? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_notification_content(
     NotificationContent? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_reply_preview(
+    ReplyPreview? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_sender(
+    Sender? self,
     SseSerializer serializer,
   );
 
@@ -552,16 +833,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_thread_summary(
+    ThreadSummary? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_reaction(Reaction self, SseSerializer serializer);
+
+  @protected
   void sse_encode_recovery_status(
     RecoveryStatus self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_reply_preview(ReplyPreview self, SseSerializer serializer);
 
   @protected
   void sse_encode_room_filter(RoomFilter self, SseSerializer serializer);
@@ -576,10 +869,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_room_summary(RoomSummary self, SseSerializer serializer);
 
   @protected
+  void sse_encode_send_state(SendState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_sender(Sender self, SseSerializer serializer);
+
+  @protected
   void sse_encode_session_info(SessionInfo self, SseSerializer serializer);
 
   @protected
-  void sse_encode_timeline_entry(TimelineEntry self, SseSerializer serializer);
+  void sse_encode_thread_summary(ThreadSummary self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_timeline_diff(TimelineDiff self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_timeline_item(TimelineItem self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_timeline_item_kind(
+    TimelineItemKind self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_u_16(int self, SseSerializer serializer);
@@ -646,5 +957,39 @@ class RustLibWire implements BaseWire {
       );
   late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient =
       _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClientPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimelinePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_ngotools_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimelinePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimelinePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_ngotools_chat_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimeline =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatTimelinePtr
           .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 }
