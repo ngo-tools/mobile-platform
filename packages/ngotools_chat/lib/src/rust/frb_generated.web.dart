@@ -6,7 +6,13 @@
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
-import 'api/chat.dart';
+import 'api/client.dart';
+import 'api/encryption.dart';
+import 'api/error.dart';
+import 'api/logging.dart';
+import 'api/notifications.dart';
+import 'api/rooms.dart';
+import 'api/timeline.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'frb_generated.dart';
@@ -85,7 +91,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_32(dynamic raw);
 
   @protected
+  BigInt dco_decode_box_autoadd_u_64(dynamic raw);
+
+  @protected
   ChatConfig dco_decode_chat_config(dynamic raw);
+
+  @protected
+  ChatError dco_decode_chat_error(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -127,6 +139,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
   RecoveryStatus dco_decode_recovery_status(dynamic raw);
@@ -223,7 +238,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
+
+  @protected
   ChatConfig sse_decode_chat_config(SseDeserializer deserializer);
+
+  @protected
+  ChatError sse_decode_chat_error(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -271,6 +292,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
   RecoveryStatus sse_decode_recovery_status(SseDeserializer deserializer);
@@ -390,7 +414,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
+
+  @protected
   void sse_encode_chat_config(ChatConfig self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_chat_error(ChatError self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
@@ -451,6 +481,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
   void sse_encode_recovery_status(

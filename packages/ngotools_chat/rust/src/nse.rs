@@ -23,7 +23,10 @@ use matrix_sdk_ui::notification_client::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::api::chat::{build_client, restore_stored_session, runtime, ClientParams};
+use crate::{
+    runtime::runtime,
+    session::{build_client, restore_stored_session, ClientParams},
+};
 
 #[derive(Deserialize)]
 struct NseConfig {
