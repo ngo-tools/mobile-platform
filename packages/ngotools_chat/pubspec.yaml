@@ -1,0 +1,36 @@
+name: ngotools_chat
+description: Matrix chat for NGO.Tools mobile apps on matrix-rust-sdk (Rust facade via flutter_rust_bridge).
+version: 0.1.0-dev.1
+repository: https://github.com/ngo-tools/mobile-platform
+issue_tracker: https://github.com/ngo-tools/mobile-platform/issues
+
+environment:
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Must match flutter_rust_bridge in rust/Cargo.toml and the codegen version.
+  flutter_rust_bridge: 2.13.0
+  freezed_annotation: ^3.1.0
+
+dev_dependencies:
+  build_runner: ^2.15.1
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  freezed: ^3.2.5
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: tools.ngo.mobile.chat
+        pluginClass: NgotoolsChatPlugin
+        ffiPlugin: true
+      ios:
+        pluginClass: NgotoolsChatPlugin
+        ffiPlugin: true

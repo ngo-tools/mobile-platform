@@ -9,6 +9,8 @@ environment:
 workspace:
   - packages/ngotools_api
   - packages/ngotools_auth
+  - packages/ngotools_chat
+  - packages/ngotools_chat/example
   - packages/ngotools_contacts
   - packages/ngotools_design_system
   - packages/ngotools_events

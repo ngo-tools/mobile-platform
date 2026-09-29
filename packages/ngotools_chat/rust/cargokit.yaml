@@ -1,0 +1,16 @@
+# Toolchain pinned to matrix-rust-sdk's MSRV-compatible version (see
+# rust-toolchain.toml; the vendored cargokit accepts version numbers).
+cargo:
+  debug:
+    toolchain: 1.98.1
+  profile:
+    toolchain: 1.98.1
+  release:
+    toolchain: 1.98.1
+
+# Signed release binaries built by .github/workflows/chat-native-binaries.yml.
+# Builds without a local Rust toolchain download them by crate hash and verify
+# the Ed25519 signature; otherwise cargokit builds from source.
+precompiled_binaries:
+  url_prefix: https://github.com/ngo-tools/mobile-platform/releases/download/precompiled_
+  public_key: 5544e6777f878ff81c199ded79cf3bad18196e185b46fcd6c773bbab2991ec8a

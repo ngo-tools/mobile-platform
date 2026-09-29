@@ -1,0 +1,63 @@
+# ngotools_chat
+
+Matrix chat for NGO.Tools organization apps, built on
+[matrix-rust-sdk](https://github.com/matrix-org/matrix-rust-sdk) (Apache-2.0).
+A small Rust facade (`rust/`, crate `ngotools_matrix_core`) wraps the SDK and
+is bound to Dart with flutter_rust_bridge. The facade is the only place that
+absorbs SDK changes; its API stays small and stable.
+
+The package is under construction (milestone M1: foundation). It is not part
+of the module catalog yet and must not be added to organization apps.
+
+## Architecture
+
+- **Sessions and tokens stay in Rust.** The OAuth session (MAS, Authorization
+  Code + PKCE) and its refresh token are persisted in the encrypted SQLite
+  state store. Dart only passes the 32-byte store key from the
+  Keychain/Keystore.
+- **One binary for app and Notification Service Extension.** On iOS the Rust
+  code is the pod `ngotools_matrix_core` (no Flutter dependency), linked by
+  the app and by the extension (`ios/Core/ngotools_matrix_core.h`, C ABI in
+  `rust/src/nse.rs`). Both processes coordinate through the SDK's
+  cross-process store and refresh locks.
+- **Android TLS** uses `rustls-platform-verifier`, initialized over JNI by
+  `NgotoolsChatPlugin`. It trusts the system and user CA store only; extra
+  root certificates and the network security config are not supported.
+
+## Binaries
+
+Release builds of the facade are precompiled, signed (Ed25519) and published
+by `.github/workflows/chat-native-binaries.yml`. Builds on machines without
+`rustup` download them by crate hash and verify the signature against
+`rust/cargokit.yaml`. With `rustup` installed, cargokit builds from source
+with the pinned toolchain (`rust/rust-toolchain.toml`).
+
+## Development
+
+```bash
+# Regenerate the Dart bindings after changing rust/src/api/**
+flutter_rust_bridge_codegen generate
+(cd rust && cargo fmt)
+
+# Rust gate (also runs in CI)
+cd rust
+cargo fmt --check
+cargo deny check licenses sources advisories
+cargo clippy --all-targets --locked -- -D warnings
+cargo test --locked
+```
+
+`deny.toml` forbids GPL, LGPL and AGPL code in the app binary. MPL-2.0
+crates are allowed unmodified and must appear in the third-party notices.
+
+## End-to-end tests
+
+`e2e/` contains a local Synapse + MAS server (Docker) and a runner for
+`example/integration_test/chat_flow_e2e.dart` on a simulator or emulator:
+
+```bash
+e2e/server/setup.sh up && e2e/server/setup.sh ca
+python3 e2e/server/push_gateway.py 28451 &
+e2e/run.sh ios <simulator-udid>
+e2e/run.sh android <emulator-serial>   # rootable emulator started with -read-only
+```

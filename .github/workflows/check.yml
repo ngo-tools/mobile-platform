@@ -30,3 +30,47 @@ jobs:
 
       - name: Run platform gate
         run: dart run tool/check.dart
+
+  chat-native:
+    name: Chat native (Rust facade)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    defaults:
+      run:
+        working-directory: packages/ngotools_chat/rust
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install pinned Rust toolchain
+        # Reads rust-toolchain.toml (matrix-rust-sdk MSRV).
+        run: rustup toolchain install
+
+      - name: Restore Cargo cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/ngotools_chat/rust/target
+          key: chat-native-${{ hashFiles('packages/ngotools_chat/rust/Cargo.lock', 'packages/ngotools_chat/rust/rust-toolchain.toml') }}
+          restore-keys: chat-native-
+
+      - name: Install cargo-deny
+        run: command -v cargo-deny >/dev/null || cargo install --locked cargo-deny --version 0.20.2
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: License, source and advisory gate
+        # No GPL/LGPL/AGPL may reach the app binary (see deny.toml).
+        run: cargo deny check licenses sources advisories
+
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked

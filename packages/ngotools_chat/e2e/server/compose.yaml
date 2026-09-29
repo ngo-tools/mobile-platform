@@ -1,0 +1,72 @@
+# Local Matrix test server for the ngotools_chat end-to-end tests.
+# Mirrors production versions (see ~/dev/_plans/ngo-chat/infra/versions.env):
+# Synapse 1.161 + MAS 1.25 with OAuth 2.0 (MSC3861) and native Simplified
+# Sliding Sync. Unlike production, MAS allows local passwords so that the
+# OAuth flow can run without an upstream provider.
+name: ngotools-chat-e2e
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    # E2E only: the Docker VM disk is contended on this machine; without
+    # durable commits the measurements reflect the client, not local fsyncs.
+    command: ["postgres", "-c", "fsync=off", "-c", "synchronous_commit=off", "-c", "full_page_writes=off"]
+    environment:
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run setup.sh}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - ./generated/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "chat"]
+      interval: 2s
+      retries: 30
+
+  synapse:
+    image: ghcr.io/element-hq/synapse:v1.161.0
+    restart: unless-stopped
+    environment:
+      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+      UID: "1000"
+      GID: "1000"
+    volumes:
+      - ./generated/synapse:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  mas:
+    image: ghcr.io/element-hq/matrix-authentication-service:1.25.1
+    restart: unless-stopped
+    command: ["server"]
+    environment:
+      MAS_CONFIG: /config/config.yaml
+    volumes:
+      - ./generated/mas/config.yaml:/config/config.yaml:ro
+      - ./generated/mas/keys:/keys:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  element:
+    image: ghcr.io/element-hq/element-web:v1.12.29
+    restart: unless-stopped
+    volumes:
+      - ./generated/element-config.json:/app/config.json:ro
+
+  caddy:
+    image: caddy:2.10
+    restart: unless-stopped
+    ports:
+      - "${HS_PORT}:${HS_PORT}"
+      - "${AUTH_PORT}:${AUTH_PORT}"
+      - "${WEB_PORT}:${WEB_PORT}"
+    volumes:
+      - ./generated/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+
+volumes:
+  postgres:
+  caddy:
