@@ -49,6 +49,10 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.CARGOKIT_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Xcode sets this for pod builds; without it the C parts (aws-lc,
+          # blake3, ...) target the SDK version and fail to link. Keep in
+          # sync with s.platform in ios/*.podspec.
+          IPHONEOS_DEPLOYMENT_TARGET: "15.0"
         run: |
           dart pub get
           dart run build_tool precompile-binaries -v \
@@ -58,7 +62,7 @@ jobs:
             --target=aarch64-apple-ios-sim
 
   android:
-    name: Android (arm64, armv7, x86_64)
+    name: Android (arm64, armv7, x86_64, x86)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: chat-native-binaries
@@ -94,4 +98,5 @@ jobs:
             --android-min-sdk-version=24 \
             --target=aarch64-linux-android \
             --target=armv7-linux-androideabi \
-            --target=x86_64-linux-android
+            --target=x86_64-linux-android \
+            --target=i686-linux-android
