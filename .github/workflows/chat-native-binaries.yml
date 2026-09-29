@@ -49,6 +49,10 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.CARGOKIT_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Xcode sets this for pod builds; without it the C parts (aws-lc,
+          # blake3, ...) target the SDK version and fail to link. Keep in
+          # sync with s.platform in ios/*.podspec.
+          IPHONEOS_DEPLOYMENT_TARGET: "15.0"
         run: |
           dart pub get
           dart run build_tool precompile-binaries -v \
