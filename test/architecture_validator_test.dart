@@ -45,4 +45,25 @@ void main() {
       'example/golden_app/lib/profile.dart may not perform direct HTTP requests.',
     });
   });
+
+  test('keeps the chat package free of internal platform dependencies', () {
+    final errors = ArchitectureValidator.validate({
+      'ngotools_chat': {'flutter', 'flutter_rust_bridge', 'ngotools_auth'},
+    });
+
+    expect(errors, ['ngotools_chat may not depend on ngotools_auth.']);
+  });
+
+  test('keeps the Rust bridge internals inside the chat package', () {
+    final errors = ArchitectureValidator.validateSourceBoundaries({
+      'example/golden_app/lib/chat.dart':
+          "import 'package:ngotools_chat/src/rust/frb_generated.dart';",
+      'packages/ngotools_chat/lib/ngotools_chat.dart':
+          "export 'package:ngotools_chat/src/rust/frb_generated.dart';",
+    });
+
+    expect(errors, [
+      'example/golden_app/lib/chat.dart may not import ngotools_chat internals.',
+    ]);
+  });
 }

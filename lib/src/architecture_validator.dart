@@ -4,6 +4,7 @@ abstract final class ArchitectureValidator {
     'ngotools_mobile_core': {},
     'ngotools_auth': {'ngotools_mobile_core'},
     'ngotools_api': {'ngotools_mobile_core'},
+    'ngotools_chat': {},
     'ngotools_contacts': {
       'ngotools_mobile_core',
       'ngotools_api',
@@ -59,6 +60,7 @@ abstract final class ArchitectureValidator {
     for (final entry in sources.entries) {
       final isAuthSource = entry.key.startsWith('packages/ngotools_auth/lib/');
       final isApiSource = entry.key.startsWith('packages/ngotools_api/lib/');
+      final isChatSource = entry.key.startsWith('packages/ngotools_chat/');
 
       if (!isAuthSource && entry.value.contains("package:ngotools_auth/src/")) {
         errors.add('${entry.key} may not import ngotools_auth internals.');
@@ -67,6 +69,10 @@ abstract final class ArchitectureValidator {
       if (!isApiSource &&
           entry.value.contains("package:ngotools_api/src/generated/")) {
         errors.add('${entry.key} may not import generated API internals.');
+      }
+
+      if (!isChatSource && entry.value.contains("package:ngotools_chat/src/")) {
+        errors.add('${entry.key} may not import ngotools_chat internals.');
       }
 
       if (!isAuthSource &&

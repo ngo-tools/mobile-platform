@@ -1,0 +1,97 @@
+name: Chat native binaries
+
+# Builds the Rust facade of ngotools_chat for all mobile targets, signs every
+# artifact with Ed25519 and publishes it as release `precompiled_<crate-hash>`.
+# App builds without a Rust toolchain download these by crate hash and verify
+# them against the public key in packages/ngotools_chat/rust/cargokit.yaml.
+#
+# The signing key exists only in the protected `chat-native-binaries`
+# environment (required reviewers); it must never be stored in this repository.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - packages/ngotools_chat/rust/**
+      - packages/ngotools_chat/cargokit/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chat-native-binaries
+  cancel-in-progress: false
+
+jobs:
+  apple:
+    name: iOS (device + simulator)
+    runs-on: macos-latest
+    timeout-minutes: 90
+    environment: chat-native-binaries
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Precompile, sign and upload
+        working-directory: packages/ngotools_chat/cargokit/build_tool
+        env:
+          PRIVATE_KEY: ${{ secrets.CARGOKIT_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dart pub get
+          dart run build_tool precompile-binaries -v \
+            --manifest-dir=../../rust \
+            --repository=${{ github.repository }} \
+            --target=aarch64-apple-ios \
+            --target=aarch64-apple-ios-sim
+
+  android:
+    name: Android (arm64, armv7, x86_64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: chat-native-binaries
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: 3.41.6
+          channel: stable
+          cache: true
+
+      - name: Install Android NDK
+        run: yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --install "ndk;28.2.13676358" > /dev/null
+
+      - name: Precompile, sign and upload
+        working-directory: packages/ngotools_chat/cargokit/build_tool
+        env:
+          PRIVATE_KEY: ${{ secrets.CARGOKIT_PRIVATE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dart pub get
+          dart run build_tool precompile-binaries -v \
+            --manifest-dir=../../rust \
+            --repository=${{ github.repository }} \
+            --android-sdk-location="$ANDROID_SDK_ROOT" \
+            --android-ndk-version=28.2.13676358 \
+            --android-min-sdk-version=24 \
+            --target=aarch64-linux-android \
+            --target=armv7-linux-androideabi \
+            --target=x86_64-linux-android
