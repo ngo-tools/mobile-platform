@@ -144,7 +144,7 @@ void main() {
       environment: MobileEnvironment.staging,
       id: 'env_synthetic',
       apiBaseUrl: Uri.parse(
-        'https://staging.example.invalid/api/v2/internal-path',
+        'https://staging.example.invalid/api/v3/internal-path',
       ),
       configRevision: 'cfg_synthetic',
       attestationMode: MobileAttestationMode.test,
@@ -166,7 +166,7 @@ void main() {
 
     expect(snapshot.features, ['contacts']);
     expect(supportText, contains('api_host=staging.example.invalid'));
-    expect(supportText, isNot(contains('/api/v2')));
+    expect(supportText, isNot(contains('/api/v3')));
     expect(supportText, isNot(contains('Authorization')));
     expect(supportText, isNot(contains('email')));
     expect(supportText, contains('permission_count=1'));

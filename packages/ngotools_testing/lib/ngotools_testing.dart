@@ -23,7 +23,7 @@ abstract final class SyntheticMobileFixture {
           id: 'env_01J0000000000000000000000${environment.index}',
           apiBaseUrl: Uri.https(
             '${environment.name}.example.invalid',
-            '/api/v2',
+            '/api/v3',
           ),
           configRevision: 'cfg_01J0000000000000000000000${environment.index}',
           attestationMode: switch (environment) {

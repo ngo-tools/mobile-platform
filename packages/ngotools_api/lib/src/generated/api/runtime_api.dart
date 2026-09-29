@@ -39,7 +39,7 @@ class RuntimeApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/capabilities';
+    final _path = r'/api/v3/capabilities';
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{...?headers},
@@ -114,7 +114,7 @@ class RuntimeApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/me';
+    final _path = r'/api/v3/me';
     final _options = Options(
       method: r'GET',
       headers: <String, dynamic>{...?headers},

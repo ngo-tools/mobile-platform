@@ -12,7 +12,7 @@ final mobileAppConfiguration = MobileAppConfiguration(
     MobileEnvironment.development: MobileEnvironmentConfiguration(
       environment: MobileEnvironment.development,
       id: 'env_01J00000000000000000000000',
-      apiBaseUrl: Uri.parse('https://development.example.invalid/api/v2'),
+      apiBaseUrl: Uri.parse('https://development.example.invalid/api/v3'),
       configRevision: 'cfg_01J00000000000000000000000',
       attestationMode: MobileAttestationMode.disabled,
       oidc: MobileOidcConfiguration(
@@ -29,7 +29,7 @@ final mobileAppConfiguration = MobileAppConfiguration(
     MobileEnvironment.staging: MobileEnvironmentConfiguration(
       environment: MobileEnvironment.staging,
       id: 'env_01J00000000000000000000001',
-      apiBaseUrl: Uri.parse('https://staging.example.invalid/api/v2'),
+      apiBaseUrl: Uri.parse('https://staging.example.invalid/api/v3'),
       configRevision: 'cfg_01J00000000000000000000001',
       attestationMode: MobileAttestationMode.test,
       oidc: MobileOidcConfiguration(
@@ -46,7 +46,7 @@ final mobileAppConfiguration = MobileAppConfiguration(
     MobileEnvironment.production: MobileEnvironmentConfiguration(
       environment: MobileEnvironment.production,
       id: 'env_01J00000000000000000000002',
-      apiBaseUrl: Uri.parse('https://production.example.invalid/api/v2'),
+      apiBaseUrl: Uri.parse('https://production.example.invalid/api/v3'),
       configRevision: 'cfg_01J00000000000000000000002',
       attestationMode: MobileAttestationMode.enforced,
       oidc: MobileOidcConfiguration(

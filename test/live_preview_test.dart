@@ -18,7 +18,7 @@ void main() {
       'tenant': 'synthetic-demo',
       'modules': ['events', 'profile'],
       'platform': 'ios',
-      'api_base_url': 'https://synthetic-demo.example.invalid/api/v2',
+      'api_base_url': 'https://synthetic-demo.example.invalid/api/v3',
       'expires_at': '2026-09-28T18:00:00+00:00',
       'attestation_mode': 'disabled',
       'oidc': {
@@ -77,7 +77,7 @@ void main() {
     });
     expect(
       requests.last.$1.path,
-      '/api/v2/mobile-app-previews/prv_01J00000000000000000000000/poll',
+      '/api/v3/mobile-app-previews/prv_01J00000000000000000000000/poll',
     );
     expect(requests.last.$2, {'poll_token': 'synthetic-poll-token'});
     expect(sleeps, [const Duration(seconds: 2), const Duration(seconds: 2)]);

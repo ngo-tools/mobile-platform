@@ -53,7 +53,7 @@ MobileAuthConfiguration _configuration({String environment = 'default'}) =>
       appId: 'mob_01J00000000000000000000000',
       environmentId: 'env-$environment',
       tenant: 'synthetic-demo',
-      apiBaseUrl: Uri.https('$environment.example.invalid', '/api/v2'),
+      apiBaseUrl: Uri.https('$environment.example.invalid', '/api/v3'),
       issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
       clientId: 'mobile-synthetic',
       redirectUri: Uri.parse('ngotools-synthetic://oauth/callback'),

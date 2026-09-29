@@ -6,7 +6,7 @@ void main() {
     final environment = MobileEnvironmentConfiguration(
       environment: MobileEnvironment.staging,
       id: 'env_01J00000000000000000000000',
-      apiBaseUrl: Uri.https('staging.example.invalid', '/api/v2'),
+      apiBaseUrl: Uri.https('staging.example.invalid', '/api/v3'),
       configRevision: 'cfg_01J00000000000000000000000',
       attestationMode: MobileAttestationMode.test,
       oidc: _oidc(),
@@ -40,7 +40,7 @@ void main() {
     environments[MobileEnvironment.production] = MobileEnvironmentConfiguration(
       environment: MobileEnvironment.production,
       id: 'env_01J00000000000000000000000',
-      apiBaseUrl: Uri.https('example.invalid', '/api/v2'),
+      apiBaseUrl: Uri.https('example.invalid', '/api/v3'),
       configRevision: 'cfg_01J00000000000000000000000',
       attestationMode: MobileAttestationMode.enforced,
       oidc: _oidc(),

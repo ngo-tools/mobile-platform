@@ -45,7 +45,7 @@ class ReleaseApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/mobile-app-releases/{releaseRequestId}/poll'
+    final _path = r'/api/v3/mobile-app-releases/{releaseRequestId}/poll'
         .replaceAll(
           '{'
           r'releaseRequestId'
@@ -137,7 +137,7 @@ class ReleaseApi {
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    final _path = r'/api/v2/mobile-app-releases';
+    final _path = r'/api/v3/mobile-app-releases';
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{...?headers},

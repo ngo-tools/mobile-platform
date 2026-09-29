@@ -114,11 +114,11 @@ void main() {
     final dio = Dio()..httpClientAdapter = adapter;
     cubit.attachTo(dio);
 
-    await dio.get<void>('https://api.example.invalid/api/v2/profile');
+    await dio.get<void>('https://api.example.invalid/api/v3/profile');
 
     expect(adapter.authorization, 'Bearer synthetic-api-token');
     await expectLater(
-      dio.get<void>('https://other.example.invalid/api/v2/profile'),
+      dio.get<void>('https://other.example.invalid/api/v3/profile'),
       throwsA(isA<DioException>()),
     );
     expect(adapter.requests, 1);
@@ -132,7 +132,7 @@ void main() {
     cubit.attachTo(dio);
 
     await expectLater(
-      dio.get<void>('https://api.example.invalid/api/v2/profile'),
+      dio.get<void>('https://api.example.invalid/api/v3/profile'),
       throwsA(isA<DioException>()),
     );
     await Future<void>.delayed(Duration.zero);
@@ -353,7 +353,7 @@ MobileAuthConfiguration _configuration() => MobileAuthConfiguration(
   appId: 'mob_01J00000000000000000000000',
   environmentId: 'env_01J00000000000000000000000',
   tenant: 'synthetic-demo',
-  apiBaseUrl: Uri.https('api.example.invalid', '/api/v2'),
+  apiBaseUrl: Uri.https('api.example.invalid', '/api/v3'),
   issuer: Uri.https('identity.example.invalid', '/realms/synthetic'),
   clientId: 'mobile-synthetic',
   redirectUri: Uri.parse('ngotools-synthetic://oauth/callback'),
