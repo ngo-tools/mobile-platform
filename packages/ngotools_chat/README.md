@@ -24,6 +24,22 @@ of the module catalog yet and must not be added to organization apps.
   `NgotoolsChatPlugin`. It trusts the system and user CA store only; extra
   root certificates and the network security config are not supported.
 
+## Room list
+
+`RoomListController` applies the facade's diff stream (`RoomListDiff`, 1:1 to
+the SDK's `VectorDiff`) to an unmodifiable list and exposes it as a
+`ValueListenable`. Filters (`all`, `people`, `groups`, `invites`, `unread`)
+and paging are forwarded to the list task in Rust. Each `RoomSummary`
+carries kind, membership, unread counts and a typed `MessagePreview` of the
+latest event, which the app localizes.
+
+## Errors
+
+Every facade call throws a typed `ChatError` (`network`, `sessionExpired`,
+`accountLocked`, `forbidden`, `notFound`, `rateLimited`, `crypto`, `storage`,
+`invalidInput`, `internal`). A token refresh that fails for lack of
+connectivity is reported as `network`, never as `sessionExpired`.
+
 ## Binaries
 
 Release builds of the facade are precompiled, signed (Ed25519) and published

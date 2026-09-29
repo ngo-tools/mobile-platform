@@ -458,6 +458,606 @@ as String,
 }
 
 /// @nodoc
+mixin _$MessagePreview {
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview()';
+}
+
+
+}
+
+/// @nodoc
+class $MessagePreviewCopyWith<$Res>  {
+$MessagePreviewCopyWith(MessagePreview _, $Res Function(MessagePreview) __);
+}
+
+
+/// Adds pattern-matching-related methods to [MessagePreview].
+extension MessagePreviewPatterns on MessagePreview {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( MessagePreview_Text value)?  text,TResult Function( MessagePreview_Image value)?  image,TResult Function( MessagePreview_Video value)?  video,TResult Function( MessagePreview_Audio value)?  audio,TResult Function( MessagePreview_File value)?  file,TResult Function( MessagePreview_Location value)?  location,TResult Function( MessagePreview_Poll value)?  poll,TResult Function( MessagePreview_Sticker value)?  sticker,TResult Function( MessagePreview_Redacted value)?  redacted,TResult Function( MessagePreview_UnableToDecrypt value)?  unableToDecrypt,TResult Function( MessagePreview_Other value)?  other,required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case MessagePreview_Text() when text != null:
+return text(_that);case MessagePreview_Image() when image != null:
+return image(_that);case MessagePreview_Video() when video != null:
+return video(_that);case MessagePreview_Audio() when audio != null:
+return audio(_that);case MessagePreview_File() when file != null:
+return file(_that);case MessagePreview_Location() when location != null:
+return location(_that);case MessagePreview_Poll() when poll != null:
+return poll(_that);case MessagePreview_Sticker() when sticker != null:
+return sticker(_that);case MessagePreview_Redacted() when redacted != null:
+return redacted(_that);case MessagePreview_UnableToDecrypt() when unableToDecrypt != null:
+return unableToDecrypt(_that);case MessagePreview_Other() when other != null:
+return other(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( MessagePreview_Text value)  text,required TResult Function( MessagePreview_Image value)  image,required TResult Function( MessagePreview_Video value)  video,required TResult Function( MessagePreview_Audio value)  audio,required TResult Function( MessagePreview_File value)  file,required TResult Function( MessagePreview_Location value)  location,required TResult Function( MessagePreview_Poll value)  poll,required TResult Function( MessagePreview_Sticker value)  sticker,required TResult Function( MessagePreview_Redacted value)  redacted,required TResult Function( MessagePreview_UnableToDecrypt value)  unableToDecrypt,required TResult Function( MessagePreview_Other value)  other,}){
+final _that = this;
+switch (_that) {
+case MessagePreview_Text():
+return text(_that);case MessagePreview_Image():
+return image(_that);case MessagePreview_Video():
+return video(_that);case MessagePreview_Audio():
+return audio(_that);case MessagePreview_File():
+return file(_that);case MessagePreview_Location():
+return location(_that);case MessagePreview_Poll():
+return poll(_that);case MessagePreview_Sticker():
+return sticker(_that);case MessagePreview_Redacted():
+return redacted(_that);case MessagePreview_UnableToDecrypt():
+return unableToDecrypt(_that);case MessagePreview_Other():
+return other(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( MessagePreview_Text value)?  text,TResult? Function( MessagePreview_Image value)?  image,TResult? Function( MessagePreview_Video value)?  video,TResult? Function( MessagePreview_Audio value)?  audio,TResult? Function( MessagePreview_File value)?  file,TResult? Function( MessagePreview_Location value)?  location,TResult? Function( MessagePreview_Poll value)?  poll,TResult? Function( MessagePreview_Sticker value)?  sticker,TResult? Function( MessagePreview_Redacted value)?  redacted,TResult? Function( MessagePreview_UnableToDecrypt value)?  unableToDecrypt,TResult? Function( MessagePreview_Other value)?  other,}){
+final _that = this;
+switch (_that) {
+case MessagePreview_Text() when text != null:
+return text(_that);case MessagePreview_Image() when image != null:
+return image(_that);case MessagePreview_Video() when video != null:
+return video(_that);case MessagePreview_Audio() when audio != null:
+return audio(_that);case MessagePreview_File() when file != null:
+return file(_that);case MessagePreview_Location() when location != null:
+return location(_that);case MessagePreview_Poll() when poll != null:
+return poll(_that);case MessagePreview_Sticker() when sticker != null:
+return sticker(_that);case MessagePreview_Redacted() when redacted != null:
+return redacted(_that);case MessagePreview_UnableToDecrypt() when unableToDecrypt != null:
+return unableToDecrypt(_that);case MessagePreview_Other() when other != null:
+return other(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function()?  image,TResult Function()?  video,TResult Function()?  audio,TResult Function()?  file,TResult Function()?  location,TResult Function()?  poll,TResult Function()?  sticker,TResult Function()?  redacted,TResult Function()?  unableToDecrypt,TResult Function()?  other,required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case MessagePreview_Text() when text != null:
+return text(_that.body);case MessagePreview_Image() when image != null:
+return image();case MessagePreview_Video() when video != null:
+return video();case MessagePreview_Audio() when audio != null:
+return audio();case MessagePreview_File() when file != null:
+return file();case MessagePreview_Location() when location != null:
+return location();case MessagePreview_Poll() when poll != null:
+return poll();case MessagePreview_Sticker() when sticker != null:
+return sticker();case MessagePreview_Redacted() when redacted != null:
+return redacted();case MessagePreview_UnableToDecrypt() when unableToDecrypt != null:
+return unableToDecrypt();case MessagePreview_Other() when other != null:
+return other();case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function()  image,required TResult Function()  video,required TResult Function()  audio,required TResult Function()  file,required TResult Function()  location,required TResult Function()  poll,required TResult Function()  sticker,required TResult Function()  redacted,required TResult Function()  unableToDecrypt,required TResult Function()  other,}) {final _that = this;
+switch (_that) {
+case MessagePreview_Text():
+return text(_that.body);case MessagePreview_Image():
+return image();case MessagePreview_Video():
+return video();case MessagePreview_Audio():
+return audio();case MessagePreview_File():
+return file();case MessagePreview_Location():
+return location();case MessagePreview_Poll():
+return poll();case MessagePreview_Sticker():
+return sticker();case MessagePreview_Redacted():
+return redacted();case MessagePreview_UnableToDecrypt():
+return unableToDecrypt();case MessagePreview_Other():
+return other();}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function()?  image,TResult? Function()?  video,TResult? Function()?  audio,TResult? Function()?  file,TResult? Function()?  location,TResult? Function()?  poll,TResult? Function()?  sticker,TResult? Function()?  redacted,TResult? Function()?  unableToDecrypt,TResult? Function()?  other,}) {final _that = this;
+switch (_that) {
+case MessagePreview_Text() when text != null:
+return text(_that.body);case MessagePreview_Image() when image != null:
+return image();case MessagePreview_Video() when video != null:
+return video();case MessagePreview_Audio() when audio != null:
+return audio();case MessagePreview_File() when file != null:
+return file();case MessagePreview_Location() when location != null:
+return location();case MessagePreview_Poll() when poll != null:
+return poll();case MessagePreview_Sticker() when sticker != null:
+return sticker();case MessagePreview_Redacted() when redacted != null:
+return redacted();case MessagePreview_UnableToDecrypt() when unableToDecrypt != null:
+return unableToDecrypt();case MessagePreview_Other() when other != null:
+return other();case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class MessagePreview_Text extends MessagePreview {
+  const MessagePreview_Text({required this.body}): super._();
+  
+
+ final  String body;
+
+/// Create a copy of MessagePreview
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MessagePreview_TextCopyWith<MessagePreview_Text> get copyWith => _$MessagePreview_TextCopyWithImpl<MessagePreview_Text>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Text&&(identical(other.body, body) || other.body == body));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,body);
+
+@override
+String toString() {
+  return 'MessagePreview.text(body: $body)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MessagePreview_TextCopyWith<$Res> implements $MessagePreviewCopyWith<$Res> {
+  factory $MessagePreview_TextCopyWith(MessagePreview_Text value, $Res Function(MessagePreview_Text) _then) = _$MessagePreview_TextCopyWithImpl;
+@useResult
+$Res call({
+ String body
+});
+
+
+
+
+}
+/// @nodoc
+class _$MessagePreview_TextCopyWithImpl<$Res>
+    implements $MessagePreview_TextCopyWith<$Res> {
+  _$MessagePreview_TextCopyWithImpl(this._self, this._then);
+
+  final MessagePreview_Text _self;
+  final $Res Function(MessagePreview_Text) _then;
+
+/// Create a copy of MessagePreview
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? body = null,}) {
+  return _then(MessagePreview_Text(
+body: null == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class MessagePreview_Image extends MessagePreview {
+  const MessagePreview_Image(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Image);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.image()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Video extends MessagePreview {
+  const MessagePreview_Video(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Video);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.video()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Audio extends MessagePreview {
+  const MessagePreview_Audio(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Audio);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.audio()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_File extends MessagePreview {
+  const MessagePreview_File(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_File);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.file()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Location extends MessagePreview {
+  const MessagePreview_Location(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Location);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.location()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Poll extends MessagePreview {
+  const MessagePreview_Poll(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Poll);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.poll()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Sticker extends MessagePreview {
+  const MessagePreview_Sticker(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Sticker);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.sticker()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Redacted extends MessagePreview {
+  const MessagePreview_Redacted(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Redacted);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.redacted()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_UnableToDecrypt extends MessagePreview {
+  const MessagePreview_UnableToDecrypt(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_UnableToDecrypt);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.unableToDecrypt()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class MessagePreview_Other extends MessagePreview {
+  const MessagePreview_Other(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessagePreview_Other);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'MessagePreview.other()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
 mixin _$TimelineEntry {
 
  String get uniqueId;

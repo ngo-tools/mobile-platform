@@ -236,19 +236,28 @@ class RoomListScreen extends StatefulWidget {
 }
 
 class _RoomListScreenState extends State<RoomListScreen> {
-  late final Stream<List<RoomSummary>> _rooms;
+  late final RoomListController _rooms;
   late final Stream<String> _syncState;
 
   @override
   void initState() {
     super.initState();
-    _rooms = widget.client.watchRooms().map((rooms) {
-      if (rooms.isNotEmpty) {
-        metrics.mark('first_room_list');
-      }
-      return rooms;
-    }).asBroadcastStream();
+    _rooms = RoomListController(widget.client);
+    _rooms.rooms.addListener(_markFirstRoomList);
     _syncState = widget.client.watchSyncState().asBroadcastStream();
+  }
+
+  void _markFirstRoomList() {
+    if (_rooms.rooms.value.isNotEmpty) {
+      metrics.mark('first_room_list');
+    }
+  }
+
+  @override
+  void dispose() {
+    _rooms.rooms.removeListener(_markFirstRoomList);
+    unawaited(_rooms.dispose());
+    super.dispose();
   }
 
   Future<void> _startDm() async {
@@ -307,15 +316,9 @@ class _RoomListScreenState extends State<RoomListScreen> {
         onPressed: _startDm,
         child: const Icon(Icons.chat),
       ),
-      body: StreamBuilder<List<RoomSummary>>(
-        stream: _rooms,
-        builder: (context, snapshot) {
-          final rooms = snapshot.data;
-
-          if (rooms == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
+      body: ValueListenableBuilder<List<RoomSummary>>(
+        valueListenable: _rooms.rooms,
+        builder: (context, rooms, _) {
           if (rooms.isEmpty) {
             return const Center(child: Text('Noch keine Räume'));
           }
@@ -325,20 +328,22 @@ class _RoomListScreenState extends State<RoomListScreen> {
               for (final room in rooms)
                 ListTile(
                   leading: Icon(room.isEncrypted ? Icons.lock : Icons.forum),
-                  title: Text(room.displayName),
+                  title: Text(room.name),
                   subtitle: Text(
                     [
-                      if (room.isDirect) 'Direktnachricht',
-                      if (room.isInvite) 'Einladung',
-                      if (room.unreadCount > BigInt.zero)
-                        '${room.unreadCount} ungelesen',
+                      if (room.kind == RoomKind.direct) 'Direktnachricht',
+                      if (room.membership == Membership.invited) 'Einladung',
+                      if (room.unreadMessages > 0)
+                        '${room.unreadMessages} ungelesen',
+                      if (room.latest case final latest?)
+                        _preview(latest.preview),
                     ].join(' · '),
                   ),
                   onTap: () async {
-                    if (room.isInvite) {
-                      await widget.client.joinRoom(roomId: room.roomId);
+                    if (room.membership == Membership.invited) {
+                      await widget.client.joinRoom(roomId: room.id);
                     }
-                    await _openRoom(room.roomId, room.displayName);
+                    await _openRoom(room.id, room.name);
                   },
                 ),
             ],
@@ -348,6 +353,20 @@ class _RoomListScreenState extends State<RoomListScreen> {
     );
   }
 }
+
+String _preview(MessagePreview preview) => switch (preview) {
+  MessagePreview_Text(:final body) => body,
+  MessagePreview_Image() => 'Bild',
+  MessagePreview_Video() => 'Video',
+  MessagePreview_Audio() => 'Audio',
+  MessagePreview_File() => 'Datei',
+  MessagePreview_Location() => 'Standort',
+  MessagePreview_Poll() => 'Umfrage',
+  MessagePreview_Sticker() => 'Sticker',
+  MessagePreview_Redacted() => 'Nachricht gelöscht',
+  MessagePreview_UnableToDecrypt() => 'Verschlüsselte Nachricht',
+  MessagePreview_Other() => '',
+};
 
 class RoomScreen extends StatefulWidget {
   const RoomScreen({

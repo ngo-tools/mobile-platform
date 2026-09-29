@@ -63,15 +63,15 @@ Future<void> showForScreenshot(
 
 /// A client together with broadcast views of its streams.
 class TestUser {
-  TestUser(this.name, this.client, this.rooms) {
-    rooms.listen((list) => lastRooms = list);
-  }
+  TestUser(this.name, this.client, this.roomList);
 
   final String name;
   final ChatClient client;
-  final Stream<List<RoomSummary>> rooms;
-  List<RoomSummary> lastRooms = const [];
+  final RoomListController roomList;
 
+  List<RoomSummary> get lastRooms => roomList.rooms.value;
+
+  /// Completes once the room list (diff-driven) satisfies [predicate].
   Future<List<RoomSummary>> waitForRooms(
     bool Function(List<RoomSummary>) predicate, {
     Duration timeout = const Duration(seconds: 60),
@@ -79,7 +79,20 @@ class TestUser {
     if (predicate(lastRooms)) {
       return lastRooms;
     }
-    return rooms.firstWhere(predicate).timeout(timeout);
+
+    final completer = Completer<List<RoomSummary>>();
+    void check() {
+      if (!completer.isCompleted && predicate(lastRooms)) {
+        completer.complete(lastRooms);
+      }
+    }
+
+    roomList.rooms.addListener(check);
+    try {
+      return await completer.future.timeout(timeout);
+    } finally {
+      roomList.rooms.removeListener(check);
+    }
   }
 
   Stream<List<TimelineEntry>>? timeline;
@@ -200,16 +213,26 @@ Future<TestUser> loginUser(
   client.watchSyncState().listen(
     (state) => debugPrint('E2E_SYNC $name=$state'),
   );
-  final rooms = client.watchRooms().asBroadcastStream();
-  rooms.listen(
-    (list) => debugPrint(
-      'E2E_ROOMS $name=${list.map((room) => '${room.roomId}${room.isInvite ? '(invite)' : ''}').join(',')}',
+  final roomList = RoomListController(client);
+  roomList.rooms.addListener(
+    () => debugPrint(
+      'E2E_ROOMS $name=${roomList.rooms.value.map((room) => '${room.id}${room.membership == Membership.invited ? '(invite)' : ''}').join(',')}',
     ),
   );
-  await rooms.first.timeout(const Duration(seconds: 60));
+  final user = TestUser(name, client, roomList);
+  final firstBatch = Completer<void>();
+  void onFirstBatch() {
+    if (!firstBatch.isCompleted) {
+      firstBatch.complete();
+    }
+  }
+
+  roomList.rooms.addListener(onFirstBatch);
+  await firstBatch.future.timeout(const Duration(seconds: 60));
+  roomList.rooms.removeListener(onFirstBatch);
   metric('room_list_ready_ms_$name', stopwatch.elapsedMilliseconds);
 
-  return TestUser(name, client, rooms);
+  return user;
 }
 
 Future<Uint8List> renderPng() async {
@@ -352,10 +375,11 @@ void main() {
     stopwatch = Stopwatch()..start();
     final roomId = await alice.client.createDm(userId: '@$bobName:$serverName');
     final bobRooms = await bob.waitForRooms(
-      (rooms) => rooms.any((room) => room.roomId == roomId),
+      (rooms) => rooms.any((room) => room.id == roomId),
     );
 
-    if (bobRooms.firstWhere((room) => room.roomId == roomId).isInvite) {
+    if (bobRooms.firstWhere((room) => room.id == roomId).membership ==
+        Membership.invited) {
       await bob.client.joinRoom(roomId: roomId);
     }
     metric('dm_created_and_joined_ms', stopwatch.elapsedMilliseconds);
@@ -364,10 +388,10 @@ void main() {
     await bob.openTimeline(roomId);
 
     final aliceRooms = await alice.waitForRooms(
-      (rooms) => rooms.any((room) => room.roomId == roomId && room.isEncrypted),
+      (rooms) => rooms.any((room) => room.id == roomId && room.isEncrypted),
     );
     expect(
-      aliceRooms.firstWhere((room) => room.roomId == roomId).isEncrypted,
+      aliceRooms.firstWhere((room) => room.id == roomId).isEncrypted,
       isTrue,
     );
 
@@ -388,6 +412,22 @@ void main() {
     }
     metric('send_confirmed_ms', sendLatencies.join(','));
     metric('delivered_decrypted_ms', deliveryLatencies.join(','));
+
+    // Room list: latest message preview and filters (diff-driven).
+    final lastBody = 'Hallo Bob 5 ($run)';
+    await bob.waitForRooms(
+      (rooms) => rooms.any(
+        (room) =>
+            room.id == roomId &&
+            room.latest?.preview == MessagePreview.text(body: lastBody),
+      ),
+    );
+    await bob.roomList.setFilter(RoomFilter.groups);
+    await bob.waitForRooms((rooms) => rooms.every((room) => room.id != roomId));
+    await bob.roomList.setFilter(RoomFilter.people);
+    await bob.waitForRooms((rooms) => rooms.any((room) => room.id == roomId));
+    await bob.roomList.setFilter(RoomFilter.all);
+    metric('room_list_filters', 'ok');
 
     final reply = 'Hallo Alice ($run)';
     await bob.client.sendText(body: reply);

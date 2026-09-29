@@ -28,7 +28,12 @@ if [[ $PLATFORM == android ]]; then
     # honours the network security config; it trusts AndroidCAStore (system +
     # user CAs). Install the dev CA as user CA (rootable emulator, -read-only).
     ca_hash=$(openssl x509 -inform PEM -subject_hash_old -in server/generated/caddy-root.crt -noout)
-    adb -s "$DEVICE" root >/dev/null 2>&1 && adb -s "$DEVICE" wait-for-device
+    adb -s "$DEVICE" root >/dev/null 2>&1 || true
+    # adbd restarts as root; wait until the root shell answers again.
+    for _ in $(seq 1 30); do
+        [[ "$(adb -s "$DEVICE" shell whoami 2>/dev/null | tr -d '\r')" == root ]] && break
+        sleep 1
+    done
     adb -s "$DEVICE" shell mkdir -p /data/misc/user/0/cacerts-added
     adb -s "$DEVICE" push server/generated/caddy-root.crt "/data/misc/user/0/cacerts-added/${ca_hash}.0" >/dev/null
     for port in 28448 28449 28450 28451; do
