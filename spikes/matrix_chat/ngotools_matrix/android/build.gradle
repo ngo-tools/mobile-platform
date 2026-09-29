@@ -1,0 +1,69 @@
+// The Rust library is built by cargokit; the Kotlin part only initializes
+// rustls-platform-verifier with the application context.
+
+group 'tools.ngo.spike.ngotools_matrix'
+version '1.0'
+
+buildscript {
+    ext.kotlin_version = '2.2.20'
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.11.1'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Kotlin component of rustls-platform-verifier (Android system trust store).
+        maven {
+            url = "https://github.com/rustls/rustls-platform-verifier/raw/maven-archive/android-release-support/maven/"
+        }
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    namespace 'tools.ngo.spike.ngotools_matrix'
+
+    compileSdkVersion 36
+
+    ndkVersion android.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    defaultConfig {
+        minSdkVersion 24
+        consumerProguardFiles 'proguard-rules.pro'
+    }
+}
+
+dependencies {
+    // Must match the rustls-platform-verifier-android crate in rust/Cargo.lock.
+    implementation 'org.rustls:rustls-platform-verifier:0.2.0'
+}
+
+apply from: "../cargokit/gradle/plugin.gradle"
+cargokit {
+    manifestDir = "../rust"
+    libname = "ngotools_matrix_core"
+}
