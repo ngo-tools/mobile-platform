@@ -72,9 +72,11 @@ class TimelineController {
     }
   }
 
+  /// Stops the Rust stream first: cancelling an idle generated stream only
+  /// completes once it delivers another event or closes.
   Future<void> dispose() async {
-    await _subscription.cancel();
     await _close();
+    await _subscription.cancel();
     _items.dispose();
     _paginating.dispose();
     _reachedStart.dispose();

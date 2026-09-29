@@ -27,7 +27,7 @@ use url::Url;
 use crate::{
     api::{error::ChatError, rooms::RoomListCommand},
     frb_generated::StreamSink,
-    runtime::{on_runtime, runtime},
+    runtime::{on_runtime, runtime, DropInRuntime},
     session::{
         build_client, forget_session, persist_session, restore_stored_session, ClientParams,
     },
@@ -59,9 +59,9 @@ pub struct SessionInfo {
 
 #[frb(opaque)]
 pub struct ChatClient {
-    pub(crate) client: Client,
+    pub(crate) client: DropInRuntime<Client>,
     config: Arc<ChatConfigInner>,
-    pub(crate) sync_service: Mutex<Option<Arc<SyncService>>>,
+    pub(crate) sync_service: DropInRuntime<Mutex<Option<Arc<SyncService>>>>,
     pub(crate) room_task: Mutex<Option<JoinHandle<()>>>,
     pub(crate) room_commands: Mutex<Option<mpsc::UnboundedSender<RoomListCommand>>>,
     session_task: Mutex<Option<JoinHandle<()>>>,
@@ -91,13 +91,13 @@ impl ChatClient {
             .await?;
 
             Ok(ChatClient {
-                client,
+                client: DropInRuntime::new(client),
                 config: Arc::new(ChatConfigInner {
                     client_name: config.client_name,
                     client_uri: config.client_uri,
                     redirect_uri: config.redirect_uri,
                 }),
-                sync_service: Mutex::new(None),
+                sync_service: DropInRuntime::new(Mutex::new(None)),
                 room_task: Mutex::new(None),
                 room_commands: Mutex::new(None),
                 session_task: Mutex::new(None),
@@ -300,6 +300,7 @@ impl ChatClient {
         if let Some(task) = self.session_task.lock().await.take() {
             task.abort();
         }
+        self.stop_room_list().await;
         self.stop_sync().await
     }
 

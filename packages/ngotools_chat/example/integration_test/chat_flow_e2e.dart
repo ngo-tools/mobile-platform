@@ -125,9 +125,52 @@ class TestUser {
     timelineController!.items.addListener(check);
     try {
       return await completer.future.timeout(timeout);
+    } on TimeoutException {
+      debugPrint('E2E_TIMELINE $name ${describeTimeline(lastTimeline)}');
+      rethrow;
     } finally {
       timelineController!.items.removeListener(check);
     }
+  }
+}
+
+/// Compact view of a timeline for failure diagnostics.
+String describeTimeline(List<TimelineItem> items) => items
+    .map((item) {
+      final event = eventOf(item);
+      if (event == null) {
+        return item.kind.runtimeType.toString();
+      }
+      final content = event.content;
+      final text = content is EventContent_Text ? content.body : '';
+
+      return '${event.eventId ?? 'local'}:${content.runtimeType}:$text'
+          ':thread=${event.thread?.replyCount}:${event.sendState.runtimeType}';
+    })
+    .join(' | ');
+
+/// Completes once [listenable] satisfies [predicate].
+Future<T> waitForValue<T>(
+  ValueListenable<T> listenable,
+  bool Function(T) predicate, {
+  Duration timeout = const Duration(seconds: 60),
+}) async {
+  if (predicate(listenable.value)) {
+    return listenable.value;
+  }
+
+  final completer = Completer<T>();
+  void check() {
+    if (!completer.isCompleted && predicate(listenable.value)) {
+      completer.complete(listenable.value);
+    }
+  }
+
+  listenable.addListener(check);
+  try {
+    return await completer.future.timeout(timeout);
+  } finally {
+    listenable.removeListener(check);
   }
 }
 
@@ -517,6 +560,64 @@ void main() {
           ),
     );
     metric('timeline_actions', 'ok');
+
+    // Threads: reply in a thread, summary on the root, thread list.
+    final rootBody = 'Hallo Bob 5 ($run)';
+    final root = findText(alice.lastTimeline, rootBody)!;
+    final bobThread = TimelineController(
+      await bob.client.threadTimeline(
+        roomId: roomId,
+        rootEventId: root.eventId!,
+      ),
+    );
+    final threadBody = 'Im Thread ($run)';
+    await bobThread.timeline
+        .sendText(body: threadBody)
+        .timeout(const Duration(seconds: 60));
+    await alice.waitForTimeline(
+      (items) => findText(items, rootBody)?.thread?.replyCount == 1,
+    );
+    expect(
+      findText(alice.lastTimeline, threadBody),
+      isNull,
+      reason: 'thread replies stay out of the main timeline',
+    );
+
+    final aliceThread = TimelineController(
+      await alice.client.threadTimeline(
+        roomId: roomId,
+        rootEventId: root.eventId!,
+      ),
+    );
+    await waitForValue(
+      aliceThread.items,
+      (items) => hasText(items, threadBody),
+    );
+    final threadAnswer = 'Antwort im Thread ($run)';
+    await aliceThread.timeline
+        .sendText(body: threadAnswer)
+        .timeout(const Duration(seconds: 60));
+    final bobThreadItems = await waitForValue(
+      bobThread.items,
+      (items) => hasText(items, threadAnswer),
+    );
+    expect(findText(bobThreadItems, threadAnswer)!.threadRoot, root.eventId);
+
+    final threads = await ThreadListController.open(
+      alice.client,
+      roomId,
+    ).timeout(const Duration(seconds: 60));
+    await waitForValue(
+      threads.threads,
+      (list) => list.any(
+        (thread) =>
+            thread.root.eventId == root.eventId && thread.replyCount >= 1,
+      ),
+    );
+    await threads.dispose().timeout(const Duration(seconds: 30));
+    await aliceThread.dispose().timeout(const Duration(seconds: 30));
+    await bobThread.dispose().timeout(const Duration(seconds: 30));
+    metric('threads', 'ok');
 
     // Image (encrypted attachment, authenticated media download at Bob).
     final png = await renderPng();

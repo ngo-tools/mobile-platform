@@ -22,7 +22,7 @@ use matrix_sdk::{
     reqwest::Certificate,
     ruma::UserId,
     store::RoomLoadSettings,
-    AuthSession, Client, SqliteStoreConfig,
+    AuthSession, Client, SqliteStoreConfig, ThreadingSupport,
 };
 use serde::{Deserialize, Serialize};
 
@@ -75,6 +75,11 @@ pub(crate) async fn build_client(params: ClientParams) -> Result<(Client, Arc<At
         .sqlite_store_with_config_and_cache_path(store_config, Some(cache_dir))
         .sliding_sync_version_builder(matrix_sdk::sliding_sync::VersionBuilder::Native)
         .handle_refresh_tokens()
+        // Thread replies leave the main timeline and appear as summaries on
+        // the thread root; thread timelines show them.
+        .with_threading_support(ThreadingSupport::Enabled {
+            with_subscriptions: false,
+        })
         .with_encryption_settings(EncryptionSettings {
             auto_enable_cross_signing: true,
             backup_download_strategy: BackupDownloadStrategy::AfterDecryptionFailure,

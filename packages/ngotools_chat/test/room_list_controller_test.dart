@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ngotools_chat/src/room_list_controller.dart';
 import 'package:ngotools_chat/src/rust/api/rooms.dart';
 
+import 'support/rust_stream.dart';
+
 RoomSummary room(String id, {int unread = 0}) => RoomSummary(
   id: id,
   name: 'Room $id',
@@ -23,6 +25,7 @@ void main() {
       diffs: diffs.stream,
       setFilter: (filter) async => filters.add(filter),
       loadMore: () async => pages++,
+      close: () async {},
     );
 
     diffs.add([
@@ -46,5 +49,18 @@ void main() {
 
     await controller.dispose();
     await diffs.close();
+  });
+
+  test('dispose stops the Rust stream before cancelling it', () async {
+    final source = StreamController<List<RoomListDiff>>();
+    final controller = RoomListController.fromSource(
+      diffs: rustLikeStream(source.stream),
+      setFilter: (_) async {},
+      loadMore: () async {},
+      close: source.close,
+    );
+    await pumpEventQueue();
+
+    await controller.dispose().timeout(const Duration(seconds: 1));
   });
 }

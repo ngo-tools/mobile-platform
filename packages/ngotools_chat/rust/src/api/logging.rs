@@ -29,5 +29,13 @@ pub fn init_logging(log_file: String) -> Result<(), ChatError> {
         .with_writer(std::sync::Mutex::new(file))
         .finish();
     tracing::subscriber::set_global_default(subscriber)
-        .map_err(|error| ChatError::invalid(error.to_string()))
+        .map_err(|error| ChatError::invalid(error.to_string()))?;
+
+    // Panics only reach stderr, which nobody sees on a device.
+    let previous_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        tracing::error!("panic: {info}");
+        previous_hook(info);
+    }));
+    Ok(())
 }

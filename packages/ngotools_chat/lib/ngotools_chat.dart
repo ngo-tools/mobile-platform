@@ -11,6 +11,8 @@ export 'src/rust/api/error.dart';
 export 'src/rust/api/logging.dart';
 export 'src/rust/api/notifications.dart';
 export 'src/rust/api/rooms.dart';
+export 'src/rust/api/threads.dart';
 export 'src/rust/api/timeline.dart';
 export 'src/rust/frb_generated.dart' show RustLib;
+export 'src/thread_list_controller.dart';
 export 'src/timeline_controller.dart';

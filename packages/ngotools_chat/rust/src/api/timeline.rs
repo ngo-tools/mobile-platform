@@ -18,7 +18,7 @@ use matrix_sdk::{
 use matrix_sdk_ui::timeline::{
     AttachmentConfig, AttachmentSource, EmbeddedEvent, EventSendState, EventTimelineItem,
     MembershipChange, MsgLikeContent, MsgLikeKind, Profile, RoomExt, Timeline, TimelineDetails,
-    TimelineEventItemId, TimelineItem as SdkTimelineItem, TimelineItemContent,
+    TimelineEventItemId, TimelineFocus, TimelineItem as SdkTimelineItem, TimelineItemContent,
     TimelineItemKind as SdkTimelineItemKind, VirtualTimelineItem,
 };
 use tokio::{sync::Mutex, task::JoinHandle};
@@ -26,7 +26,7 @@ use tokio::{sync::Mutex, task::JoinHandle};
 use crate::{
     api::{client::ChatClient, error::ChatError},
     frb_generated::StreamSink,
-    runtime::{on_runtime, runtime},
+    runtime::{on_runtime, runtime, DropInRuntime},
 };
 
 /// Short, localizable description of a message (room list, notifications,
@@ -193,7 +193,7 @@ pub enum TimelineDiff {
 /// The timeline of one room (later also of one thread).
 #[frb(opaque)]
 pub struct ChatTimeline {
-    timeline: Arc<Timeline>,
+    timeline: DropInRuntime<Arc<Timeline>>,
     own_user_id: OwnedUserId,
     watch_task: Mutex<Option<JoinHandle<()>>>,
 }
@@ -210,12 +210,54 @@ impl ChatClient {
             .to_owned();
         let timeline = on_runtime(async move {
             let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
-            Ok(Arc::new(room.timeline().await?))
+            // Thread replies appear as summaries on their root and in the
+            // thread timeline, not in the main timeline.
+            let timeline = room
+                .timeline_builder()
+                .with_focus(TimelineFocus::Live {
+                    hide_threaded_events: true,
+                })
+                .build()
+                .await?;
+            Ok(Arc::new(timeline))
         })
         .await?;
 
         Ok(ChatTimeline {
-            timeline,
+            timeline: DropInRuntime::new(timeline),
+            own_user_id,
+            watch_task: Mutex::new(None),
+        })
+    }
+
+    /// Opens the timeline of one thread; messages sent through it (including
+    /// replies) are sent into the thread.
+    pub async fn thread_timeline(
+        &self,
+        room_id: String,
+        root_event_id: String,
+    ) -> Result<ChatTimeline, ChatError> {
+        let room_id =
+            RoomId::parse(&room_id).map_err(|error| ChatError::invalid(error.to_string()))?;
+        let root_event_id = parse_event_id(&root_event_id)?;
+        let client = self.client.clone();
+        let own_user_id = client
+            .user_id()
+            .ok_or(ChatError::SessionExpired)?
+            .to_owned();
+        let timeline = on_runtime(async move {
+            let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
+            let timeline = room
+                .timeline_builder()
+                .with_focus(TimelineFocus::Thread { root_event_id })
+                .build()
+                .await?;
+            Ok(Arc::new(timeline))
+        })
+        .await?;
+
+        Ok(ChatTimeline {
+            timeline: DropInRuntime::new(timeline),
             own_user_id,
             watch_task: Mutex::new(None),
         })
@@ -422,7 +464,7 @@ impl Drop for ChatTimeline {
     }
 }
 
-fn parse_event_id(event_id: &str) -> Result<OwnedEventId, ChatError> {
+pub(crate) fn parse_event_id(event_id: &str) -> Result<OwnedEventId, ChatError> {
     EventId::parse(event_id).map_err(|error| ChatError::invalid(error.to_string()))
 }
 
@@ -657,7 +699,7 @@ fn ready(details: &TimelineDetails<Box<EmbeddedEvent>>) -> Option<&EmbeddedEvent
     }
 }
 
-fn sender(user_id: &UserId, profile: &TimelineDetails<Profile>) -> Sender {
+pub(crate) fn sender(user_id: &UserId, profile: &TimelineDetails<Profile>) -> Sender {
     let (name, avatar_url) = match profile {
         TimelineDetails::Ready(profile) => (
             profile.display_name.clone(),

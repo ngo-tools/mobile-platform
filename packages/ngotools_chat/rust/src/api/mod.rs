@@ -5,4 +5,5 @@ pub mod logging;
 pub mod media;
 pub mod notifications;
 pub mod rooms;
+pub mod threads;
 pub mod timeline;

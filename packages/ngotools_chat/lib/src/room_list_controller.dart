@@ -15,6 +15,7 @@ class RoomListController {
         diffs: client.watchRoomList(),
         setFilter: (filter) => client.setRoomFilter(filter: filter),
         loadMore: client.loadMoreRooms,
+        close: client.stopRoomList,
       );
 
   @visibleForTesting
@@ -22,8 +23,10 @@ class RoomListController {
     required Stream<List<RoomListDiff>> diffs,
     required Future<void> Function(RoomFilter filter) setFilter,
     required Future<void> Function() loadMore,
+    required Future<void> Function() close,
   }) : _setFilter = setFilter,
-       _loadMore = loadMore {
+       _loadMore = loadMore,
+       _close = close {
     _subscription = diffs.listen(
       (batch) =>
           _rooms.value = applyDiffs(_rooms.value, batch.map(roomListDiff)),
@@ -32,6 +35,7 @@ class RoomListController {
 
   final Future<void> Function(RoomFilter filter) _setFilter;
   final Future<void> Function() _loadMore;
+  final Future<void> Function() _close;
   final _rooms = ValueNotifier<List<RoomSummary>>(const []);
   final _filter = ValueNotifier<RoomFilter>(RoomFilter.all);
   late final StreamSubscription<List<RoomListDiff>> _subscription;
@@ -47,7 +51,10 @@ class RoomListController {
 
   Future<void> loadMore() => _loadMore();
 
+  /// Stops the Rust stream first: cancelling an idle generated stream only
+  /// completes once it delivers another event or closes.
   Future<void> dispose() async {
+    await _close();
     await _subscription.cancel();
     _rooms.dispose();
     _filter.dispose();
