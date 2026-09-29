@@ -454,8 +454,10 @@ class _RoomScreenState extends State<RoomScreen> {
     }
 
     await controller.timeline.sendImage(
-      filePath: image.path,
-      mimeType: image.mimeType ?? 'image/jpeg',
+      image: await prepareImageAttachment(
+        filePath: image.path,
+        mimeType: image.mimeType ?? 'image/jpeg',
+      ),
     );
   }
 

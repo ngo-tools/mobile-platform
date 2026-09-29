@@ -41,9 +41,34 @@ pagination. Each `EventItem` carries a stable `EventKey` (local transaction
 id or event id), sender, send state, typed content (text, image, video,
 audio, file, membership and state changes, redacted, undecryptable), reply
 preview, reactions (with `byMe`), edit marker and thread information.
-Actions on `ChatTimeline`: `sendText` (optionally as reply), `sendImage`
-(with caption), `edit`, `redact`, `toggleReaction`, `retry`/`cancel` for
-failed local echoes, `markRead` and `loadReplyDetails`.
+Actions on `ChatTimeline`: `sendText` (optionally as reply), `sendImage`,
+`edit`, `redact`, `toggleReaction`, `retry`/`cancel` for failed local
+echoes, `markRead` and `loadReplyDetails`. `watchTyping` streams the other
+members typing, `setTyping` sends the own typing state.
+
+Event ids are not unique across items: the SDK can show the local echo next
+to its remote echo for a while (matrix-rust-sdk#4758). Key widgets by
+`TimelineItem.id`.
+
+## Media
+
+`prepareImageAttachment(filePath, mimeType, caption)` reads the pixel size
+and renders a PNG preview (longest side 480 px) for `sendImage`. Encrypted
+rooms need it: the server cannot scale encrypted media. Upload progress
+appears on the local echo (`SendState.sending(progress)`).
+
+For display, fetch `EventContent.image.thumbnail` with `fetchMedia` when it
+is set; otherwise `fetchThumbnail(media, width, height)` lets the server
+scale plain media (encrypted media is returned in full). Media is
+decrypted and cached by the SDK.
+
+## Room details
+
+`roomMembers(roomId)` lists joined and invited members with role.
+`roomNotificationSettings` and `setRoomNotificationMode` read and change the
+per-room mode (all messages, mentions only, mute; `null` restores the
+default). The room list carries the user-defined mode as
+`RoomSummary.notificationMode` and updates when it changes.
 
 ## Threads
 

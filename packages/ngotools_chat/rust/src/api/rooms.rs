@@ -5,8 +5,9 @@
 //! and paging commands reach the list task through a channel, which keeps the
 //! SDK's dynamic-entries controller inside that task.
 
+use eyeball_im::Vector;
 use futures_util::{pin_mut, StreamExt};
-use matrix_sdk::RoomState;
+use matrix_sdk::{notification_settings::NotificationSettings, RoomState};
 use matrix_sdk_ui::{
     room_list_service::{
         filters::{
@@ -18,12 +19,13 @@ use matrix_sdk_ui::{
     },
     timeline::{LatestEventValue, RoomExt, TimelineDetails},
 };
-use tokio::sync::mpsc;
+use tokio::sync::{broadcast, mpsc};
 
 use crate::{
     api::{
         client::ChatClient,
         error::ChatError,
+        room::{from_sdk, NotificationMode},
         timeline::{message_preview, MessagePreview},
     },
     frb_generated::StreamSink,
@@ -75,6 +77,8 @@ pub struct RoomSummary {
     pub unread_messages: u32,
     pub unread_mentions: u32,
     pub latest: Option<LatestEvent>,
+    /// Mode set by the user for this room; `None` follows the default.
+    pub notification_mode: Option<NotificationMode>,
 }
 
 pub enum RoomListDiff {
@@ -104,8 +108,19 @@ impl ChatClient {
         sink: StreamSink<Vec<RoomListDiff>>,
     ) -> Result<(), ChatError> {
         let service = self.sync_service().await?;
+        let client = self.client.clone();
+        let settings = self.notification_settings.clone();
         let (commands, mut command_receiver) = mpsc::unbounded_channel();
         let task = runtime().spawn(async move {
+            // Notification modes do not trigger room list updates in the SDK:
+            // mirror the visible rooms and re-emit them when the push rules
+            // change (on this device or via sync).
+            let mut settings_changes = settings
+                .get_or_init(|| async { client.notification_settings().await })
+                .await
+                .subscribe_to_changes();
+            let mut settings_open = true;
+            let mut visible = Vector::new();
             let room_list_service = service.room_list_service();
             let all_rooms = match room_list_service.all_rooms().await {
                 Ok(all_rooms) => all_rooms,
@@ -124,9 +139,26 @@ impl ChatClient {
                         let Some(diffs) = diffs else { break };
                         let mut mapped = Vec::with_capacity(diffs.len());
                         for diff in diffs {
+                            diff.clone().apply(&mut visible);
                             mapped.push(map_diff(diff).await);
                         }
                         if sink.add(mapped).is_err() {
+                            break;
+                        }
+                    }
+                    change = settings_changes.recv(), if settings_open => {
+                        if matches!(change, Err(broadcast::error::RecvError::Closed)) {
+                            settings_open = false;
+                            continue;
+                        }
+                        let settings = settings.get().expect("initialized above");
+                        for room in &visible {
+                            refresh_notification_mode(settings, room).await;
+                        }
+                        let reset = RoomListDiff::Reset {
+                            values: summarize_all(visible.iter()).await,
+                        };
+                        if sink.add(vec![reset]).is_err() {
                             break;
                         }
                     }
@@ -174,6 +206,16 @@ impl ChatClient {
             .ok_or_else(|| ChatError::invalid("room list is not being watched"))?
             .send(command)
             .map_err(|_| ChatError::invalid("room list is not being watched"))
+    }
+}
+
+async fn refresh_notification_mode(settings: &NotificationSettings, room: &RoomListItem) {
+    match settings
+        .get_user_defined_room_notification_mode(room.room_id())
+        .await
+    {
+        Some(mode) => room.update_cached_user_defined_notification_mode(mode),
+        None => room.clear_user_defined_notification_mode(),
     }
 }
 
@@ -265,6 +307,7 @@ async fn summarize(room: &RoomListItem) -> RoomSummary {
         unread_messages: to_u32(room.num_unread_messages()),
         unread_mentions: to_u32(room.num_unread_mentions()),
         latest: latest_event(room).await,
+        notification_mode: room.cached_user_defined_notification_mode().map(from_sdk),
     }
 }
 

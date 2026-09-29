@@ -8,6 +8,7 @@ import 'encryption.dart';
 import 'error.dart';
 import 'notifications.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'room.dart';
 import 'rooms.dart';
 import 'threads.dart';
 import 'timeline.dart';
@@ -31,6 +32,16 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Downloads (and decrypts) media referenced by a timeline item
   /// (`EventContent::*::media`). Uses the SDK media cache.
   Future<Uint8List> fetchMedia({required String media});
+
+  /// Downloads a scaled preview (`width` x `height`, aspect kept). The
+  /// server scales plain media; encrypted media cannot be scaled, so this
+  /// returns the whole (decrypted) file. Prefer `EventContent::Image::
+  /// thumbnail` with `fetch_media` when it is set.
+  Future<Uint8List> fetchThumbnail({
+    required String media,
+    required int width,
+    required int height,
+  });
 
   /// Completes the OAuth flow with the redirect URL received by the app.
   Future<SessionInfo> finishLogin({required String callbackUrl});
@@ -73,7 +84,20 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Restores a previously persisted session from the encrypted store.
   Future<SessionInfo?> restoreSession();
 
+  /// Joined and invited members, fetched from the server if not complete.
+  Future<List<Member>> roomMembers({required String roomId});
+
+  Future<RoomNotificationSettings> roomNotificationSettings({
+    required String roomId,
+  });
+
   Future<void> setRoomFilter({required RoomFilter filter});
+
+  /// Sets the room's mode; `None` restores the account default.
+  Future<void> setRoomNotificationMode({
+    required String roomId,
+    NotificationMode? mode,
+  });
 
   /// Stops all background work so that another client may open the store.
   Future<void> shutdown();

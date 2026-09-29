@@ -11,6 +11,7 @@ import 'api/encryption.dart';
 import 'api/error.dart';
 import 'api/logging.dart';
 import 'api/notifications.dart';
+import 'api/room.dart';
 import 'api/rooms.dart';
 import 'api/threads.dart';
 import 'api/timeline.dart';
@@ -104,6 +105,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw);
 
   @protected
+  RustStreamSink<List<Sender>> dco_decode_StreamSink_list_sender_Sse(
+    dynamic raw,
+  );
+
+  @protected
   RustStreamSink<List<ThreadListDiff>>
   dco_decode_StreamSink_list_thread_list_diff_Sse(dynamic raw);
 
@@ -130,6 +136,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   EventKey dco_decode_box_autoadd_event_key(dynamic raw);
 
   @protected
+  ImageAttachment dco_decode_box_autoadd_image_attachment(dynamic raw);
+
+  @protected
+  ImageThumbnail dco_decode_box_autoadd_image_thumbnail(dynamic raw);
+
+  @protected
   LatestEvent dco_decode_box_autoadd_latest_event(dynamic raw);
 
   @protected
@@ -137,6 +149,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NotificationContent dco_decode_box_autoadd_notification_content(dynamic raw);
+
+  @protected
+  NotificationMode dco_decode_box_autoadd_notification_mode(dynamic raw);
 
   @protected
   ReplyPreview dco_decode_box_autoadd_reply_preview(dynamic raw);
@@ -169,6 +184,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
+  UploadProgress dco_decode_box_autoadd_upload_progress(dynamic raw);
+
+  @protected
   ChatConfig dco_decode_chat_config(dynamic raw);
 
   @protected
@@ -190,7 +208,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 dco_decode_i_64(dynamic raw);
 
   @protected
+  ImageAttachment dco_decode_image_attachment(dynamic raw);
+
+  @protected
+  ImageThumbnail dco_decode_image_thumbnail(dynamic raw);
+
+  @protected
   LatestEvent dco_decode_latest_event(dynamic raw);
+
+  @protected
+  List<Member> dco_decode_list_member(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -205,6 +232,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<RoomSummary> dco_decode_list_room_summary(dynamic raw);
 
   @protected
+  List<Sender> dco_decode_list_sender(dynamic raw);
+
+  @protected
   List<ThreadInfo> dco_decode_list_thread_info(dynamic raw);
 
   @protected
@@ -215,6 +245,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<TimelineItem> dco_decode_list_timeline_item(dynamic raw);
+
+  @protected
+  Member dco_decode_member(dynamic raw);
+
+  @protected
+  MemberRole dco_decode_member_role(dynamic raw);
+
+  @protected
+  MemberState dco_decode_member_state(dynamic raw);
 
   @protected
   Membership dco_decode_membership(dynamic raw);
@@ -229,10 +268,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NotificationContent dco_decode_notification_content(dynamic raw);
 
   @protected
+  NotificationMode dco_decode_notification_mode(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
+
+  @protected
+  ImageThumbnail? dco_decode_opt_box_autoadd_image_thumbnail(dynamic raw);
 
   @protected
   LatestEvent? dco_decode_opt_box_autoadd_latest_event(dynamic raw);
@@ -244,6 +289,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NotificationContent? dco_decode_opt_box_autoadd_notification_content(
     dynamic raw,
   );
+
+  @protected
+  NotificationMode? dco_decode_opt_box_autoadd_notification_mode(dynamic raw);
 
   @protected
   ReplyPreview? dco_decode_opt_box_autoadd_reply_preview(dynamic raw);
@@ -267,6 +315,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? dco_decode_opt_box_autoadd_u_64(dynamic raw);
 
   @protected
+  UploadProgress? dco_decode_opt_box_autoadd_upload_progress(dynamic raw);
+
+  @protected
   Reaction dco_decode_reaction(dynamic raw);
 
   @protected
@@ -283,6 +334,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RoomListDiff dco_decode_room_list_diff(dynamic raw);
+
+  @protected
+  RoomNotificationSettings dco_decode_room_notification_settings(dynamic raw);
 
   @protected
   RoomSummary dco_decode_room_summary(dynamic raw);
@@ -331,6 +385,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void dco_decode_unit(dynamic raw);
+
+  @protected
+  UploadProgress dco_decode_upload_progress(dynamic raw);
 
   @protected
   BigInt dco_decode_usize(dynamic raw);
@@ -402,6 +459,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer);
 
   @protected
+  RustStreamSink<List<Sender>> sse_decode_StreamSink_list_sender_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<List<ThreadListDiff>>
   sse_decode_StreamSink_list_thread_list_diff_Sse(SseDeserializer deserializer);
 
@@ -428,6 +490,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   EventKey sse_decode_box_autoadd_event_key(SseDeserializer deserializer);
 
   @protected
+  ImageAttachment sse_decode_box_autoadd_image_attachment(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ImageThumbnail sse_decode_box_autoadd_image_thumbnail(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   LatestEvent sse_decode_box_autoadd_latest_event(SseDeserializer deserializer);
 
   @protected
@@ -437,6 +509,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NotificationContent sse_decode_box_autoadd_notification_content(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NotificationMode sse_decode_box_autoadd_notification_mode(
     SseDeserializer deserializer,
   );
 
@@ -477,6 +554,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  UploadProgress sse_decode_box_autoadd_upload_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ChatConfig sse_decode_chat_config(SseDeserializer deserializer);
 
   @protected
@@ -498,7 +580,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
   @protected
+  ImageAttachment sse_decode_image_attachment(SseDeserializer deserializer);
+
+  @protected
+  ImageThumbnail sse_decode_image_thumbnail(SseDeserializer deserializer);
+
+  @protected
   LatestEvent sse_decode_latest_event(SseDeserializer deserializer);
+
+  @protected
+  List<Member> sse_decode_list_member(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -513,6 +604,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<RoomSummary> sse_decode_list_room_summary(SseDeserializer deserializer);
+
+  @protected
+  List<Sender> sse_decode_list_sender(SseDeserializer deserializer);
 
   @protected
   List<ThreadInfo> sse_decode_list_thread_info(SseDeserializer deserializer);
@@ -533,6 +627,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Member sse_decode_member(SseDeserializer deserializer);
+
+  @protected
+  MemberRole sse_decode_member_role(SseDeserializer deserializer);
+
+  @protected
+  MemberState sse_decode_member_state(SseDeserializer deserializer);
+
+  @protected
   Membership sse_decode_membership(SseDeserializer deserializer);
 
   @protected
@@ -547,10 +650,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  NotificationMode sse_decode_notification_mode(SseDeserializer deserializer);
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  ImageThumbnail? sse_decode_opt_box_autoadd_image_thumbnail(
+    SseDeserializer deserializer,
+  );
 
   @protected
   LatestEvent? sse_decode_opt_box_autoadd_latest_event(
@@ -564,6 +675,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NotificationContent? sse_decode_opt_box_autoadd_notification_content(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NotificationMode? sse_decode_opt_box_autoadd_notification_mode(
     SseDeserializer deserializer,
   );
 
@@ -597,6 +713,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   BigInt? sse_decode_opt_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  UploadProgress? sse_decode_opt_box_autoadd_upload_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Reaction sse_decode_reaction(SseDeserializer deserializer);
 
   @protected
@@ -613,6 +734,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   RoomListDiff sse_decode_room_list_diff(SseDeserializer deserializer);
+
+  @protected
+  RoomNotificationSettings sse_decode_room_notification_settings(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RoomSummary sse_decode_room_summary(SseDeserializer deserializer);
@@ -661,6 +787,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
+
+  @protected
+  UploadProgress sse_decode_upload_progress(SseDeserializer deserializer);
 
   @protected
   BigInt sse_decode_usize(SseDeserializer deserializer);
@@ -747,6 +876,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_list_sender_Sse(
+    RustStreamSink<List<Sender>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_list_thread_list_diff_Sse(
     RustStreamSink<List<ThreadListDiff>> self,
     SseSerializer serializer,
@@ -786,6 +921,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_image_attachment(
+    ImageAttachment self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_image_thumbnail(
+    ImageThumbnail self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_latest_event(
     LatestEvent self,
     SseSerializer serializer,
@@ -800,6 +947,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_notification_content(
     NotificationContent self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_notification_mode(
+    NotificationMode self,
     SseSerializer serializer,
   );
 
@@ -855,6 +1008,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_upload_progress(
+    UploadProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_chat_config(ChatConfig self, SseSerializer serializer);
 
   @protected
@@ -876,7 +1035,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
   @protected
+  void sse_encode_image_attachment(
+    ImageAttachment self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_image_thumbnail(
+    ImageThumbnail self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_latest_event(LatestEvent self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_member(List<Member> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
@@ -898,6 +1072,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<RoomSummary> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_sender(List<Sender> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_thread_info(
@@ -924,6 +1101,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_member(Member self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_member_role(MemberRole self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_member_state(MemberState self, SseSerializer serializer);
+
+  @protected
   void sse_encode_membership(Membership self, SseSerializer serializer);
 
   @protected
@@ -945,10 +1131,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_notification_mode(
+    NotificationMode self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_image_thumbnail(
+    ImageThumbnail? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_latest_event(
@@ -965,6 +1163,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_notification_content(
     NotificationContent? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_notification_mode(
+    NotificationMode? self,
     SseSerializer serializer,
   );
 
@@ -1005,6 +1209,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_u_64(BigInt? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_upload_progress(
+    UploadProgress? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_reaction(Reaction self, SseSerializer serializer);
 
   @protected
@@ -1024,6 +1234,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_room_list_diff(RoomListDiff self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_room_notification_settings(
+    RoomNotificationSettings self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_room_summary(RoomSummary self, SseSerializer serializer);
@@ -1078,6 +1294,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_upload_progress(
+    UploadProgress self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_usize(BigInt self, SseSerializer serializer);

@@ -9,7 +9,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'timeline.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `event_content`, `item_id`, `map_diff`, `map_event`, `map_item`, `media_ref`, `message_preview`, `parse_event_id`, `reactions`, `ready`, `reply_preview`, `send_handle`, `sender`, `to_u32`
+// These functions are ignored because they are not marked as `pub`: `event_content`, `item_id`, `map_diff`, `map_event`, `map_item`, `media_ref`, `message_preview`, `parse_event_id`, `reactions`, `ready`, `reply_preview`, `send_handle`, `sender`, `thumbnail`, `to_u32`, `to_u64`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `drop`, `eq`, `eq`, `fmt`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatTimeline>>
@@ -40,14 +40,17 @@ abstract class ChatTimeline implements RustOpaqueInterface {
   /// Retries a local echo whose sending failed.
   Future<void> retry({required EventKey key});
 
-  Future<void> sendImage({
-    required String filePath,
-    required String mimeType,
-    String? caption,
-  });
+  /// Sends an image. Upload progress appears on the local echo
+  /// (`SendState::Sending`). Pass a small `thumbnail` for encrypted rooms:
+  /// the server cannot scale encrypted media.
+  Future<void> sendImage({required ImageAttachment image});
 
   /// Sends a plain-text message, optionally as a reply to `reply_to`.
   Future<void> sendText({required String body, String? replyTo});
+
+  /// Tells the others whether the user is typing (the SDK throttles
+  /// repeated notices and lets them expire).
+  Future<void> setTyping({required bool typing});
 
   /// Adds or removes an own reaction; returns true if it is now set.
   Future<bool> toggleReaction({
@@ -58,6 +61,9 @@ abstract class ChatTimeline implements RustOpaqueInterface {
   /// Streams the timeline as diffs; the first batch resets the list.
   /// Starting a new watch replaces the previous one.
   Stream<List<TimelineDiff>> watch();
+
+  /// Streams the other members currently typing in this room.
+  Stream<List<Sender>> watchTyping();
 }
 
 @freezed
@@ -71,8 +77,13 @@ sealed class EventContent with _$EventContent {
 
     /// Opaque media reference for the media API.
     required String media,
+
+    /// Small preview uploaded by the sender (always set for encrypted
+    /// images sent by this app; fetch it with `fetch_media`).
+    String? thumbnail,
     int? width,
     int? height,
+    String? blurhash,
   }) = EventContent_Image;
   const factory EventContent.video({
     String? caption,
@@ -186,6 +197,79 @@ sealed class EventKey with _$EventKey {
   const factory EventKey.remote({required String eventId}) = EventKey_Remote;
 }
 
+/// An image to send; `width`/`height` are the pixel size of the file.
+class ImageAttachment {
+  final String filePath;
+  final String mimeType;
+  final String? caption;
+  final int? width;
+  final int? height;
+  final String? blurhash;
+  final ImageThumbnail? thumbnail;
+
+  const ImageAttachment({
+    required this.filePath,
+    required this.mimeType,
+    this.caption,
+    this.width,
+    this.height,
+    this.blurhash,
+    this.thumbnail,
+  });
+
+  @override
+  int get hashCode =>
+      filePath.hashCode ^
+      mimeType.hashCode ^
+      caption.hashCode ^
+      width.hashCode ^
+      height.hashCode ^
+      blurhash.hashCode ^
+      thumbnail.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImageAttachment &&
+          runtimeType == other.runtimeType &&
+          filePath == other.filePath &&
+          mimeType == other.mimeType &&
+          caption == other.caption &&
+          width == other.width &&
+          height == other.height &&
+          blurhash == other.blurhash &&
+          thumbnail == other.thumbnail;
+}
+
+/// Encoded preview image (e.g. JPEG, longest side ~800 px).
+class ImageThumbnail {
+  final Uint8List data;
+  final String mimeType;
+  final int width;
+  final int height;
+
+  const ImageThumbnail({
+    required this.data,
+    required this.mimeType,
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  int get hashCode =>
+      data.hashCode ^ mimeType.hashCode ^ width.hashCode ^ height.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ImageThumbnail &&
+          runtimeType == other.runtimeType &&
+          data == other.data &&
+          mimeType == other.mimeType &&
+          width == other.width &&
+          height == other.height;
+}
+
 enum MembershipKind {
   joined,
   left,
@@ -264,7 +348,9 @@ class ReplyPreview {
 sealed class SendState with _$SendState {
   const SendState._();
 
-  const factory SendState.sending() = SendState_Sending;
+  /// Queued or uploading; `progress` is set while media is uploaded.
+  const factory SendState.sending({UploadProgress? progress}) =
+      SendState_Sending;
   const factory SendState.sent() = SendState_Sent;
   const factory SendState.failed({required bool recoverable}) =
       SendState_Failed;
@@ -376,4 +462,23 @@ sealed class TimelineItemKind with _$TimelineItemKind {
   const factory TimelineItemKind.readMarker() = TimelineItemKind_ReadMarker;
   const factory TimelineItemKind.timelineStart() =
       TimelineItemKind_TimelineStart;
+}
+
+/// Uploaded bytes of a media message (file and thumbnail combined).
+class UploadProgress {
+  final BigInt currentBytes;
+  final BigInt totalBytes;
+
+  const UploadProgress({required this.currentBytes, required this.totalBytes});
+
+  @override
+  int get hashCode => currentBytes.hashCode ^ totalBytes.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UploadProgress &&
+          runtimeType == other.runtimeType &&
+          currentBytes == other.currentBytes &&
+          totalBytes == other.totalBytes;
 }

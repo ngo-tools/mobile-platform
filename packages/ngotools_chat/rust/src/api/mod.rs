@@ -4,6 +4,7 @@ pub mod error;
 pub mod logging;
 pub mod media;
 pub mod notifications;
+pub mod room;
 pub mod rooms;
 pub mod threads;
 pub mod timeline;
