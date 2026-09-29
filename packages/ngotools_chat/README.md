@@ -67,7 +67,15 @@ Release builds of the facade are precompiled, signed (Ed25519) and published
 by `.github/workflows/chat-native-binaries.yml`. Builds on machines without
 `rustup` download them by crate hash and verify the signature against
 `rust/cargokit.yaml`. With `rustup` installed, cargokit builds from source
-with the pinned toolchain (`rust/rust-toolchain.toml`).
+with the pinned toolchain (`rust/rust-toolchain.toml`). To use the
+published binaries anyway, put `use_precompiled_binaries: true` into a
+`cargokit_options.yaml` in the app directory (not committed).
+
+Published targets: `aarch64-apple-ios`, `aarch64-apple-ios-sim`,
+`aarch64-linux-android`, `armv7-linux-androideabi`, `x86_64-linux-android`
+and `i686-linux-android` (Android debug builds request x86). The vendored
+cargokit is patched to accept pinned toolchain versions and to build only
+the targets without a precompiled binary.
 
 ## Development
 

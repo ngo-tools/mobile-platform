@@ -62,7 +62,7 @@ jobs:
             --target=aarch64-apple-ios-sim
 
   android:
-    name: Android (arm64, armv7, x86_64)
+    name: Android (arm64, armv7, x86_64, x86)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: chat-native-binaries
@@ -98,4 +98,5 @@ jobs:
             --android-min-sdk-version=24 \
             --target=aarch64-linux-android \
             --target=armv7-linux-androideabi \
-            --target=x86_64-linux-android
+            --target=x86_64-linux-android \
+            --target=i686-linux-android
