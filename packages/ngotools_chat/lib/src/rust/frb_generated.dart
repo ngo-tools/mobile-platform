@@ -75,7 +75,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -1919235185;
+  int get rustContentHash => 374485135;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -130,8 +130,14 @@ abstract class RustLibApi extends BaseApi {
     required String roomId,
   });
 
+  Future<void> crateApiClientChatClientLeaveRoom({
+    required ChatClient that,
+    required String roomId,
+  });
+
   Future<void> crateApiClientChatClientLoadMoreRooms({
     required ChatClient that,
+    required BigInt watchId,
   });
 
   Future<String> crateApiClientChatClientLoginUrl({required ChatClient that});
@@ -180,6 +186,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiClientChatClientSetRoomFilter({
     required ChatClient that,
+    required BigInt watchId,
     required RoomFilter filter,
   });
 
@@ -200,7 +207,10 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiClientChatClientStartSync({required ChatClient that});
 
-  Future<void> crateApiClientChatClientStopRoomList({required ChatClient that});
+  Future<void> crateApiClientChatClientStopRoomList({
+    required ChatClient that,
+    required BigInt watchId,
+  });
 
   Future<void> crateApiClientChatClientStopSync({required ChatClient that});
 
@@ -233,6 +243,7 @@ abstract class RustLibApi extends BaseApi {
 
   Stream<List<RoomListDiff>> crateApiClientChatClientWatchRoomList({
     required ChatClient that,
+    required BigInt watchId,
   });
 
   Stream<SessionState> crateApiClientChatClientWatchSessionState({
@@ -702,8 +713,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiClientChatClientLoadMoreRooms({
+  Future<void> crateApiClientChatClientLeaveRoom({
     required ChatClient that,
+    required String roomId,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -713,6 +725,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
+          sse_encode_String(roomId, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -724,8 +737,46 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_unit,
           decodeErrorData: sse_decode_chat_error,
         ),
+        constMeta: kCrateApiClientChatClientLeaveRoomConstMeta,
+        argValues: [that, roomId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiClientChatClientLeaveRoomConstMeta =>
+      const TaskConstMeta(
+        debugName: "ChatClient_leave_room",
+        argNames: ["that", "roomId"],
+      );
+
+  @override
+  Future<void> crateApiClientChatClientLoadMoreRooms({
+    required ChatClient that,
+    required BigInt watchId,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerChatClient(
+            that,
+            serializer,
+          );
+          sse_encode_u_64(watchId, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 11,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_chat_error,
+        ),
         constMeta: kCrateApiClientChatClientLoadMoreRoomsConstMeta,
-        argValues: [that],
+        argValues: [that, watchId],
         apiImpl: this,
       ),
     );
@@ -734,7 +785,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiClientChatClientLoadMoreRoomsConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_load_more_rooms",
-        argNames: ["that"],
+        argNames: ["that", "watchId"],
       );
 
   @override
@@ -750,7 +801,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 12,
             port: port_,
           );
         },
@@ -784,7 +835,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 13,
             port: port_,
           );
         },
@@ -815,7 +866,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 14,
             port: port_,
           );
         },
@@ -848,7 +899,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 15,
             port: port_,
           );
         },
@@ -886,7 +937,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 16,
             port: port_,
           );
         },
@@ -922,7 +973,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 17,
             port: port_,
           );
         },
@@ -966,7 +1017,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 18,
             port: port_,
           );
         },
@@ -1002,7 +1053,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 19,
             port: port_,
           );
         },
@@ -1036,7 +1087,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 20,
             port: port_,
           );
         },
@@ -1071,7 +1122,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 21,
             port: port_,
           );
         },
@@ -1110,7 +1161,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 22,
             port: port_,
           );
         },
@@ -1135,6 +1186,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateApiClientChatClientSetRoomFilter({
     required ChatClient that,
+    required BigInt watchId,
     required RoomFilter filter,
   }) {
     return handler.executeNormal(
@@ -1145,11 +1197,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
+          sse_encode_u_64(watchId, serializer);
           sse_encode_room_filter(filter, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 23,
             port: port_,
           );
         },
@@ -1158,7 +1211,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_chat_error,
         ),
         constMeta: kCrateApiClientChatClientSetRoomFilterConstMeta,
-        argValues: [that, filter],
+        argValues: [that, watchId, filter],
         apiImpl: this,
       ),
     );
@@ -1167,7 +1220,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiClientChatClientSetRoomFilterConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_set_room_filter",
-        argNames: ["that", "filter"],
+        argNames: ["that", "watchId", "filter"],
       );
 
   @override
@@ -1189,7 +1242,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 24,
             port: port_,
           );
         },
@@ -1223,7 +1276,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 25,
             port: port_,
           );
         },
@@ -1262,7 +1315,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 26,
             port: port_,
           );
         },
@@ -1296,7 +1349,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 27,
             port: port_,
           );
         },
@@ -1320,6 +1373,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<void> crateApiClientChatClientStopRoomList({
     required ChatClient that,
+    required BigInt watchId,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -1329,10 +1383,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
+          sse_encode_u_64(watchId, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1341,7 +1396,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: null,
         ),
         constMeta: kCrateApiClientChatClientStopRoomListConstMeta,
-        argValues: [that],
+        argValues: [that, watchId],
         apiImpl: this,
       ),
     );
@@ -1350,7 +1405,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiClientChatClientStopRoomListConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_stop_room_list",
-        argNames: ["that"],
+        argNames: ["that", "watchId"],
       );
 
   @override
@@ -1366,7 +1421,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1404,7 +1459,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 30,
             port: port_,
           );
         },
@@ -1445,7 +1500,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1484,7 +1539,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 31,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1523,7 +1578,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1557,7 +1612,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1590,7 +1645,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1614,6 +1669,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Stream<List<RoomListDiff>> crateApiClientChatClientWatchRoomList({
     required ChatClient that,
+    required BigInt watchId,
   }) {
     final sink = RustStreamSink<List<RoomListDiff>>();
     unawaited(
@@ -1625,11 +1681,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
               that,
               serializer,
             );
+            sse_encode_u_64(watchId, serializer);
             sse_encode_StreamSink_list_room_list_diff_Sse(sink, serializer);
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 35,
+              funcId: 36,
               port: port_,
             );
           },
@@ -1638,7 +1695,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             decodeErrorData: sse_decode_chat_error,
           ),
           constMeta: kCrateApiClientChatClientWatchRoomListConstMeta,
-          argValues: [that, sink],
+          argValues: [that, watchId, sink],
           apiImpl: this,
         ),
       ),
@@ -1649,7 +1706,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiClientChatClientWatchRoomListConstMeta =>
       const TaskConstMeta(
         debugName: "ChatClient_watch_room_list",
-        argNames: ["that", "sink"],
+        argNames: ["that", "watchId", "sink"],
       );
 
   @override
@@ -1670,7 +1727,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 36,
+              funcId: 37,
               port: port_,
             );
           },
@@ -1711,7 +1768,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 37,
+              funcId: 38,
               port: port_,
             );
           },
@@ -1747,7 +1804,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1780,7 +1837,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1816,7 +1873,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1855,7 +1912,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 41,
+              funcId: 42,
               port: port_,
             );
           },
@@ -1895,7 +1952,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 42,
+            funcId: 43,
             port: port_,
           );
         },
@@ -1929,7 +1986,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 43,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1966,7 +2023,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 44,
+            funcId: 45,
             port: port_,
           );
         },
@@ -2004,7 +2061,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 45,
+            funcId: 46,
             port: port_,
           );
         },
@@ -2040,7 +2097,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 46,
+            funcId: 47,
             port: port_,
           );
         },
@@ -2078,7 +2135,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 47,
+            funcId: 48,
             port: port_,
           );
         },
@@ -2118,7 +2175,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 48,
+            funcId: 49,
             port: port_,
           );
         },
@@ -2156,7 +2213,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 50,
             port: port_,
           );
         },
@@ -2194,7 +2251,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 51,
             port: port_,
           );
         },
@@ -2234,7 +2291,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 52,
             port: port_,
           );
         },
@@ -2272,7 +2329,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 52,
+            funcId: 53,
             port: port_,
           );
         },
@@ -2312,7 +2369,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 54,
             port: port_,
           );
         },
@@ -2351,7 +2408,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 54,
+              funcId: 55,
               port: port_,
             );
           },
@@ -2392,7 +2449,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 55,
+              funcId: 56,
               port: port_,
             );
           },
@@ -2424,7 +2481,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 56,
+            funcId: 57,
             port: port_,
           );
         },
@@ -2456,7 +2513,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 57,
+            funcId: 58,
             port: port_,
           );
         },
@@ -6395,9 +6452,14 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
   Future<void> joinRoom({required String roomId}) => RustLib.instance.api
       .crateApiClientChatClientJoinRoom(that: this, roomId: roomId);
 
+  /// Leaves a joined room or declines an invite; the room disappears from
+  /// the room list.
+  Future<void> leaveRoom({required String roomId}) => RustLib.instance.api
+      .crateApiClientChatClientLeaveRoom(that: this, roomId: roomId);
+
   /// Extends the visible room list by one page.
-  Future<void> loadMoreRooms() =>
-      RustLib.instance.api.crateApiClientChatClientLoadMoreRooms(that: this);
+  Future<void> loadMoreRooms({required BigInt watchId}) => RustLib.instance.api
+      .crateApiClientChatClientLoadMoreRooms(that: this, watchId: watchId);
 
   /// Starts an OAuth 2.0 authorization code flow with PKCE against MAS
   /// (dynamic client registration) and returns the URL for the system
@@ -6460,10 +6522,14 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
     roomId: roomId,
   );
 
-  Future<void> setRoomFilter({required RoomFilter filter}) => RustLib
-      .instance
-      .api
-      .crateApiClientChatClientSetRoomFilter(that: this, filter: filter);
+  Future<void> setRoomFilter({
+    required BigInt watchId,
+    required RoomFilter filter,
+  }) => RustLib.instance.api.crateApiClientChatClientSetRoomFilter(
+    that: this,
+    watchId: watchId,
+    filter: filter,
+  );
 
   /// Sets the room's mode; `None` restores the account default.
   Future<void> setRoomNotificationMode({
@@ -6497,9 +6563,9 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
   Future<void> startSync() =>
       RustLib.instance.api.crateApiClientChatClientStartSync(that: this);
 
-  /// Stops the room list stream; the Dart stream ends.
-  Future<void> stopRoomList() =>
-      RustLib.instance.api.crateApiClientChatClientStopRoomList(that: this);
+  /// Stops a room list stream; its Dart stream ends.
+  Future<void> stopRoomList({required BigInt watchId}) => RustLib.instance.api
+      .crateApiClientChatClientStopRoomList(that: this, watchId: watchId);
 
   Future<void> stopSync() =>
       RustLib.instance.api.crateApiClientChatClientStopSync(that: this);
@@ -6543,9 +6609,12 @@ class ChatClientImpl extends RustOpaque implements ChatClient {
       .crateApiClientChatClientVerificationState(that: this);
 
   /// Streams the room list as diffs. The first batch resets the list.
-  /// Starting a new watch replaces the previous one.
-  Stream<List<RoomListDiff>> watchRoomList() =>
-      RustLib.instance.api.crateApiClientChatClientWatchRoomList(that: this);
+  /// Several lists may run at once, each with its own filter and paging,
+  /// identified by [watch_id]; starting a watch with a used id replaces it.
+  Stream<List<RoomListDiff>> watchRoomList({required BigInt watchId}) => RustLib
+      .instance
+      .api
+      .crateApiClientChatClientWatchRoomList(that: this, watchId: watchId);
 
   /// Streams the session state; starts with the current one.
   Stream<SessionState> watchSessionState() => RustLib.instance.api

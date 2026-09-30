@@ -42,7 +42,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1919235185;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 374485135;
 
 // Section: executor
 
@@ -566,6 +566,66 @@ fn wire__crate__api__client__ChatClient_join_room_impl(
         },
     )
 }
+fn wire__crate__api__client__ChatClient_leave_room_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ChatClient_leave_room",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
+            >>::sse_decode(&mut deserializer);
+            let api_room_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, crate::api::error::ChatError>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::client::ChatClient::leave_room(
+                            &*api_that_guard,
+                            api_room_id,
+                        )
+                        .await?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__client__ChatClient_load_more_rooms_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -591,6 +651,7 @@ fn wire__crate__api__client__ChatClient_load_more_rooms_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
             >>::sse_decode(&mut deserializer);
+            let api_watch_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, crate::api::error::ChatError>(
@@ -612,9 +673,11 @@ fn wire__crate__api__client__ChatClient_load_more_rooms_impl(
                             }
                         }
                         let api_that_guard = api_that_guard.unwrap();
-                        let output_ok =
-                            crate::api::client::ChatClient::load_more_rooms(&*api_that_guard)
-                                .await?;
+                        let output_ok = crate::api::client::ChatClient::load_more_rooms(
+                            &*api_that_guard,
+                            api_watch_id,
+                        )
+                        .await?;
                         std::result::Result::Ok(output_ok)
                     })()
                     .await,
@@ -1283,6 +1346,7 @@ fn wire__crate__api__client__ChatClient_set_room_filter_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
             >>::sse_decode(&mut deserializer);
+            let api_watch_id = <u64>::sse_decode(&mut deserializer);
             let api_filter = <crate::api::rooms::RoomFilter>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
@@ -1307,6 +1371,7 @@ fn wire__crate__api__client__ChatClient_set_room_filter_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::client::ChatClient::set_room_filter(
                             &*api_that_guard,
+                            api_watch_id,
                             api_filter,
                         )
                         .await?;
@@ -1582,6 +1647,7 @@ fn wire__crate__api__client__ChatClient_stop_room_list_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
             >>::sse_decode(&mut deserializer);
+            let api_watch_id = <u64>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| async move {
                 transform_result_sse::<_, ()>(
@@ -1604,7 +1670,11 @@ fn wire__crate__api__client__ChatClient_stop_room_list_impl(
                         }
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = Ok::<_, ()>({
-                            crate::api::client::ChatClient::stop_room_list(&*api_that_guard).await;
+                            crate::api::client::ChatClient::stop_room_list(
+                                &*api_that_guard,
+                                api_watch_id,
+                            )
+                            .await;
                         })?;
                         std::result::Result::Ok(output_ok)
                     })()
@@ -2049,6 +2119,7 @@ fn wire__crate__api__client__ChatClient_watch_room_list_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
             >>::sse_decode(&mut deserializer);
+            let api_watch_id = <u64>::sse_decode(&mut deserializer);
             let api_sink = <StreamSink<
                 Vec<crate::api::rooms::RoomListDiff>,
                 flutter_rust_bridge::for_generated::SseCodec,
@@ -2076,6 +2147,7 @@ fn wire__crate__api__client__ChatClient_watch_room_list_impl(
                         let api_that_guard = api_that_guard.unwrap();
                         let output_ok = crate::api::client::ChatClient::watch_room_list(
                             &*api_that_guard,
+                            api_watch_id,
                             api_sink,
                         )
                         .await?;
@@ -4870,206 +4942,209 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         9 => wire__crate__api__client__ChatClient_join_room_impl(port, ptr, rust_vec_len, data_len),
-        10 => wire__crate__api__client__ChatClient_load_more_rooms_impl(
+        10 => {
+            wire__crate__api__client__ChatClient_leave_room_impl(port, ptr, rust_vec_len, data_len)
+        }
+        11 => wire__crate__api__client__ChatClient_load_more_rooms_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        11 => {
+        12 => {
             wire__crate__api__client__ChatClient_login_url_impl(port, ptr, rust_vec_len, data_len)
         }
-        12 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
-        13 => wire__crate__api__client__ChatClient_pause_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
+        13 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
+        14 => wire__crate__api__client__ChatClient_pause_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        15 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__client__ChatClient_recovery_status_impl(
+        16 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__client__ChatClient_recovery_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        17 => wire__crate__api__client__ChatClient_register_pusher_impl(
+        18 => wire__crate__api__client__ChatClient_register_pusher_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__client__ChatClient_restore_session_impl(
+        19 => wire__crate__api__client__ChatClient_restore_session_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__client__ChatClient_resume_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__client__ChatClient_room_members_impl(
+        20 => wire__crate__api__client__ChatClient_resume_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__client__ChatClient_room_members_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__client__ChatClient_room_notification_settings_impl(
+        22 => wire__crate__api__client__ChatClient_room_notification_settings_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__client__ChatClient_set_room_filter_impl(
+        23 => wire__crate__api__client__ChatClient_set_room_filter_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__client__ChatClient_set_room_notification_mode_impl(
+        24 => wire__crate__api__client__ChatClient_set_room_notification_mode_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__client__ChatClient_sign_in_with_token_impl(
+        25 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__client__ChatClient_sign_in_with_token_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => {
+        27 => {
             wire__crate__api__client__ChatClient_start_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        27 => wire__crate__api__client__ChatClient_stop_room_list_impl(
+        28 => wire__crate__api__client__ChatClient_stop_room_list_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => {
+        29 => {
             wire__crate__api__client__ChatClient_stop_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        29 => {
+        30 => {
             wire__crate__api__client__ChatClient_thread_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => wire__crate__api__client__ChatClient_thread_timeline_impl(
+        31 => wire__crate__api__client__ChatClient_thread_timeline_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        31 => wire__crate__api__client__ChatClient_timeline_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__client__ChatClient_update_access_token_impl(
+        32 => wire__crate__api__client__ChatClient_timeline_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__client__ChatClient_update_access_token_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        33 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__client__ChatClient_verification_state_impl(
+        34 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__client__ChatClient_verification_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__api__client__ChatClient_watch_room_list_impl(
+        36 => wire__crate__api__client__ChatClient_watch_room_list_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        36 => wire__crate__api__client__ChatClient_watch_session_state_impl(
+        37 => wire__crate__api__client__ChatClient_watch_session_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__api__client__ChatClient_watch_sync_status_impl(
+        38 => wire__crate__api__client__ChatClient_watch_sync_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
-        39 => {
+        39 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
+        40 => {
             wire__crate__api__threads__ChatThreadList_close_impl(port, ptr, rust_vec_len, data_len)
         }
-        40 => wire__crate__api__threads__ChatThreadList_paginate_impl(
+        41 => wire__crate__api__threads__ChatThreadList_paginate_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        41 => {
+        42 => {
             wire__crate__api__threads__ChatThreadList_watch_impl(port, ptr, rust_vec_len, data_len)
         }
-        42 => {
+        43 => {
             wire__crate__api__timeline__ChatTimeline_cancel_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => {
+        44 => {
             wire__crate__api__timeline__ChatTimeline_close_impl(port, ptr, rust_vec_len, data_len)
         }
-        44 => wire__crate__api__timeline__ChatTimeline_edit_impl(port, ptr, rust_vec_len, data_len),
-        45 => wire__crate__api__timeline__ChatTimeline_load_reply_details_impl(
+        45 => wire__crate__api__timeline__ChatTimeline_edit_impl(port, ptr, rust_vec_len, data_len),
+        46 => wire__crate__api__timeline__ChatTimeline_load_reply_details_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        46 => wire__crate__api__timeline__ChatTimeline_mark_read_impl(
+        47 => wire__crate__api__timeline__ChatTimeline_mark_read_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__timeline__ChatTimeline_paginate_back_impl(
+        48 => wire__crate__api__timeline__ChatTimeline_paginate_back_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => {
+        49 => {
             wire__crate__api__timeline__ChatTimeline_redact_impl(port, ptr, rust_vec_len, data_len)
         }
-        49 => {
+        50 => {
             wire__crate__api__timeline__ChatTimeline_retry_impl(port, ptr, rust_vec_len, data_len)
         }
-        50 => wire__crate__api__timeline__ChatTimeline_send_image_impl(
+        51 => wire__crate__api__timeline__ChatTimeline_send_image_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        51 => wire__crate__api__timeline__ChatTimeline_send_text_impl(
+        52 => wire__crate__api__timeline__ChatTimeline_send_text_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__timeline__ChatTimeline_set_typing_impl(
+        53 => wire__crate__api__timeline__ChatTimeline_set_typing_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__timeline__ChatTimeline_toggle_reaction_impl(
+        54 => wire__crate__api__timeline__ChatTimeline_toggle_reaction_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => {
+        55 => {
             wire__crate__api__timeline__ChatTimeline_watch_impl(port, ptr, rust_vec_len, data_len)
         }
-        55 => wire__crate__api__timeline__ChatTimeline_watch_typing_impl(
+        56 => wire__crate__api__timeline__ChatTimeline_watch_typing_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        56 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
-        57 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        57 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
+        58 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }

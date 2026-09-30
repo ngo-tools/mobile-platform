@@ -9,14 +9,16 @@ import 'rust/api/client.dart' as rust;
 import 'rust/api/rooms.dart' as rust;
 
 /// Keeps the room list up to date from its diff stream. Get it via
-/// `ChatSession.rooms()` after `startSync`; one room list per session.
+/// `ChatSession.rooms()` after `startSync`; several room lists may run at
+/// once, each with its own filter and paging.
 class RoomListController {
-  RoomListController._(rust.ChatClient client)
+  RoomListController._(rust.ChatClient client, BigInt watchId)
     : this.fromSource(
-        diffs: client.watchRoomList(),
-        setFilter: (filter) => client.setRoomFilter(filter: roomFilter(filter)),
-        loadMore: client.loadMoreRooms,
-        close: client.stopRoomList,
+        diffs: client.watchRoomList(watchId: watchId),
+        setFilter: (filter) =>
+            client.setRoomFilter(watchId: watchId, filter: roomFilter(filter)),
+        loadMore: () => client.loadMoreRooms(watchId: watchId),
+        close: () => client.stopRoomList(watchId: watchId),
       );
 
   @visibleForTesting
@@ -33,6 +35,8 @@ class RoomListController {
           _rooms.value = applyDiffs(_rooms.value, batch.map(roomListDiff)),
     );
   }
+
+  static int _nextWatchId = 0;
 
   final Future<void> Function(RoomFilter filter) _setFilter;
   final Future<void> Function() _loadMore;
@@ -66,7 +70,10 @@ class RoomListController {
 
 /// Opens the room list of a client (used by `ChatSession`).
 RoomListController roomListController(rust.ChatClient client) =>
-    RoomListController._(client);
+    RoomListController._(
+      client,
+      BigInt.from(RoomListController._nextWatchId++),
+    );
 
 /// Translates a generated room list diff into a [ListDiff] of summaries.
 ListDiff<RoomSummary> roomListDiff(rust.RoomListDiff diff) => switch (diff) {

@@ -198,6 +198,10 @@ class ChatSession {
   Future<void> joinRoom(String roomId) =>
       map.guard(() => _client.joinRoom(roomId: roomId));
 
+  /// Leaves a joined room or declines an invite.
+  Future<void> leaveRoom(String roomId) =>
+      map.guard(() => _client.leaveRoom(roomId: roomId));
+
   /// Joined and invited members.
   Future<List<ChatMember>> members(String roomId) async => [
     for (final entry in await map.guard(

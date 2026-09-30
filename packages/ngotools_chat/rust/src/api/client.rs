@@ -1,5 +1,6 @@
 //! The chat client: configuration, OAuth login via MAS, session and sync.
 
+use std::collections::HashMap;
 use std::sync::{
     atomic::{AtomicU32, Ordering},
     Arc,
@@ -20,7 +21,7 @@ use matrix_sdk::{
 use matrix_sdk_ui::sync_service::SyncService;
 use oauth2::CsrfToken;
 use tokio::{
-    sync::{broadcast, mpsc, Mutex, OnceCell},
+    sync::{broadcast, Mutex, OnceCell},
     task::JoinHandle,
 };
 use url::Url;
@@ -29,7 +30,7 @@ use crate::{
     api::{
         error::ChatError,
         lifecycle::{Lifecycle, SessionState},
-        rooms::RoomListCommand,
+        rooms::RoomListWatch,
     },
     runtime::{on_runtime, runtime, DropInRuntime},
     session::{
@@ -67,8 +68,8 @@ pub struct ChatClient {
     pub(crate) client: DropInRuntime<Client>,
     config: Arc<ChatConfigInner>,
     pub(crate) sync_service: DropInRuntime<Mutex<Option<Arc<SyncService>>>>,
-    pub(crate) room_task: Mutex<Option<JoinHandle<()>>>,
-    pub(crate) room_commands: Mutex<Option<mpsc::UnboundedSender<RoomListCommand>>>,
+    /// Room list watches by id; each Dart room list has its own.
+    pub(crate) room_lists: Mutex<HashMap<u64, RoomListWatch>>,
     session_task: Mutex<Option<JoinHandle<()>>>,
     pending_login_state: Mutex<Option<String>>,
     refreshes: Arc<AtomicU32>,
@@ -115,8 +116,7 @@ impl ChatClient {
                     store_key: config.store_key,
                 }),
                 sync_service: DropInRuntime::new(Mutex::new(None)),
-                room_task: Mutex::new(None),
-                room_commands: Mutex::new(None),
+                room_lists: Mutex::new(HashMap::new()),
                 session_task: Mutex::new(None),
                 pending_login_state: Mutex::new(None),
                 refreshes,
@@ -309,16 +309,12 @@ impl ChatClient {
     }
 
     pub async fn stop_sync(&self) -> Result<(), ChatError> {
-        for task in [
-            &self.room_task,
-            &self.supervisor_task,
-            &self.sync_status_task,
-        ] {
+        self.stop_room_lists().await;
+        for task in [&self.supervisor_task, &self.sync_status_task] {
             if let Some(task) = task.lock().await.take() {
                 task.abort();
             }
         }
-        self.room_commands.lock().await.take();
         if let Some(service) = self.sync_service.lock().await.take() {
             self.lifecycle
                 .run(async move {
@@ -359,6 +355,23 @@ impl ChatClient {
             .await
     }
 
+    /// Leaves a joined room or declines an invite; the room disappears from
+    /// the room list.
+    pub async fn leave_room(&self, room_id: String) -> Result<(), ChatError> {
+        let room_id =
+            RoomId::parse(&room_id).map_err(|error| ChatError::invalid(error.to_string()))?;
+        let client = self.client.clone();
+        self.lifecycle
+            .run(async move {
+                let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
+                room.leave().await?;
+                Ok(())
+            })
+            .await?;
+        self.refilter_room_lists().await;
+        Ok(())
+    }
+
     pub async fn user_id(&self) -> Option<String> {
         self.client.user_id().map(|user_id| user_id.to_string())
     }
@@ -383,7 +396,6 @@ impl ChatClient {
                 task.abort();
             }
         }
-        self.stop_room_list().await;
         self.stop_sync().await
     }
 
