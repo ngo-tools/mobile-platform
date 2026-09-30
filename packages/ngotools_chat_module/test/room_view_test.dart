@@ -291,9 +291,7 @@ void main() {
     expect(find.text('Nachricht wird geladen …'), findsOneWidget);
     expect(find.text('paul.peters ist beigetreten'), findsOneWidget);
     expect(
-      find.text(
-        'Diese Nachricht kann auf diesem Gerät noch nicht entschlüsselt werden.',
-      ),
+      find.text('Diese Nachricht kann noch nicht entschlüsselt werden.'),
       findsOneWidget,
     );
   });

@@ -1,6 +1,7 @@
 import 'package:ngotools_chat/ngotools_chat.dart';
 
 import 'chat_connection_state.dart';
+import 'chat_encryption_labels.dart';
 
 /// Localized texts and date formats of the chat module.
 final class ChatLabels {
@@ -79,7 +80,7 @@ final class ChatLabels {
     required this.profileChanged,
     required this.roomChanged,
     required this.unsupportedMessage,
-    required this.encryptedMessage,
+    required this.encryption,
     required this.replyLoading,
     required this.fullDate,
     required this.attachImage,
@@ -331,8 +332,8 @@ final class ChatLabels {
   /// Message the app cannot show.
   final String unsupportedMessage;
 
-  /// Message this device cannot decrypt (yet).
-  final String encryptedMessage;
+  /// Texts about encryption and the recovery key.
+  final ChatEncryptionLabels encryption;
 
   /// Replied-to message not loaded yet.
   final String replyLoading;
@@ -616,8 +617,7 @@ final class ChatLabels {
     profileChanged: (name) => '$name hat das Profil geändert',
     roomChanged: 'Chat-Einstellungen geändert',
     unsupportedMessage: 'Diese Nachricht kann hier nicht angezeigt werden.',
-    encryptedMessage:
-        'Diese Nachricht kann auf diesem Gerät noch nicht entschlüsselt werden.',
+    encryption: ChatEncryptionLabels.german,
     replyLoading: 'Nachricht wird geladen …',
     fullDate: (weekday, day, month) => '$weekday, $day. $month',
     attachImage: 'Bild senden',
@@ -765,7 +765,7 @@ final class ChatLabels {
     profileChanged: (name) => '$name changed their profile',
     roomChanged: 'Chat settings changed',
     unsupportedMessage: 'This message cannot be shown here.',
-    encryptedMessage: 'This message cannot be decrypted on this device yet.',
+    encryption: ChatEncryptionLabels.english,
     replyLoading: 'Loading message …',
     fullDate: (weekday, day, month) => '$weekday, $day $month',
     attachImage: 'Send image',

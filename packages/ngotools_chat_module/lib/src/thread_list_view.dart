@@ -19,6 +19,7 @@ final class ChatThreadListPage extends StatefulWidget {
     required this.roomId,
     required this.isGroup,
     this.imagePicker = const PlatformChatImagePicker(),
+    this.onEnterRecoveryKey,
     this.now,
     super.key,
   });
@@ -37,6 +38,9 @@ final class ChatThreadListPage extends StatefulWidget {
 
   /// Picks images to send in threads.
   final ChatImagePicker imagePicker;
+
+  /// Opens the recovery key entry from unreadable messages.
+  final VoidCallback? onEnterRecoveryKey;
 
   /// Current time, injectable for tests.
   final DateTime Function()? now;
@@ -148,6 +152,7 @@ final class _ChatThreadListPageState extends State<ChatThreadListPage> {
             isGroup: widget.isGroup,
             threadRootId: root.eventId,
             imagePicker: widget.imagePicker,
+            onEnterRecoveryKey: widget.onEnterRecoveryKey,
             now: widget.now,
           ),
         ),

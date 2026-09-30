@@ -3,6 +3,7 @@ import 'package:ngotools_chat/ngotools_chat.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 
 import 'chat_labels.dart';
+import 'undecryptable_message.dart';
 
 /// Short name of a Matrix user: display name or the localpart of the id.
 String chatUserName(ChatUser user) {
@@ -276,13 +277,9 @@ final class ChatMessageContent extends StatelessWidget {
         filename,
       ),
       RedactedContent() => Text(labels.redactedPreview, style: italic),
-      UnableToDecryptContent() => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.lock_outline, size: 16),
-          const SizedBox(width: 4),
-          Flexible(child: Text(labels.encryptedMessage, style: italic)),
-        ],
+      UnableToDecryptContent(:final reason) => ChatUndecryptableMessage(
+        reason: reason,
+        labels: labels.encryption,
       ),
       _ => Text(labels.unsupportedMessage, style: italic),
     };
