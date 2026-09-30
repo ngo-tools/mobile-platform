@@ -1,3 +1,5 @@
+#[cfg(test)]
+mod acceptance_tests;
 pub mod client;
 pub mod encryption;
 pub mod error;
