@@ -2,6 +2,40 @@
   "schema_version": 1,
   "modules": [
     {
+      "id": "chat",
+      "name": {
+        "de": "Chat",
+        "en": "Chat"
+      },
+      "summary": {
+        "de": "Verschlüsselter Chat der Organisation mit Direktnachrichten, Gruppen und Threads.",
+        "en": "The organization's encrypted chat with direct messages, groups, and threads."
+      },
+      "status": "planned",
+      "delivery": {
+        "type": "package",
+        "package": "ngotools_chat_module"
+      },
+      "requires": {
+        "modules": [
+          "profile"
+        ],
+        "api_scopes": [
+          "chat:login",
+          "chat:read"
+        ],
+        "features": [
+          "chat"
+        ],
+        "permissions": [],
+        "device_permissions": []
+      },
+      "deep_links": [
+        "/chat",
+        "/chat/rooms/{id}"
+      ]
+    },
+    {
       "id": "contacts",
       "name": {
         "de": "Kontakte",

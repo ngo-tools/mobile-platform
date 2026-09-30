@@ -10,6 +10,7 @@ tags:
   - name: Runtime
   - name: Contacts
   - name: Events
+  - name: Chat
   - name: Release
 paths:
   /api/v3/me:
@@ -388,6 +389,147 @@ paths:
           $ref: '#/components/responses/NotFound'
         '422':
           $ref: '#/components/responses/ValidationFailed'
+  /api/v3/chat/account:
+    get:
+      operationId: getChatAccount
+      tags: [Chat]
+      summary: Get the user's chat account and the organization's homeserver
+      description: >-
+        `matrix_user_id`, `server_name`, and `homeserver_url` are only present while the
+        homeserver runs; `matrix_user_id` additionally requires an active account.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Chat account status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatAccountResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v3/chat/people:
+    get:
+      operationId: listChatPeople
+      tags: [Chat]
+      summary: List the organization's chat address book
+      description: >-
+        Active chat accounts of the organization except the user's own, ordered by
+        Matrix localpart. Requires an active own account.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: per_page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: One page of chat people
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatPersonCollectionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /api/v3/chat/sessions:
+    post:
+      operationId: createChatSession
+      tags: [Chat]
+      summary: Sign the app into the chat in the background
+      description: >-
+        Issues a Matrix access token for a device of its own, bound to the API token
+        of the request. A previous chat session of the same API token is revoked.
+        Rejections carry `code` `chat_unavailable` or `no_chat_access`.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChatSessionRequest'
+      responses:
+        '201':
+          description: Chat session issued
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /api/v3/chat/sessions/current/renew:
+    post:
+      operationId: renewChatSession
+      tags: [Chat]
+      summary: Renew the access token of the current chat session
+      description: >-
+        Same session and device, new access token. `404` with `code` `no_chat_session`
+        means the app must sign in again; `403` with `no_chat_access` means the access
+        was withdrawn and the session is revoked.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Chat session renewed
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v3/chat/sessions/current:
+    delete:
+      operationId: deleteChatSession
+      tags: [Chat]
+      summary: End the chat session of the current API token
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Chat session ended
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/v3/mobile-app-releases:
     post:
       operationId: startMobileAppRelease
@@ -1323,6 +1465,91 @@ components:
         status:
           type: string
           enum: [available, not-available, if-needs-must]
+    ChatAccountResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ChatAccount'
+    ChatAccount:
+      type: object
+      additionalProperties: true
+      required: [status, available, matrix_user_id, server_name, homeserver_url]
+      properties:
+        status:
+          type: string
+          enum: [active, locked, deactivated, none]
+        available:
+          type: boolean
+        matrix_user_id:
+          type: string
+          nullable: true
+        server_name:
+          type: string
+          nullable: true
+        homeserver_url:
+          type: string
+          format: uri
+          nullable: true
+    ChatPersonCollectionResponse:
+      type: object
+      additionalProperties: true
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatPerson'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ChatPerson:
+      type: object
+      additionalProperties: true
+      required: [matrix_user_id, display_name, kind]
+      properties:
+        matrix_user_id:
+          type: string
+        display_name:
+          type: string
+        kind:
+          type: string
+          enum: [team_member, contact]
+    CreateChatSessionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        device_name:
+          type: string
+          maxLength: 100
+          nullable: true
+    ChatSessionResponse:
+      type: object
+      additionalProperties: false
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ChatSession'
+    ChatSession:
+      type: object
+      additionalProperties: true
+      required: [matrix_user_id, device_id, access_token, expires_at, homeserver_url, server_name]
+      properties:
+        matrix_user_id:
+          type: string
+        device_id:
+          type: string
+        access_token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        homeserver_url:
+          type: string
+          format: uri
+        server_name:
+          type: string
     ProblemDetails:
       type: object
       additionalProperties: true

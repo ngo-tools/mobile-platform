@@ -5,14 +5,19 @@ import 'package:meta/meta.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:uuid/uuid.dart';
 
+import 'generated/api/chat_api.dart';
 import 'generated/api/contacts_api.dart';
 import 'generated/api/events_api.dart';
 import 'generated/api/runtime_api.dart';
+import 'generated/model/chat_account.dart' as generated;
+import 'generated/model/chat_person.dart' as generated;
+import 'generated/model/chat_session.dart' as generated;
 import 'generated/model/contact.dart' as generated;
 import 'generated/model/contact_response.dart' as generated;
 import 'generated/model/contact_search_request.dart' as generated;
 import 'generated/model/contact_search_term.dart' as generated;
 import 'generated/model/contact_sort.dart' as generated;
+import 'generated/model/create_chat_session_request.dart' as generated;
 import 'generated/model/create_contact_request.dart' as generated;
 import 'generated/model/event_agenda_entry.dart' as generated;
 import 'generated/model/event_agenda_sub_item.dart' as generated;
@@ -26,6 +31,7 @@ import 'generated/model/update_contact_request.dart' as generated;
 import 'generated/model/update_event_availability_request.dart' as generated;
 import 'internal/mobile_api_interceptors.dart';
 import 'mobile_api_problem.dart';
+import 'mobile_chat.dart';
 import 'mobile_contact.dart';
 import 'mobile_events.dart';
 import 'mobile_runtime_capabilities.dart';
@@ -34,7 +40,8 @@ import 'mobile_runtime_capabilities.dart';
 typedef MobileApiAuthorizer = void Function(Dio client);
 
 /// Secure typed access to the NGO.Tools mobile runtime API.
-final class NgoToolsMobileApi implements MobileContactsApi, MobileEventsApi {
+final class NgoToolsMobileApi
+    implements MobileContactsApi, MobileEventsApi, MobileChatApi {
   /// Creates the production API pipeline for one fixed environment.
   factory NgoToolsMobileApi({
     required MobileEnvironmentConfiguration environment,
@@ -71,6 +78,7 @@ final class NgoToolsMobileApi implements MobileContactsApi, MobileEventsApi {
     _runtimeApi = RuntimeApi(_dio);
     _contactsApi = ContactsApi(_dio);
     _eventsApi = EventsApi(_dio);
+    _chatApi = ChatApi(_dio);
     _dio.interceptors.addAll([
       MobileRequestMetadataInterceptor(requestId ?? () => const Uuid().v4()),
       MobileReadRetryInterceptor(_dio),
@@ -83,6 +91,7 @@ final class NgoToolsMobileApi implements MobileContactsApi, MobileEventsApi {
   late final RuntimeApi _runtimeApi;
   late final ContactsApi _contactsApi;
   late final EventsApi _eventsApi;
+  late final ChatApi _chatApi;
 
   /// Emits whenever a denied request may indicate changed server access.
   Stream<void> get capabilityInvalidations => _capabilityInvalidations.stream;
@@ -562,6 +571,173 @@ final class NgoToolsMobileApi implements MobileContactsApi, MobileEventsApi {
           ) ??
           const [],
     );
+  }
+
+  /// Loads the user's chat account and the organization's homeserver.
+  @override
+  Future<MobileChatAccount> fetchChatAccount() => _guard(() async {
+    final account = (await _chatApi.getChatAccount()).data?.data;
+
+    if (account == null) {
+      throw _invalidResponse();
+    }
+
+    final homeserverUrl = account.homeserverUrl;
+
+    return MobileChatAccount(
+      status: switch (account.status) {
+        generated.ChatAccountStatusEnum.active =>
+          MobileChatAccountStatus.active,
+        generated.ChatAccountStatusEnum.locked =>
+          MobileChatAccountStatus.locked,
+        generated.ChatAccountStatusEnum.deactivated =>
+          MobileChatAccountStatus.deactivated,
+        generated.ChatAccountStatusEnum.none => MobileChatAccountStatus.none,
+        generated.ChatAccountStatusEnum.unknownDefaultOpenApi =>
+          throw _invalidResponse(),
+      },
+      available: account.available,
+      matrixUserId: account.matrixUserId,
+      serverName: account.serverName,
+      homeserverUrl: homeserverUrl == null
+          ? null
+          : _homeserverUrl(homeserverUrl),
+    );
+  });
+
+  /// Lists the organization's chat address book without the user.
+  @override
+  Future<MobileChatPeoplePage> listChatPeople({
+    String? search,
+    int page = 1,
+    int perPage = 50,
+  }) => _guard(() async {
+    _requirePositive(page, 'page');
+
+    if (perPage < 1 || perPage > 100) {
+      throw ArgumentError.value(
+        perPage,
+        'perPage',
+        'Must be between one and 100.',
+      );
+    }
+
+    final normalizedSearch = search?.trim();
+    final data = (await _chatApi.listChatPeople(
+      search: normalizedSearch == null || normalizedSearch.isEmpty
+          ? null
+          : normalizedSearch,
+      page: page,
+      perPage: perPage,
+    )).data;
+
+    if (data == null) {
+      throw _invalidResponse();
+    }
+
+    final meta = data.meta;
+    final lastPage = meta.lastPage ?? meta.currentPage;
+
+    if (meta.currentPage < 1 || lastPage < 1 || meta.total < 0) {
+      throw _invalidResponse();
+    }
+
+    return MobileChatPeoplePage(
+      people: data.data.map(_mapChatPerson),
+      page: meta.currentPage,
+      lastPage: lastPage,
+      total: meta.total,
+    );
+  });
+
+  /// Signs the app into the chat in the background.
+  @override
+  Future<MobileChatSession> createChatSession({String? deviceName}) =>
+      _guard(() async {
+        final normalizedName = deviceName?.trim();
+
+        if (normalizedName != null && normalizedName.length > 100) {
+          throw ArgumentError.value(
+            deviceName,
+            'deviceName',
+            'Must be at most 100 characters.',
+          );
+        }
+
+        final response = await _chatApi.createChatSession(
+          createChatSessionRequest: generated.CreateChatSessionRequest(
+            deviceName: normalizedName == null || normalizedName.isEmpty
+                ? null
+                : normalizedName,
+          ),
+        );
+
+        return _mapChatSession(response.data?.data);
+      });
+
+  /// Renews the access token of the current chat session.
+  @override
+  Future<MobileChatSession> renewChatSession() => _guard(
+    () async => _mapChatSession((await _chatApi.renewChatSession()).data?.data),
+  );
+
+  /// Ends the chat session of the current API token.
+  @override
+  Future<void> deleteChatSession() =>
+      _guard(() async => _chatApi.deleteChatSession());
+
+  static MobileChatPerson _mapChatPerson(generated.ChatPerson person) =>
+      MobileChatPerson(
+        matrixUserId: _requireMatrixUserId(person.matrixUserId),
+        displayName: person.displayName,
+        kind: switch (person.kind) {
+          generated.ChatPersonKindEnum.teamMember =>
+            MobileChatPersonKind.teamMember,
+          generated.ChatPersonKindEnum.contact => MobileChatPersonKind.contact,
+          generated.ChatPersonKindEnum.unknownDefaultOpenApi =>
+            throw _invalidResponse(),
+        },
+      );
+
+  static MobileChatSession _mapChatSession(generated.ChatSession? session) {
+    if (session == null ||
+        session.accessToken.isEmpty ||
+        session.deviceId.isEmpty) {
+      throw _invalidResponse();
+    }
+
+    return MobileChatSession(
+      matrixUserId: _requireMatrixUserId(session.matrixUserId),
+      deviceId: session.deviceId,
+      accessToken: session.accessToken,
+      expiresAt: session.expiresAt,
+      homeserverUrl: _homeserverUrl(session.homeserverUrl),
+      serverName: session.serverName,
+    );
+  }
+
+  static String _requireMatrixUserId(String value) {
+    if (!RegExp(r'^@[^:\s]+:[^\s]+$').hasMatch(value)) {
+      throw _invalidResponse();
+    }
+
+    return value;
+  }
+
+  /// Only HTTPS origins; the chat client sends the access token there.
+  static Uri _homeserverUrl(String value) {
+    final uri = Uri.tryParse(value);
+
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        !uri.hasAuthority ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty) {
+      throw _invalidResponse();
+    }
+
+    return uri;
   }
 
   static MobileEventSummary _mapEventSummary(generated.EventSummary event) {

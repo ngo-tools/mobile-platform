@@ -1,5 +1,11 @@
 import 'package:ngotools_api/src/generated/model/capabilities_response.dart';
 import 'package:ngotools_api/src/generated/model/capability_blocker.dart';
+import 'package:ngotools_api/src/generated/model/chat_account.dart';
+import 'package:ngotools_api/src/generated/model/chat_account_response.dart';
+import 'package:ngotools_api/src/generated/model/chat_person.dart';
+import 'package:ngotools_api/src/generated/model/chat_person_collection_response.dart';
+import 'package:ngotools_api/src/generated/model/chat_session.dart';
+import 'package:ngotools_api/src/generated/model/chat_session_response.dart';
 import 'package:ngotools_api/src/generated/model/contact.dart';
 import 'package:ngotools_api/src/generated/model/contact_address.dart';
 import 'package:ngotools_api/src/generated/model/contact_collection_response.dart';
@@ -7,6 +13,7 @@ import 'package:ngotools_api/src/generated/model/contact_response.dart';
 import 'package:ngotools_api/src/generated/model/contact_search_request.dart';
 import 'package:ngotools_api/src/generated/model/contact_search_term.dart';
 import 'package:ngotools_api/src/generated/model/contact_sort.dart';
+import 'package:ngotools_api/src/generated/model/create_chat_session_request.dart';
 import 'package:ngotools_api/src/generated/model/create_contact_request.dart';
 import 'package:ngotools_api/src/generated/model/current_user.dart';
 import 'package:ngotools_api/src/generated/model/current_user_response.dart';
@@ -71,6 +78,23 @@ ReturnType deserialize<ReturnType, BaseType>(
     case 'CapabilityBlocker':
       return CapabilityBlocker.fromJson(value as Map<String, dynamic>)
           as ReturnType;
+    case 'ChatAccount':
+      return ChatAccount.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ChatAccountResponse':
+      return ChatAccountResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
+    case 'ChatPerson':
+      return ChatPerson.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ChatPersonCollectionResponse':
+      return ChatPersonCollectionResponse.fromJson(
+            value as Map<String, dynamic>,
+          )
+          as ReturnType;
+    case 'ChatSession':
+      return ChatSession.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'ChatSessionResponse':
+      return ChatSessionResponse.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'Contact':
       return Contact.fromJson(value as Map<String, dynamic>) as ReturnType;
     case 'ContactAddress':
@@ -90,6 +114,9 @@ ReturnType deserialize<ReturnType, BaseType>(
           as ReturnType;
     case 'ContactSort':
       return ContactSort.fromJson(value as Map<String, dynamic>) as ReturnType;
+    case 'CreateChatSessionRequest':
+      return CreateChatSessionRequest.fromJson(value as Map<String, dynamic>)
+          as ReturnType;
     case 'CreateContactRequest':
       return CreateContactRequest.fromJson(value as Map<String, dynamic>)
           as ReturnType;

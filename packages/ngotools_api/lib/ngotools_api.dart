@@ -3,6 +3,7 @@ library;
 
 export 'src/mobile_api_problem.dart';
 export 'src/mobile_capabilities_cubit.dart';
+export 'src/mobile_chat.dart';
 export 'src/mobile_contact.dart';
 export 'src/mobile_contract_version.dart';
 export 'src/mobile_events.dart';

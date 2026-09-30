@@ -7,6 +7,7 @@ import 'package:ngotools_api/src/generated/auth/api_key_auth.dart';
 import 'package:ngotools_api/src/generated/auth/basic_auth.dart';
 import 'package:ngotools_api/src/generated/auth/bearer_auth.dart';
 import 'package:ngotools_api/src/generated/auth/oauth.dart';
+import 'package:ngotools_api/src/generated/api/chat_api.dart';
 import 'package:ngotools_api/src/generated/api/contacts_api.dart';
 import 'package:ngotools_api/src/generated/api/events_api.dart';
 import 'package:ngotools_api/src/generated/api/release_api.dart';
@@ -133,6 +134,12 @@ class NgotoolsApi {
           .apiKeys
           .remove(name);
     }
+  }
+
+  /// Get ChatApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ChatApi getChatApi() {
+    return ChatApi(dio);
   }
 
   /// Get ContactsApi instance, base route and serializer can be overridden by a given but be careful,

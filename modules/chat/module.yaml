@@ -1,0 +1,27 @@
+apiVersion: mobile.ngo.tools/v1alpha1
+kind: MobileModule
+metadata:
+  id: chat
+  name:
+    de: Chat
+    en: Chat
+  summary:
+    de: Verschlüsselter Chat der Organisation mit Direktnachrichten, Gruppen und Threads.
+    en: The organization's encrypted chat with direct messages, groups, and threads.
+status: planned
+delivery:
+  type: package
+  package: ngotools_chat_module
+requires:
+  modules:
+    - profile
+  apiScopes:
+    - chat:login
+    - chat:read
+  features:
+    - chat
+  permissions: []
+  devicePermissions: []
+deepLinks:
+  - /chat
+  - /chat/rooms/{id}
