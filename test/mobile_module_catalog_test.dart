@@ -18,10 +18,12 @@ void main() {
 
   test('loads descriptors in deterministic identifier order', () {
     expect(catalog.modules.map((module) => module.id), [
+      'chat',
       'contacts',
       'events',
       'profile',
     ]);
+    expect(catalog['chat']?.status, 'planned');
     expect(catalog['contacts']?.status, 'available');
     expect(catalog['events']?.status, 'available');
     expect(catalog['profile']?.status, 'available');
@@ -64,6 +66,28 @@ void main() {
       'Module contacts requires API scope contacts:read.',
       'Module contacts requires API scope contacts:write.',
     ]);
+  });
+
+  test('rejects selecting a module that is not available yet', () {
+    final errors = catalog.validateManifest({
+      'features': {
+        'modules': ['chat', 'profile'],
+      },
+      'permissions': {
+        'apiScopes': ['chat:login', 'chat:read', 'profile:read'],
+        'device': <Object?>[],
+      },
+    });
+
+    expect(errors, ['Module chat is planned and cannot be selected.']);
+  });
+
+  test('describes the chat module contract', () {
+    final chat = catalog['chat']!;
+
+    expect(chat.package, 'ngotools_chat_module');
+    expect(chat.apiScopes, ['chat:login', 'chat:read']);
+    expect(chat.features, ['chat']);
   });
 
   test('rejects directory mismatches, missing dependencies, and cycles', () {
@@ -129,12 +153,16 @@ void main() {
     final profile = await File(
       path.join(repository.path, 'modules', 'profile', 'module.yaml'),
     ).readAsString();
+    final chat = await File(
+      path.join(repository.path, 'modules', 'chat', 'module.yaml'),
+    ).readAsString();
     final reversed = MobileModuleCatalog.load(
       schemaSource: schema,
       descriptorSources: {
         'modules/profile/module.yaml': profile,
         'modules/events/module.yaml': events,
         'modules/contacts/module.yaml': contacts,
+        'modules/chat/module.yaml': chat,
       },
     ).catalog!;
 

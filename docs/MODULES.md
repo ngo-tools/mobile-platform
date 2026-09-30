@@ -4,6 +4,22 @@
 
 This catalog describes client integration requirements. Server capabilities and policies remain authoritative.
 
+## Chat (`chat`)
+
+- German: Chat
+- Status: `planned`
+- Delivery: `package` (`ngotools_chat_module`)
+- Required modules: `profile`
+- API scopes: `chat:login`, `chat:read`
+- Features: `chat`
+- Permissions: none
+- Device permissions: none
+- Deep links: `/chat`, `/chat/rooms/{id}`
+
+The organization's encrypted chat with direct messages, groups, and threads.
+
+Verschlüsselter Chat der Organisation mit Direktnachrichten, Gruppen und Threads.
+
 ## Contacts (`contacts`)
 
 - German: Kontakte

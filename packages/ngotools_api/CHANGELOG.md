@@ -9,3 +9,4 @@
 - Add typed, immutable contact search and detail projections.
 - Add idempotent contact create/update contracts with version conflicts.
 - Add fail-closed signed-artifact release approval without exposed poll tokens.
+- Add the generated chat transport: account, address book, and background chat sessions.

@@ -319,6 +319,12 @@ final class MobileModuleCatalog {
         continue;
       }
 
+      if (module.status != 'available') {
+        errors.add(
+          'Module $moduleId is ${module.status} and cannot be selected.',
+        );
+      }
+
       for (final dependency in module.requiredModules) {
         if (!selected.contains(dependency)) {
           errors.add('Module $moduleId requires selected module $dependency.');
