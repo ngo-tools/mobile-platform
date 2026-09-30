@@ -562,8 +562,8 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
                   padding: const EdgeInsets.symmetric(
                     horizontal: NgoToolsLayout.spacing,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceEvenly,
                     children: [
                       for (final reaction in chatQuickReactions)
                         IconButton(

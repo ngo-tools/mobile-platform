@@ -179,6 +179,10 @@ e2e/run.sh ios <simulator-udid>
 e2e/run.sh android <emulator-serial>   # rootable emulator started with -read-only
 ```
 
+`E2E_TARGET=chat_ui_e2e e2e/run.sh ios <simulator-udid>` runs the chat screens
+of `ngotools_chat_module` (room list, invite, room, reply, image) against the
+same server, including tap target, label and contrast checks.
+
 `python3 e2e/issued_session.py` checks sessions issued through the MAS admin
 API against the same local server.
 

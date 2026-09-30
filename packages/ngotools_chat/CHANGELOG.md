@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Leave rooms and decline invites (`leaveRoom`).
+- Several room lists may run at once; a closed list no longer stops the
+  others. Rooms this account left disappear from the list.
 - Sign in with a chat session issued by NGO.Tools (`signInWithToken`) and
   swap renewed tokens into the running session (`updateAccessToken`).
 - **Breaking:** handwritten public API. `ChatSession` replaces the generated

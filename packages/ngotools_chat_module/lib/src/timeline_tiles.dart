@@ -41,7 +41,10 @@ final class ChatNoticeTile extends StatelessWidget {
       text,
       textAlign: TextAlign.center,
       style: theme.textTheme.labelMedium?.copyWith(
-        color: theme.colorScheme.onSurfaceVariant,
+        color: chip
+            ? theme.colorScheme.onSecondaryContainer
+            : theme.colorScheme.onSurfaceVariant,
+        fontWeight: chip ? FontWeight.w600 : null,
       ),
     );
 
@@ -54,7 +57,7 @@ final class ChatNoticeTile extends StatelessWidget {
         child: chip
             ? DecoratedBox(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainer,
+                  color: theme.colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Padding(

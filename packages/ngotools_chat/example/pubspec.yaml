@@ -24,6 +24,8 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  ngotools_chat_module: ^0.1.0-dev.1
+  ngotools_design_system: ^0.1.0-dev.1
 
 flutter:
   uses-material-design: true
