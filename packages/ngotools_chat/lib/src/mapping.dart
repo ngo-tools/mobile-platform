@@ -90,6 +90,26 @@ RecoveryStatus recoveryStatus(rust.RecoveryStatus status) => switch (status) {
   rust.RecoveryStatus.incomplete => RecoveryStatus.incomplete,
 };
 
+EncryptionStatus encryptionStatus(rust.EncryptionStatus status) =>
+    EncryptionStatus(
+      recovery: recoveryStatus(status.recovery),
+      deviceVerified: status.deviceVerified,
+    );
+
+DecryptionFailure decryptionFailure(rust.DecryptionFailure reason) =>
+    switch (reason) {
+      rust.DecryptionFailure.unknown => DecryptionFailure.unknown,
+      rust.DecryptionFailure.sentBeforeJoined =>
+        DecryptionFailure.sentBeforeJoined,
+      rust.DecryptionFailure.historicalNoBackup =>
+        DecryptionFailure.historicalNoBackup,
+      rust.DecryptionFailure.historicalUnverifiedDevice =>
+        DecryptionFailure.historicalUnverifiedDevice,
+      rust.DecryptionFailure.withheld => DecryptionFailure.withheld,
+      rust.DecryptionFailure.untrustedSender =>
+        DecryptionFailure.untrustedSender,
+    };
+
 VerificationState verificationState(String state) => switch (state) {
   'verified' => VerificationState.verified,
   'unverified' => VerificationState.unverified,
@@ -272,7 +292,8 @@ EventContent eventContent(rust.EventContent content) => switch (content) {
       size: size?.toInt(),
     ),
   rust.EventContent_Redacted() => const EventContent.redacted(),
-  rust.EventContent_UnableToDecrypt() => const EventContent.unableToDecrypt(),
+  rust.EventContent_UnableToDecrypt(:final reason) =>
+    EventContent.unableToDecrypt(reason: decryptionFailure(reason)),
   rust.EventContent_Membership(:final userId, :final change) =>
     EventContent.membership(userId: userId, change: membershipChange(change)),
   rust.EventContent_ProfileChange(:final userId) => EventContent.profileChange(

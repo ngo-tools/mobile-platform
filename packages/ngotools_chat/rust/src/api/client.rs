@@ -80,6 +80,7 @@ pub struct ChatClient {
     pub(crate) lifecycle: Arc<Lifecycle>,
     pub(crate) session_state_task: Mutex<Option<JoinHandle<()>>>,
     pub(crate) sync_status_task: Mutex<Option<JoinHandle<()>>>,
+    pub(crate) encryption_task: Mutex<Option<JoinHandle<()>>>,
     supervisor_task: Mutex<Option<JoinHandle<()>>>,
 }
 
@@ -124,6 +125,7 @@ impl ChatClient {
                 lifecycle: Lifecycle::new(),
                 session_state_task: Mutex::new(None),
                 sync_status_task: Mutex::new(None),
+                encryption_task: Mutex::new(None),
                 supervisor_task: Mutex::new(None),
             })
         })
@@ -391,7 +393,11 @@ impl ChatClient {
 
     /// Stops all background work so that another client may open the store.
     pub async fn shutdown(&self) -> Result<(), ChatError> {
-        for task in [&self.session_task, &self.session_state_task] {
+        for task in [
+            &self.session_task,
+            &self.session_state_task,
+            &self.encryption_task,
+        ] {
             if let Some(task) = task.lock().await.take() {
                 task.abort();
             }

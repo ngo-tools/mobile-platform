@@ -31,7 +31,7 @@ abstract class ChatClient implements RustOpaqueInterface {
   Future<String> createDm({required String userId});
 
   /// Enables key backup + secret storage and returns the recovery key
-  /// that the user has to write down.
+  /// that the user has to write down. Replaces an existing recovery key.
   Future<String> enableRecovery();
 
   /// Downloads (and decrypts) media referenced by a timeline item
@@ -57,6 +57,10 @@ abstract class ChatClient implements RustOpaqueInterface {
     required String roomId,
     required String eventId,
   });
+
+  /// Whether this is the account's only device: signing out without
+  /// recovery loses access to encrypted history.
+  Future<bool> isLastDevice();
 
   Future<void> joinRoom({required String roomId});
 
@@ -160,6 +164,10 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   /// `verified` once this device is cross-signed (e.g. after recovery).
   Future<String> verificationState();
+
+  /// Streams recovery and verification state; starts with the current one
+  /// and emits only changes.
+  Stream<EncryptionStatus> watchEncryption();
 
   /// Streams the room list as diffs. The first batch resets the list.
   /// Several lists may run at once, each with its own filter and paging,

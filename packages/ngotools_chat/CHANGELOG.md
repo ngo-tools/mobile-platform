@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Follow recovery and verification state (`ChatSession.encryption`),
+  check whether this is the account's last device (`isLastDevice`) and
+  create a new recovery key when recovery is already enabled
+  (`enableRecovery`).
+- `recover` fails with `invalidInput` for a key that does not match the
+  account, so the app can ask to check the key.
+- Messages that cannot be decrypted carry the reason
+  (`UnableToDecryptContent.reason`, `DecryptionFailure`).
 - Leave rooms and decline invites (`leaveRoom`).
 - Several room lists may run at once; a closed list no longer stops the
   others. Rooms this account left disappear from the list.

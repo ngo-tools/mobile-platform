@@ -146,7 +146,7 @@ return unsupported(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult Function( String? caption,  String filename,  String media)?  video,TResult Function( String filename,  String media)?  audio,TResult Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult Function()?  redacted,TResult Function()?  unableToDecrypt,TResult Function( String userId,  MembershipKind change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult Function( String? caption,  String filename,  String media)?  video,TResult Function( String filename,  String media)?  audio,TResult Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult Function()?  redacted,TResult Function( DecryptionFailure reason)?  unableToDecrypt,TResult Function( String userId,  MembershipKind change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case EventContent_Text() when text != null:
 return text(_that.body);case EventContent_Image() when image != null:
@@ -155,7 +155,7 @@ return video(_that.caption,_that.filename,_that.media);case EventContent_Audio()
 return audio(_that.filename,_that.media);case EventContent_File() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted() when redacted != null:
 return redacted();case EventContent_UnableToDecrypt() when unableToDecrypt != null:
-return unableToDecrypt();case EventContent_Membership() when membership != null:
+return unableToDecrypt(_that.reason);case EventContent_Membership() when membership != null:
 return membership(_that.userId,_that.change);case EventContent_ProfileChange() when profileChange != null:
 return profileChange(_that.userId);case EventContent_RoomState() when roomState != null:
 return roomState(_that.eventType);case EventContent_Unsupported() when unsupported != null:
@@ -177,7 +177,7 @@ return unsupported();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)  image,required TResult Function( String? caption,  String filename,  String media)  video,required TResult Function( String filename,  String media)  audio,required TResult Function( String? caption,  String filename,  String media,  BigInt? size)  file,required TResult Function()  redacted,required TResult Function()  unableToDecrypt,required TResult Function( String userId,  MembershipKind change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)  image,required TResult Function( String? caption,  String filename,  String media)  video,required TResult Function( String filename,  String media)  audio,required TResult Function( String? caption,  String filename,  String media,  BigInt? size)  file,required TResult Function()  redacted,required TResult Function( DecryptionFailure reason)  unableToDecrypt,required TResult Function( String userId,  MembershipKind change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
 switch (_that) {
 case EventContent_Text():
 return text(_that.body);case EventContent_Image():
@@ -186,7 +186,7 @@ return video(_that.caption,_that.filename,_that.media);case EventContent_Audio()
 return audio(_that.filename,_that.media);case EventContent_File():
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted():
 return redacted();case EventContent_UnableToDecrypt():
-return unableToDecrypt();case EventContent_Membership():
+return unableToDecrypt(_that.reason);case EventContent_Membership():
 return membership(_that.userId,_that.change);case EventContent_ProfileChange():
 return profileChange(_that.userId);case EventContent_RoomState():
 return roomState(_that.eventType);case EventContent_Unsupported():
@@ -204,7 +204,7 @@ return unsupported();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult? Function( String? caption,  String filename,  String media)?  video,TResult? Function( String filename,  String media)?  audio,TResult? Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult? Function()?  redacted,TResult? Function()?  unableToDecrypt,TResult? Function( String userId,  MembershipKind change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  String media,  String? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult? Function( String? caption,  String filename,  String media)?  video,TResult? Function( String filename,  String media)?  audio,TResult? Function( String? caption,  String filename,  String media,  BigInt? size)?  file,TResult? Function()?  redacted,TResult? Function( DecryptionFailure reason)?  unableToDecrypt,TResult? Function( String userId,  MembershipKind change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
 switch (_that) {
 case EventContent_Text() when text != null:
 return text(_that.body);case EventContent_Image() when image != null:
@@ -213,7 +213,7 @@ return video(_that.caption,_that.filename,_that.media);case EventContent_Audio()
 return audio(_that.filename,_that.media);case EventContent_File() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case EventContent_Redacted() when redacted != null:
 return redacted();case EventContent_UnableToDecrypt() when unableToDecrypt != null:
-return unableToDecrypt();case EventContent_Membership() when membership != null:
+return unableToDecrypt(_that.reason);case EventContent_Membership() when membership != null:
 return membership(_that.userId,_that.change);case EventContent_ProfileChange() when profileChange != null:
 return profileChange(_that.userId);case EventContent_RoomState() when roomState != null:
 return roomState(_that.eventType);case EventContent_Unsupported() when unsupported != null:
@@ -618,33 +618,67 @@ String toString() {
 
 
 class EventContent_UnableToDecrypt extends EventContent {
-  const EventContent_UnableToDecrypt(): super._();
+  const EventContent_UnableToDecrypt({required this.reason}): super._();
   
 
+ final  DecryptionFailure reason;
 
-
+/// Create a copy of EventContent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EventContent_UnableToDecryptCopyWith<EventContent_UnableToDecrypt> get copyWith => _$EventContent_UnableToDecryptCopyWithImpl<EventContent_UnableToDecrypt>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventContent_UnableToDecrypt);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EventContent_UnableToDecrypt&&(identical(other.reason, reason) || other.reason == reason));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,reason);
 
 @override
 String toString() {
-  return 'EventContent.unableToDecrypt()';
+  return 'EventContent.unableToDecrypt(reason: $reason)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $EventContent_UnableToDecryptCopyWith<$Res> implements $EventContentCopyWith<$Res> {
+  factory $EventContent_UnableToDecryptCopyWith(EventContent_UnableToDecrypt value, $Res Function(EventContent_UnableToDecrypt) _then) = _$EventContent_UnableToDecryptCopyWithImpl;
+@useResult
+$Res call({
+ DecryptionFailure reason
+});
 
 
+
+
+}
+/// @nodoc
+class _$EventContent_UnableToDecryptCopyWithImpl<$Res>
+    implements $EventContent_UnableToDecryptCopyWith<$Res> {
+  _$EventContent_UnableToDecryptCopyWithImpl(this._self, this._then);
+
+  final EventContent_UnableToDecrypt _self;
+  final $Res Function(EventContent_UnableToDecrypt) _then;
+
+/// Create a copy of EventContent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? reason = null,}) {
+  return _then(EventContent_UnableToDecrypt(
+reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as DecryptionFailure,
+  ));
+}
+
+
+}
 
 /// @nodoc
 
