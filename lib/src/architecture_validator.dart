@@ -9,6 +9,7 @@ abstract final class ArchitectureValidator {
     'ngotools_auth': {'ngotools_mobile_core'},
     'ngotools_api': {'ngotools_mobile_core'},
     'ngotools_chat': {},
+    'ngotools_chat_module': {'ngotools_api', 'ngotools_chat'},
     'ngotools_contacts': {
       'ngotools_mobile_core',
       'ngotools_api',
