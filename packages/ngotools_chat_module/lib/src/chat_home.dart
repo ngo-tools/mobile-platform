@@ -220,7 +220,7 @@ final class _ChatHomeState extends State<ChatHome> {
     key: _navigator,
     onGenerateRoute: (_) => MaterialPageRoute<void>(
       builder: (context) => Scaffold(
-        body: _list(gateway, rooms),
+        body: SafeArea(child: _list(gateway, rooms)),
         floatingActionButton: _newChatButton(gateway),
       ),
     ),
@@ -234,7 +234,7 @@ final class _ChatHomeState extends State<ChatHome> {
         SizedBox(
           width: 360,
           child: Scaffold(
-            body: _list(gateway, rooms),
+            body: SafeArea(child: _list(gateway, rooms)),
             floatingActionButton: _newChatButton(gateway),
           ),
         ),

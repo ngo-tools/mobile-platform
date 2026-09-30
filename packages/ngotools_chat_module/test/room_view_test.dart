@@ -194,6 +194,38 @@ void main() {
     expect(gateway.calls, containsAll([r'react:$1:🎉', r'react:$1:👍']));
   });
 
+  testWidgets('fits the message actions on small phones with large text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(960, 1920);
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(tester.view.reset);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    gateway.timeline.items.value = [
+      eventItem(chatEvent(r'$1', 'Hallo', isOwn: true)),
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: NgoToolsTheme.community(),
+        home: ChatRoomPage(
+          gateway: gateway,
+          labels: ChatLabels.german,
+          roomId: '!room',
+          title: 'Vorstand',
+          isGroup: true,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.text('Hallo'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('👍'), findsOneWidget);
+  });
+
   testWidgets('offers retry and discard for failed messages', (tester) async {
     gateway.timeline.items.value = [
       eventItem(
