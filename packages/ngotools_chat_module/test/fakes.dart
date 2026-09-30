@@ -206,7 +206,7 @@ final class FakeChatGateway implements ChatGateway {
   }
 }
 
-final class FakePeopleApi implements MobileChatApi {
+base class FakePeopleApi implements MobileChatApi {
   final searches = <String?>[];
   List<MobileChatPerson> people = const [
     MobileChatPerson(

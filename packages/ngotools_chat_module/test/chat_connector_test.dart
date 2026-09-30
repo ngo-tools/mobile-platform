@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ngotools_api/ngotools_api.dart';
 import 'package:ngotools_chat/ngotools_chat.dart';
@@ -293,6 +294,23 @@ void main() {
     },
   );
 
+  testWidgets('pauses in the background and renews on return', (tester) async {
+    final chat = connector();
+    await chat.connect();
+    final lifecycle = ChatAppLifecycle(chat)..attach();
+    addTearDown(lifecycle.detach);
+    now = now.add(const Duration(days: 6, hours: 1));
+    api.expiresAt = now.add(const Duration(days: 7));
+
+    lifecycle.didChangeAppLifecycleState(AppLifecycleState.paused);
+    lifecycle.didChangeAppLifecycleState(AppLifecycleState.inactive);
+    lifecycle.didChangeAppLifecycleState(AppLifecycleState.resumed);
+    await lifecycle.settled;
+
+    expect(clients.opened.single.lifecycle, ['pause', 'resume']);
+    expect(api.calls.last, 'renew');
+  });
+
   test('ends the session and deletes all chat data on disconnect', () async {
     final chat = connector();
     await chat.connect();
@@ -462,6 +480,14 @@ final class _FakeClient implements ChatClient {
     tokens.add(accessToken);
     state.value = ChatSessionState.active;
   }
+
+  final lifecycle = <String>[];
+
+  @override
+  Future<void> pause() async => lifecycle.add('pause');
+
+  @override
+  Future<void> resume() async => lifecycle.add('resume');
 
   @override
   Future<void> startSync() async => syncing = true;

@@ -183,4 +183,32 @@ void main() {
 
     expect(signIns, 1);
   });
+
+  testWidgets('shows the chat only with the booked chat feature', (
+    tester,
+  ) async {
+    Future<void> pump(List<String> features) => tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
+        capabilities: MobileRuntimeCapabilities(
+          schemaVersion: 1,
+          features: features,
+          permissions: const ['profile:read'],
+          importsEnabled: false,
+          importTypes: const {},
+        ),
+        chatBuilder: (context, {required isGerman}) =>
+            const Text('synthetic chat'),
+      ),
+    );
+
+    await pump(const ['profile']);
+    expect(find.text('Chat'), findsNothing);
+
+    await pump(const ['profile', 'chat']);
+    await tester.tap(find.text('Chat'));
+    await tester.pumpAndSettle();
+    expect(find.text('synthetic chat'), findsOneWidget);
+  });
 }

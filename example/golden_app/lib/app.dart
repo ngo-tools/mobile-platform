@@ -23,6 +23,7 @@ class GoldenApp extends StatelessWidget {
     this.contactsRepository,
     this.contactDraftManager,
     this.eventsRepository,
+    this.chatBuilder,
     this.onSignIn,
     this.onSignOut,
     super.key,
@@ -30,6 +31,10 @@ class GoldenApp extends StatelessWidget {
 
   /// The environment selected at build time.
   final MobileEnvironment environment;
+
+  /// Builds the chat destination when the chat module is part of the app.
+  final Widget Function(BuildContext context, {required bool isGerman})?
+  chatBuilder;
 
   /// Public tenant-bound registration for this app.
   final MobileAppConfiguration? configuration;
@@ -70,6 +75,7 @@ class GoldenApp extends StatelessWidget {
       contactsRepository: contactsRepository,
       contactDraftManager: contactDraftManager,
       eventsRepository: eventsRepository,
+      chatBuilder: chatBuilder,
       onSignIn: onSignIn,
       onSignOut: onSignOut,
     ),
@@ -87,6 +93,7 @@ class GoldenShell extends StatelessWidget {
     this.contactsRepository,
     this.contactDraftManager,
     this.eventsRepository,
+    this.chatBuilder,
     this.onSignIn,
     this.onSignOut,
     super.key,
@@ -99,6 +106,8 @@ class GoldenShell extends StatelessWidget {
   final ContactsRepository? contactsRepository;
   final ContactDraftManager? contactDraftManager;
   final EventsRepository? eventsRepository;
+  final Widget Function(BuildContext context, {required bool isGerman})?
+  chatBuilder;
   final Future<void> Function()? onSignIn;
   final Future<void> Function()? onSignOut;
 
@@ -177,6 +186,15 @@ class GoldenShell extends StatelessWidget {
               ),
         requirement: MobileRouteRequirement(features: const ['events']),
       ),
+      if (chatBuilder != null)
+        MobileNavigationItem(
+          id: 'chat',
+          label: 'Chat',
+          icon: Icons.forum_outlined,
+          selectedIcon: Icons.forum,
+          builder: (context) => chatBuilder!(context, isGerman: isGerman),
+          requirement: MobileRouteRequirement(features: const ['chat']),
+        ),
       MobileNavigationItem(
         id: 'diagnostics',
         label: isGerman ? 'Diagnose' : 'Diagnostics',
