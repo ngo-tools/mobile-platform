@@ -39,6 +39,9 @@ abstract interface class ChatTimelineSource {
   /// Sends a text, optionally as a reply.
   Future<void> sendText(String body, {EventItem? replyTo});
 
+  /// Sends an image; the upload progress appears on the local echo.
+  Future<void> sendImage(ImageAttachment image);
+
   /// Replaces the text of an own message.
   Future<void> edit(EventItem item, String body);
 
@@ -109,6 +112,9 @@ abstract interface class ChatGateway {
 
   /// Loads a scaled thumbnail, e.g. of an avatar.
   Future<Uint8List> thumbnail(ChatMedia media, int size);
+
+  /// Downloads (and decrypts) media in full size.
+  Future<Uint8List> media(ChatMedia media);
 }
 
 /// [ChatGateway] of a signed-in [ChatSession].
@@ -145,6 +151,9 @@ final class SessionChatGateway implements ChatGateway {
   @override
   Future<Uint8List> thumbnail(ChatMedia media, int size) =>
       session.fetchThumbnail(media, size, size);
+
+  @override
+  Future<Uint8List> media(ChatMedia media) => session.fetchMedia(media);
 }
 
 final class _RoomList implements ChatRoomListSource {
@@ -191,6 +200,9 @@ final class _Timeline implements ChatTimelineSource {
   @override
   Future<void> sendText(String body, {EventItem? replyTo}) =>
       _controller.sendText(body, replyTo: replyTo);
+
+  @override
+  Future<void> sendImage(ImageAttachment image) => _controller.sendImage(image);
 
   @override
   Future<void> edit(EventItem item, String body) =>

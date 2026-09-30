@@ -28,7 +28,10 @@
           "chat"
         ],
         "permissions": [],
-        "device_permissions": []
+        "device_permissions": [
+          "camera",
+          "photos"
+        ]
       },
       "deep_links": [
         "/chat",
