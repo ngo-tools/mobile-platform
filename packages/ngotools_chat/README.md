@@ -24,6 +24,29 @@ of the module catalog yet and must not be added to organization apps.
   `NgotoolsChatPlugin`. It trusts the system and user CA store only; extra
   root certificates and the network security config are not supported.
 
+## Session and lifecycle
+
+`watchSessionState()` streams `signedOut`, `active`, `expired` (tokens
+revoked or rejected) and `locked`. On `expired`/`locked` the sync stops and
+`resume()` fails; the app signs in again. With MAS a locked account shows
+as `expired` (MAS rejects its tokens); `locked` appears when the homeserver
+reports `M_USER_LOCKED`. `abortLogin()` discards a login
+whose browser flow was cancelled.
+
+The sync runs in the SDK's offline mode: network loss shows as
+`SyncStatus.offline` and recovers on its own. Other failures restart the
+sync with a backoff (1–30 s). `ChatLifecycleObserver(client)..attach()`
+pauses the sync in the background and resumes it in the foreground (not
+on `inactive`); on iOS pausing also frees the store for the notification
+extension.
+
+## Logging
+
+`initLogging(logFile, level)` writes to a file (`error`, `warn`, `info`,
+`debug`); calling it again only changes the level. SDK crates never log at
+`trace`, so logs contain identifiers but no message bodies or tokens. Rust
+panics are logged too.
+
 ## Room list
 
 `RoomListController` applies the facade's diff stream (`RoomListDiff`, 1:1 to

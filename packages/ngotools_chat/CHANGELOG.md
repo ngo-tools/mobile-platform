@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add the session state stream (`active`, `expired`, `locked`,
+  `signedOut`), `pause`/`resume` with `ChatLifecycleObserver`, a typed sync
+  status and `abortLogin`. Expired sessions stop the sync instead of
+  retrying; other failures restart it with a backoff.
+- `initLogging` takes a level and may be called again; SDK logs never use
+  `trace`.
 - Send images with pixel size and an on-device preview
   (`prepareImageAttachment`), report upload progress on the local echo and
   fetch scaled previews (`fetchThumbnail`).

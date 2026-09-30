@@ -10,7 +10,7 @@ import 'room.dart';
 import 'timeline.dart';
 part 'rooms.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `display_name`, `filter_for`, `latest_event`, `map_diff`, `send_room_command`, `summarize_all`, `summarize`, `to_u32`
+// These functions are ignored because they are not marked as `pub`: `display_name`, `filter_for`, `latest_event`, `map_diff`, `refresh_notification_mode`, `send_room_command`, `summarize_all`, `summarize`, `to_u32`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `RoomListCommand`
 
 class LatestEvent {

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
   await RustLib.init();
   await initLogging(
     logFile: '${(await getApplicationSupportDirectory()).path}/chat-rust.log',
+    level: kDebugMode ? LogLevel.debug : LogLevel.info,
   );
   metrics.mark('rust_init');
   runApp(const ChatExampleApp());
@@ -237,14 +239,16 @@ class RoomListScreen extends StatefulWidget {
 
 class _RoomListScreenState extends State<RoomListScreen> {
   late final RoomListController _rooms;
-  late final Stream<String> _syncState;
+  late final Stream<SyncStatus> _syncState;
+  late final ChatLifecycleObserver _lifecycle;
 
   @override
   void initState() {
     super.initState();
     _rooms = RoomListController(widget.client);
     _rooms.rooms.addListener(_markFirstRoomList);
-    _syncState = widget.client.watchSyncState().asBroadcastStream();
+    _syncState = widget.client.watchSyncStatus().asBroadcastStream();
+    _lifecycle = ChatLifecycleObserver(widget.client)..attach();
   }
 
   void _markFirstRoomList() {
@@ -256,6 +260,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
   @override
   void dispose() {
     _rooms.rooms.removeListener(_markFirstRoomList);
+    _lifecycle.detach();
     unawaited(_rooms.dispose());
     super.dispose();
   }
@@ -291,10 +296,10 @@ class _RoomListScreenState extends State<RoomListScreen> {
       appBar: AppBar(
         title: Text(widget.session.userId),
         actions: [
-          StreamBuilder<String>(
+          StreamBuilder<SyncStatus>(
             stream: _syncState,
             builder: (context, snapshot) =>
-                Center(child: Text(snapshot.data ?? '…')),
+                Center(child: Text(snapshot.data?.name ?? '…')),
           ),
           IconButton(
             key: const Key('recovery'),

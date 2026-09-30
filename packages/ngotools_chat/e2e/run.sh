@@ -57,6 +57,14 @@ mkdir -p "$SHOTS"
         fi
         echo "SCREENSHOT $SHOTS/${name}.png"
     fi
+    # Account changes on the server: `E2E_MAS kill-sessions|lock-user <user>`.
+    if [[ $line == *"E2E_MAS "* ]]; then
+        read -r command user <<< "${line##*E2E_MAS }"
+        if [[ $command == kill-sessions || $command == lock-user ]]; then
+            docker compose --project-directory server --env-file server/generated/.env exec -T mas \
+                mas-cli manage "$command" "$user" >/dev/null 2>&1 && echo "MAS $command $user"
+        fi
+    fi
     if [[ $line == *"E2E_NSE_PUSH "* && $PLATFORM == ios ]]; then
         read -r room event <<< "${line##*E2E_NSE_PUSH }"
         payload="$SHOTS/push-${RANDOM}.json"
@@ -89,4 +97,4 @@ fi
 
 "${runner[@]}" -d "$DEVICE" \
     --dart-define=ALICE="$ALICE" --dart-define=BOB="$BOB" \
-    ${RUST_LOG_FILE:+--dart-define=RUST_LOG_FILE="$RUST_LOG_FILE"} 2>&1 | tee "$LOG" | grep -E "E2E_METRIC|E2E_SYNC|E2E_ROOMS|E2E_RUST_LOG|E2E_NSE|NSE_CLI|PUSHED|All tests passed|Some tests failed|EXCEPTION|Expected|Actual|Error" || true
+    ${RUST_LOG_FILE:+--dart-define=RUST_LOG_FILE="$RUST_LOG_FILE"} 2>&1 | tee "$LOG" | grep -E "E2E_METRIC|E2E_SYNC|E2E_SESSION|MAS |E2E_ROOMS|E2E_RUST_LOG|E2E_NSE|NSE_CLI|PUSHED|All tests passed|Some tests failed|EXCEPTION|Expected|Actual|Error" || true

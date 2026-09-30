@@ -6,6 +6,7 @@
 import '../frb_generated.dart';
 import 'encryption.dart';
 import 'error.dart';
+import 'lifecycle.dart';
 import 'notifications.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'room.dart';
@@ -18,6 +19,10 @@ import 'timeline.dart';
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>>
 abstract class ChatClient implements RustOpaqueInterface {
+  /// Discards a login started with `login_url` (e.g. the user closed the
+  /// browser).
+  Future<void> abortLogin();
+
   /// Builds the client with encrypted SQLite stores. No network access.
   static Future<ChatClient> create({required ChatConfig config}) =>
       RustLib.instance.api.crateApiClientChatClientCreate(config: config);
@@ -65,6 +70,11 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> logout();
 
+  /// Stops syncing while the app is in the background (room list and
+  /// timelines stay; on iOS this frees the store for the notification
+  /// extension).
+  Future<void> pause();
+
   /// Number of token refreshes persisted by this client instance.
   Future<int> persistedRefreshes();
 
@@ -83,6 +93,9 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   /// Restores a previously persisted session from the encrypted store.
   Future<SessionInfo?> restoreSession();
+
+  /// Resumes syncing after `pause`.
+  Future<void> resume();
 
   /// Joined and invited members, fetched from the server if not complete.
   Future<List<Member>> roomMembers({required String roomId});
@@ -132,8 +145,11 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Starting a new watch replaces the previous one.
   Stream<List<RoomListDiff>> watchRoomList();
 
-  /// Streams the sync service state as text (`idle`, `running`, `terminated`, `error`, `offline`).
-  Stream<String> watchSyncState();
+  /// Streams the session state; starts with the current one.
+  Stream<SessionState> watchSessionState();
+
+  /// Streams the sync status; starts with the current one.
+  Stream<SyncStatus> watchSyncStatus();
 
   /// Authenticated round trip (`/whoami`); refreshes an expired access token.
   Future<String> whoami();

@@ -7,6 +7,15 @@ import '../frb_generated.dart';
 import 'error.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Writes SDK logs to `log_file`. Callable once per process.
-Future<void> initLogging({required String logFile}) =>
-    RustLib.instance.api.crateApiLoggingInitLogging(logFile: logFile);
+// These functions are ignored because they are not marked as `pub`: `directives`, `filter`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `eq`, `fmt`
+
+/// Writes logs to `log_file`. Later calls (e.g. after a hot restart) only
+/// change the level; the file stays.
+Future<void> initLogging({required String logFile, required LogLevel level}) =>
+    RustLib.instance.api.crateApiLoggingInitLogging(
+      logFile: logFile,
+      level: level,
+    );
+
+enum LogLevel { error, warn, info, debug }

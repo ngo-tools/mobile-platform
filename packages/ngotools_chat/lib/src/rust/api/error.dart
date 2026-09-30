@@ -8,7 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'error.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `classify_http`, `classify_kind`, `classify_oauth`, `classify_refresh`, `classify_sdk`, `clone_kind`, `invalid`, `retry_after_ms`
+// These functions are ignored because they are not marked as `pub`: `classify_chain`, `classify_error`, `classify_http`, `classify_kind`, `classify_oauth`, `classify_refresh`, `classify_sdk`, `clone_kind`, `invalid`, `retry_after_ms`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`, `from`
 
 @freezed
