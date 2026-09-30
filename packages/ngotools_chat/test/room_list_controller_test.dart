@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ngotools_chat/src/chat_models.dart' show RoomFilter;
 import 'package:ngotools_chat/src/room_list_controller.dart';
-import 'package:ngotools_chat/src/rust/api/rooms.dart';
+import 'package:ngotools_chat/src/rust/api/rooms.dart' hide RoomFilter;
 
 import 'support/rust_stream.dart';
 

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'rust/api/timeline.dart';
+import 'chat_models.dart';
 
 /// Reads the pixel size of an image file and renders a PNG preview whose
 /// longest side is at most [maxThumbnailSize].

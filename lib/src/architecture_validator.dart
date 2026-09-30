@@ -1,5 +1,9 @@
 /// Checks package dependencies against the approved workspace graph.
 abstract final class ArchitectureValidator {
+  static final _exportsChatBindings = RegExp(
+    r"export\s+'(package:ngotools_chat/)?src/rust/",
+  );
+
   static const _allowedDependencies = <String, Set<String>>{
     'ngotools_mobile_core': {},
     'ngotools_auth': {'ngotools_mobile_core'},
@@ -60,7 +64,10 @@ abstract final class ArchitectureValidator {
     for (final entry in sources.entries) {
       final isAuthSource = entry.key.startsWith('packages/ngotools_auth/lib/');
       final isApiSource = entry.key.startsWith('packages/ngotools_api/lib/');
-      final isChatSource = entry.key.startsWith('packages/ngotools_chat/');
+      final isChatSource = entry.key.startsWith('packages/ngotools_chat/lib/');
+      final isPublicChatLibrary =
+          isChatSource &&
+          !entry.key.startsWith('packages/ngotools_chat/lib/src/');
 
       if (!isAuthSource && entry.value.contains("package:ngotools_auth/src/")) {
         errors.add('${entry.key} may not import ngotools_auth internals.');
@@ -73,6 +80,11 @@ abstract final class ArchitectureValidator {
 
       if (!isChatSource && entry.value.contains("package:ngotools_chat/src/")) {
         errors.add('${entry.key} may not import ngotools_chat internals.');
+      }
+
+      // The generated bindings stay internal behind the handwritten API.
+      if (isPublicChatLibrary && _exportsChatBindings.hasMatch(entry.value)) {
+        errors.add('${entry.key} may not export the generated chat bindings.');
       }
 
       if (!isAuthSource &&

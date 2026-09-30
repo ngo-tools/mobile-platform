@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ngotools_chat/src/chat_exception.dart';
 import 'package:ngotools_chat/src/chat_lifecycle.dart';
-import 'package:ngotools_chat/src/rust/api/error.dart';
 
 void main() {
   late List<String> calls;
@@ -46,7 +46,7 @@ void main() {
       pause: () async => calls.add('pause'),
       resume: () async {
         calls.add('resume');
-        throw const ChatError.sessionExpired();
+        throw const ChatException(ChatErrorKind.sessionExpired);
       },
     );
 

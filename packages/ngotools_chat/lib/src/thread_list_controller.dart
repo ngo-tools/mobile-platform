@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'chat_models.dart';
 import 'diff_list.dart';
-import 'rust/api/client.dart';
-import 'rust/api/threads.dart';
+import 'mapping.dart';
+import 'rust/api/threads.dart' as rust;
 
 /// Keeps the thread overview of a room up to date and loads further pages.
+/// Open it via `ChatSession.openThreads`.
 class ThreadListController {
-  ThreadListController(ChatThreadList threads)
+  ThreadListController._(rust.ChatThreadList threads)
     : this.fromSource(
         diffs: threads.watch(),
         paginate: threads.paginate,
@@ -17,7 +19,7 @@ class ThreadListController {
 
   @visibleForTesting
   ThreadListController.fromSource({
-    required Stream<List<ThreadListDiff>> diffs,
+    required Stream<List<rust.ThreadListDiff>> diffs,
     required Future<bool> Function() paginate,
     required Future<void> Function() close,
   }) : _paginate = paginate,
@@ -30,25 +32,12 @@ class ThreadListController {
     );
   }
 
-  /// Opens the thread overview of [roomId] and loads the first page.
-  static Future<ThreadListController> open(
-    ChatClient client,
-    String roomId,
-  ) async {
-    final controller = ThreadListController(
-      await client.threadList(roomId: roomId),
-    );
-    await controller.loadMore();
-
-    return controller;
-  }
-
   final Future<bool> Function() _paginate;
   final Future<void> Function() _close;
   final _threads = ValueNotifier<List<ThreadInfo>>(const []);
   final _loading = ValueNotifier<bool>(false);
   final _complete = ValueNotifier<bool>(false);
-  late final StreamSubscription<List<ThreadListDiff>> _subscription;
+  late final StreamSubscription<List<rust.ThreadListDiff>> _subscription;
 
   ValueListenable<List<ThreadInfo>> get threads => _threads;
 
@@ -65,7 +54,7 @@ class ThreadListController {
     _loading.value = true;
 
     try {
-      _complete.value = await _paginate();
+      _complete.value = await guard(_paginate);
     } finally {
       _loading.value = false;
     }
@@ -82,17 +71,40 @@ class ThreadListController {
   }
 }
 
-/// Translates the generated thread list diff into a generic [ListDiff].
-ListDiff<ThreadInfo> threadListDiff(ThreadListDiff diff) => switch (diff) {
-  ThreadListDiff_Append(:final values) => ListAppend(values),
-  ThreadListDiff_Clear() => const ListClear(),
-  ThreadListDiff_PushFront(:final value) => ListPushFront(value),
-  ThreadListDiff_PushBack(:final value) => ListPushBack(value),
-  ThreadListDiff_PopFront() => const ListPopFront(),
-  ThreadListDiff_PopBack() => const ListPopBack(),
-  ThreadListDiff_Insert(:final index, :final value) => ListInsert(index, value),
-  ThreadListDiff_Set(:final index, :final value) => ListSet(index, value),
-  ThreadListDiff_Remove(:final index) => ListRemove(index),
-  ThreadListDiff_Truncate(:final length) => ListTruncate(length),
-  ThreadListDiff_Reset(:final values) => ListReset(values),
+/// Wraps a native thread list and loads the first page (used by
+/// `ChatSession`).
+Future<ThreadListController> threadListController(
+  rust.ChatThreadList threads,
+) async {
+  final controller = ThreadListController._(threads);
+  await controller.loadMore();
+
+  return controller;
+}
+
+/// Translates a generated thread list diff into a [ListDiff] of threads.
+ListDiff<ThreadInfo> threadListDiff(rust.ThreadListDiff diff) => switch (diff) {
+  rust.ThreadListDiff_Append(:final values) => ListAppend(
+    values.map(threadInfo).toList(),
+  ),
+  rust.ThreadListDiff_Clear() => const ListClear(),
+  rust.ThreadListDiff_PushFront(:final value) => ListPushFront(
+    threadInfo(value),
+  ),
+  rust.ThreadListDiff_PushBack(:final value) => ListPushBack(threadInfo(value)),
+  rust.ThreadListDiff_PopFront() => const ListPopFront(),
+  rust.ThreadListDiff_PopBack() => const ListPopBack(),
+  rust.ThreadListDiff_Insert(:final index, :final value) => ListInsert(
+    index,
+    threadInfo(value),
+  ),
+  rust.ThreadListDiff_Set(:final index, :final value) => ListSet(
+    index,
+    threadInfo(value),
+  ),
+  rust.ThreadListDiff_Remove(:final index) => ListRemove(index),
+  rust.ThreadListDiff_Truncate(:final length) => ListTruncate(length),
+  rust.ThreadListDiff_Reset(:final values) => ListReset(
+    values.map(threadInfo).toList(),
+  ),
 };
