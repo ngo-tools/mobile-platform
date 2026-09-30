@@ -1,13 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ngotools_chat/ngotools_chat.dart';
 import 'package:ngotools_chat_module/ngotools_chat_module.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 
+import 'fakes.dart';
+
 void main() {
   final now = DateTime(2026, 10, 1, 15);
-  late _FakeGateway gateway;
+  late FakeChatGateway gateway;
   late List<RoomSummary> opened;
 
   Future<void> pumpList(WidgetTester tester, {ChatLabels? labels}) async {
@@ -28,7 +29,7 @@ void main() {
   }
 
   setUp(() {
-    gateway = _FakeGateway();
+    gateway = FakeChatGateway();
     opened = [];
   });
 
@@ -271,47 +272,3 @@ LatestEvent _latest(
   preview: preview ?? MessagePreview.text(body),
   isUnsent: false,
 );
-
-final class _FakeRoomList implements ChatRoomListSource {
-  @override
-  final ValueNotifier<List<RoomSummary>> rooms = ValueNotifier(const []);
-
-  @override
-  final ValueNotifier<RoomFilter> filter = ValueNotifier(RoomFilter.all);
-
-  int loadMoreCalls = 0;
-  bool disposed = false;
-
-  @override
-  Future<void> setFilter(RoomFilter filter) async => this.filter.value = filter;
-
-  @override
-  Future<void> loadMore() async => loadMoreCalls++;
-
-  @override
-  Future<void> dispose() async => disposed = true;
-}
-
-final class _FakeGateway implements ChatGateway {
-  final list = _FakeRoomList();
-  final calls = <String>[];
-  bool failJoin = false;
-
-  @override
-  Future<ChatRoomListSource> rooms() async => list;
-
-  @override
-  Future<void> joinRoom(String roomId) async {
-    calls.add('join:$roomId');
-
-    if (failJoin) {
-      throw const ChatException(ChatErrorKind.network);
-    }
-  }
-
-  @override
-  Future<void> leaveRoom(String roomId) async => calls.add('leave:$roomId');
-
-  @override
-  Future<Uint8List> thumbnail(ChatMedia media, int size) async => Uint8List(0);
-}
