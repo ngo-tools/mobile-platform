@@ -134,6 +134,18 @@ void main() {
       contains('PRODUCT_BUNDLE_IDENTIFIER = tools.ngo.mobile.golden;'),
     );
     expect(iosPodfile, contains("platform :ios, '13.0'"));
+    expect(iosProject, isNot(contains('IPHONEOS_DEPLOYMENT_TARGET = 15.0;')));
+    expect(pubspec, isNot(contains('ngotools_chat')));
+    expect(
+      await File(
+        path.join(output.path, 'lib', 'modules', 'chat_module.dart'),
+      ).exists(),
+      isFalse,
+    );
+    expect(
+      await _read(output, 'lib/generated/chat_binding.dart'),
+      contains('async => null'),
+    );
     expect(
       iosEntitlements,
       contains('<string>applinks:mobile.example.invalid</string>'),
@@ -155,6 +167,32 @@ void main() {
       provenance['registration_sha256'],
       matches(RegExp(r'^[0-9a-f]{64}$')),
     );
+  });
+
+  test('keeps the chat and iOS 15 when the chat module is selected', () async {
+    final app = Directory(path.join(temporary.path, 'chat-app'));
+    await _copy(
+      Directory(path.join(repository.path, 'example', 'golden_app')),
+      app,
+    );
+
+    await OrganizationAppSetup.applyModuleSelection(app, const [
+      'chat',
+      'profile',
+    ]);
+
+    expect(await _read(app, 'pubspec.yaml'), contains('ngotools_chat_module:'));
+    expect(
+      await File(
+        path.join(app.path, 'lib', 'modules', 'chat_module.dart'),
+      ).exists(),
+      isTrue,
+    );
+    expect(
+      await _read(app, 'lib/generated/chat_binding.dart'),
+      contains('GoldenChat.create'),
+    );
+    expect(await _read(app, 'ios/Podfile'), contains("platform :ios, '15.0'"));
   });
 
   test('rejects invalid refs before creating output', () async {
@@ -263,3 +301,23 @@ void main() {
 
 Future<String> _read(Directory directory, String relativePath) =>
     File(path.join(directory.path, relativePath)).readAsString();
+
+Future<void> _copy(Directory source, Directory target) async {
+  await target.create(recursive: true);
+
+  await for (final entity in source.list()) {
+    final name = path.basename(entity.path);
+
+    if (name == 'build' || name == '.dart_tool') {
+      continue;
+    }
+
+    final destination = path.join(target.path, name);
+
+    if (entity is Directory) {
+      await _copy(entity, Directory(destination));
+    } else if (entity is File) {
+      await entity.copy(destination);
+    }
+  }
+}

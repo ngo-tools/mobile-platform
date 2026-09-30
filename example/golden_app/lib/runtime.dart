@@ -9,8 +9,9 @@ import 'package:ngotools_events/ngotools_events.dart';
 import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 
 import 'app.dart';
+import 'generated/chat_binding.dart';
 import 'generated/mobile_app_config.dart';
-import 'modules/chat_module.dart';
+import 'modules/app_chat.dart';
 
 /// Build number passed with `--dart-define=BUILD_NUMBER=…`.
 const _buildNumber = String.fromEnvironment('BUILD_NUMBER', defaultValue: '1');
@@ -36,7 +37,7 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
   NgoToolsMobileApi? _api;
   MobileCapabilitiesCubit? _capabilities;
   StreamSubscription<MobileAuthStatus>? _authChanges;
-  GoldenChat? _chat;
+  AppChat? _chat;
 
   MobileEnvironmentConfiguration get _environment =>
       mobileAppConfiguration.forEnvironment(widget.environment);
@@ -81,11 +82,15 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
   }
 
   Future<void> _createChat(NgoToolsMobileApi api) async {
-    final chat = await GoldenChat.create(
+    final chat = await createAppChat(
       api: api,
       app: mobileAppConfiguration,
       environment: _environment,
     );
+
+    if (chat == null) {
+      return;
+    }
 
     if (!mounted) {
       await chat.dispose();

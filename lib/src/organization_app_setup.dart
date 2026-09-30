@@ -260,11 +260,14 @@ abstract final class OrganizationAppSetup {
       await renderFormattedDartConfiguration(manifest),
     );
 
+    final selectedModules = _strings(_map(manifest, 'features'), 'modules');
+    await applyModuleSelection(directory, selectedModules);
     await _rewritePubspec(
       directory,
       packageName: packageName,
       version: _string(metadata, 'version'),
       platformRef: platformRef,
+      withChat: selectedModules.contains('chat'),
     );
     await _rewritePackageImports(directory, packageName);
     await _rewriteAndroid(
@@ -362,6 +365,7 @@ abstract final class OrganizationAppSetup {
     required String packageName,
     required String version,
     required String platformRef,
+    required bool withChat,
   }) async {
     final file = File(path.join(directory.path, 'pubspec.yaml'));
     var source = await file.readAsString();
@@ -370,9 +374,10 @@ abstract final class OrganizationAppSetup {
         .replaceFirst('version: 0.1.0+1', 'version: $version+1')
         .replaceFirst('\nresolution: workspace\n', '');
 
-    const packages = [
+    final packages = [
       'ngotools_api',
       'ngotools_auth',
+      if (withChat) ...['ngotools_chat', 'ngotools_chat_module'],
       'ngotools_contacts',
       'ngotools_design_system',
       'ngotools_events',
@@ -394,6 +399,75 @@ abstract final class OrganizationAppSetup {
 
     await file.writeAsString(source);
   }
+
+  /// Leaves out what unselected modules would add to the app. Without
+  /// `chat` the app gets no chat package (its native library adds about
+  /// 25 MB per architecture) and keeps iOS 13 instead of the chat's iOS 15.
+  static Future<void> applyModuleSelection(
+    Directory directory,
+    List<String> modules,
+  ) async {
+    if (modules.contains('chat')) {
+      return;
+    }
+
+    final chatModule = File(
+      path.join(directory.path, 'lib', 'modules', 'chat_module.dart'),
+    );
+
+    if (await chatModule.exists()) {
+      await chatModule.delete();
+    }
+
+    await File(
+      path.join(directory.path, 'lib', 'generated', 'chat_binding.dart'),
+    ).writeAsString(_disabledChatBinding);
+
+    final pubspec = File(path.join(directory.path, 'pubspec.yaml'));
+    await pubspec.writeAsString(
+      (await pubspec.readAsString()).replaceAll(
+        RegExp(r'^  ngotools_chat_module:.*\n', multiLine: true),
+        '',
+      ),
+    );
+
+    await _replaceInFile(
+      File(path.join(directory.path, 'ios', 'Podfile')),
+      "platform :ios, '15.0'",
+      "platform :ios, '13.0'",
+    );
+    await _replaceInFile(
+      File(
+        path.join(directory.path, 'ios', 'Runner.xcodeproj', 'project.pbxproj'),
+      ),
+      'IPHONEOS_DEPLOYMENT_TARGET = 15.0;',
+      'IPHONEOS_DEPLOYMENT_TARGET = 13.0;',
+    );
+  }
+
+  static Future<void> _replaceInFile(File file, String from, String to) async {
+    if (await file.exists()) {
+      await file.writeAsString(
+        (await file.readAsString()).replaceAll(from, to),
+      );
+    }
+  }
+
+  static const _disabledChatBinding = '''// GENERATED FILE. DO NOT EDIT.
+// The app generator writes this file from the selected modules.
+
+import 'package:ngotools_api/ngotools_api.dart';
+import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
+
+import '../modules/app_chat.dart';
+
+/// Creates the chat of the app; `null` when the app has no chat.
+Future<AppChat?> createAppChat({
+  required NgoToolsMobileApi api,
+  required MobileAppConfiguration app,
+  required MobileEnvironmentConfiguration environment,
+}) async => null;
+''';
 
   static Future<void> _rewritePackageImports(
     Directory directory,
