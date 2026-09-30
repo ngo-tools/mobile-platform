@@ -12,6 +12,7 @@ import 'chat_image_views.dart';
 import 'chat_labels.dart';
 import 'thread_list_view.dart';
 import 'timeline_tiles.dart';
+import 'undecryptable_message.dart';
 
 /// Quick reactions offered in the message actions.
 const chatQuickReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
@@ -28,6 +29,7 @@ final class ChatRoomPage extends StatelessWidget {
     this.threadRootId,
     this.actions = const [],
     this.imagePicker = const PlatformChatImagePicker(),
+    this.onEnterRecoveryKey,
     this.now,
     super.key,
   });
@@ -56,6 +58,10 @@ final class ChatRoomPage extends StatelessWidget {
   /// Picks images to send.
   final ChatImagePicker imagePicker;
 
+  /// Opens the recovery key entry from unreadable messages; `null` when this
+  /// device needs no key.
+  final VoidCallback? onEnterRecoveryKey;
+
   /// Current time, injectable for tests.
   final DateTime Function()? now;
 
@@ -76,6 +82,7 @@ final class ChatRoomPage extends StatelessWidget {
                   roomId: roomId,
                   isGroup: isGroup,
                   imagePicker: imagePicker,
+                  onEnterRecoveryKey: onEnterRecoveryKey,
                   now: now,
                 ),
               ),
@@ -91,6 +98,7 @@ final class ChatRoomPage extends StatelessWidget {
       isGroup: isGroup,
       threadRootId: threadRootId,
       imagePicker: imagePicker,
+      onEnterRecoveryKey: onEnterRecoveryKey,
       now: now,
     ),
   );
@@ -106,6 +114,7 @@ final class ChatRoomView extends StatefulWidget {
     required this.isGroup,
     this.threadRootId,
     this.imagePicker = const PlatformChatImagePicker(),
+    this.onEnterRecoveryKey,
     this.now,
     super.key,
   });
@@ -127,6 +136,10 @@ final class ChatRoomView extends StatefulWidget {
 
   /// Picks images to send.
   final ChatImagePicker imagePicker;
+
+  /// Opens the recovery key entry from unreadable messages; `null` when this
+  /// device needs no key.
+  final VoidCallback? onEnterRecoveryKey;
 
   /// Current time, injectable for tests.
   final DateTime Function()? now;
@@ -338,6 +351,11 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
               _media.putIfAbsent(media, () => widget.gateway.media(media)),
           loadFull: (media) =>
               _media.putIfAbsent(media, () => widget.gateway.media(media)),
+        ),
+        UnableToDecryptContent(:final reason) => ChatUndecryptableMessage(
+          reason: reason,
+          labels: _labels.encryption,
+          onEnterRecoveryKey: widget.onEnterRecoveryKey,
         ),
         _ => null,
       },
@@ -694,6 +712,7 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
             isGroup: widget.isGroup,
             threadRootId: eventId,
             imagePicker: widget.imagePicker,
+            onEnterRecoveryKey: widget.onEnterRecoveryKey,
             now: widget.now,
           ),
         ),

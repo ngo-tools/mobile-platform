@@ -2,6 +2,10 @@
 
 ## 0.1.0-dev.1
 
+- Unreadable messages name the reason and explain it on tap; where the
+  recovery key helps, the explanation offers to enter it
+  (`ChatUndecryptableMessage`, `onEnterRecoveryKey`). Encryption texts
+  moved to `ChatLabels.encryption` (`ChatEncryptionLabels`).
 - Add the chat screens: room list with invites, rooms with replies,
   edits, reactions, threads and images, new direct chats from the
   address book, room details, and `ChatHome` as the app destination.
