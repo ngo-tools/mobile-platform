@@ -18,6 +18,8 @@ final class ChatRoomListView extends StatefulWidget {
     required this.onOpenRoom,
     this.selectedRoomId,
     this.source,
+    this.header,
+    this.actions = const [],
     this.now,
     super.key,
   });
@@ -37,6 +39,12 @@ final class ChatRoomListView extends StatefulWidget {
   /// Room list owned by the caller; opened (and stopped) by the view when
   /// `null`.
   final ChatRoomListSource? source;
+
+  /// Shown above the search, e.g. a reminder to set up recovery.
+  final Widget? header;
+
+  /// Buttons next to the search, e.g. the security settings.
+  final List<Widget> actions;
 
   /// Current time, injectable for tests.
   final DateTime Function()? now;
@@ -104,6 +112,7 @@ final class _ChatRoomListViewState extends State<ChatRoomListView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        ?widget.header,
         Padding(
           padding: const EdgeInsets.fromLTRB(
             NgoToolsLayout.spacing,
@@ -111,14 +120,21 @@ final class _ChatRoomListViewState extends State<ChatRoomListView> {
             NgoToolsLayout.spacing,
             0,
           ),
-          child: TextField(
-            controller: _search,
-            decoration: InputDecoration(
-              hintText: widget.labels.searchHint,
-              prefixIcon: const Icon(Icons.search),
-              border: const OutlineInputBorder(),
-              isDense: true,
-            ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _search,
+                  decoration: InputDecoration(
+                    hintText: widget.labels.searchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ),
+              ...widget.actions,
+            ],
           ),
         ),
         ValueListenableBuilder<RoomFilter>(

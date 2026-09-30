@@ -13,6 +13,7 @@ final class ChatDeviceRecord {
     required this.deviceId,
     required this.homeserverUrl,
     this.expiresAt,
+    this.recoveryPromptSeen = false,
   });
 
   /// Restores a record written by [toJson]; `null` when unreadable.
@@ -21,6 +22,7 @@ final class ChatDeviceRecord {
     final deviceId = json['device_id'];
     final homeserverUrl = json['homeserver_url'];
     final expiresAt = json['expires_at'];
+    final recoveryPromptSeen = json['recovery_prompt_seen'];
 
     if (matrixUserId is! String ||
         deviceId is! String ||
@@ -33,6 +35,7 @@ final class ChatDeviceRecord {
       deviceId: deviceId,
       homeserverUrl: Uri.parse(homeserverUrl),
       expiresAt: expiresAt is String ? DateTime.tryParse(expiresAt) : null,
+      recoveryPromptSeen: recoveryPromptSeen == true,
     );
   }
 
@@ -48,12 +51,25 @@ final class ChatDeviceRecord {
   /// When the current access token expires.
   final DateTime? expiresAt;
 
+  /// Whether the user saw the offer to set up recovery on this device.
+  final bool recoveryPromptSeen;
+
   /// Copies the record with a renewed expiry.
   ChatDeviceRecord renewedUntil(DateTime? expiresAt) => ChatDeviceRecord(
     matrixUserId: matrixUserId,
     deviceId: deviceId,
     homeserverUrl: homeserverUrl,
     expiresAt: expiresAt,
+    recoveryPromptSeen: recoveryPromptSeen,
+  );
+
+  /// Copies the record after the recovery offer was shown.
+  ChatDeviceRecord withRecoveryPromptSeen() => ChatDeviceRecord(
+    matrixUserId: matrixUserId,
+    deviceId: deviceId,
+    homeserverUrl: homeserverUrl,
+    expiresAt: expiresAt,
+    recoveryPromptSeen: true,
   );
 
   /// Serializes the record.
@@ -62,6 +78,7 @@ final class ChatDeviceRecord {
     'device_id': deviceId,
     'homeserver_url': homeserverUrl.toString(),
     'expires_at': expiresAt?.toUtc().toIso8601String(),
+    'recovery_prompt_seen': recoveryPromptSeen,
   };
 }
 
