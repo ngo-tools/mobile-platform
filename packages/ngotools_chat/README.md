@@ -196,3 +196,12 @@ CHAT_ACCEPTANCE_API=https://<instance>.ngo.tools CHAT_ACCEPTANCE_TOKEN=… \
 ```
 
 The session stays active afterwards; end it by deleting the API token.
+
+### Push extension on a real iPhone
+
+The example app has a **Push-Test** action in rooms: it copies a command
+for `e2e/device/send_push.py`, which sends a Matrix-style push (room and
+event id with `mutable-content`) straight to APNs, so the notification
+extension loads and decrypts the event like it will behind Sygnal. The
+script signs with the team's APNs key from `APNS_KEY_P8`, `APNS_KEY_ID` and
+`APNS_TEAM_ID` (environment or project key store).
