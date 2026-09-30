@@ -21,6 +21,10 @@ expose a large, fast-changing API.
   stays small.
 - OAuth sessions and tokens stay in Rust, persisted in the encrypted store.
   Dart handles only the store key, which comes from the platform keystore.
+  Exception (2026-09-30): organization apps sign in without a browser with a
+  session NGO.Tools issues for the device (MAS personal session). Its token
+  passes through Dart once, from the NGO.Tools API into the facade, and is
+  never stored outside the encrypted store.
 - On iOS, app and Notification Service Extension link the same framework and
   share the store through an App Group with cross-process locks.
 - Release binaries are precompiled and signed in a protected CI environment;

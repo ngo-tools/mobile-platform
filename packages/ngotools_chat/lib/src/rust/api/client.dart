@@ -115,6 +115,15 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Stops all background work so that another client may open the store.
   Future<void> shutdown();
 
+  /// Signs in with a chat session issued by NGO.Tools (MAS personal session
+  /// for this device): no browser, no second login. The token is stored in
+  /// the encrypted store only.
+  Future<SessionInfo> signInWithToken({
+    required String userId,
+    required String deviceId,
+    required String accessToken,
+  });
+
   /// Starts the sync service (Simplified Sliding Sync + encryption sync).
   Future<void> startSync();
 
@@ -135,6 +144,10 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   /// Opens the live timeline of a room.
   Future<ChatTimeline> timeline({required String roomId});
+
+  /// Replaces the access token of an issued session (renewed by NGO.Tools)
+  /// while the client keeps running.
+  Future<void> updateAccessToken({required String accessToken});
 
   Future<String?> userId();
 

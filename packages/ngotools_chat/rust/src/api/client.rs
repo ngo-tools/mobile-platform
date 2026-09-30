@@ -33,7 +33,8 @@ use crate::{
     },
     runtime::{on_runtime, runtime, DropInRuntime},
     session::{
-        build_client, forget_session, persist_session, restore_stored_session, ClientParams,
+        announce_session_tokens, build_client, forget_session, is_issued_session, persist_session,
+        restore_stored_session, store_access_token, store_issued_session, ClientParams,
     },
 };
 
@@ -85,6 +86,8 @@ struct ChatConfigInner {
     client_name: String,
     client_uri: String,
     redirect_uri: String,
+    data_dir: String,
+    store_key: Vec<u8>,
 }
 
 impl ChatClient {
@@ -93,9 +96,9 @@ impl ChatClient {
         on_runtime(async move {
             let (client, refreshes) = build_client(ClientParams {
                 homeserver_url: config.homeserver_url,
-                data_dir: config.data_dir,
+                data_dir: config.data_dir.clone(),
                 cache_dir: config.cache_dir,
-                store_key: config.store_key,
+                store_key: config.store_key.clone(),
                 dev_root_certificate_pem: config.dev_root_certificate_pem,
                 cross_process_holder: config.cross_process_holder,
                 low_memory: false,
@@ -108,6 +111,8 @@ impl ChatClient {
                     client_name: config.client_name,
                     client_uri: config.client_uri,
                     redirect_uri: config.redirect_uri,
+                    data_dir: config.data_dir,
+                    store_key: config.store_key,
                 }),
                 sync_service: DropInRuntime::new(Mutex::new(None)),
                 room_task: Mutex::new(None),
@@ -198,6 +203,54 @@ impl ChatClient {
         Ok(info)
     }
 
+    /// Signs in with a chat session issued by NGO.Tools (MAS personal session
+    /// for this device): no browser, no second login. The token is stored in
+    /// the encrypted store only.
+    pub async fn sign_in_with_token(
+        &self,
+        user_id: String,
+        device_id: String,
+        access_token: String,
+    ) -> Result<SessionInfo, ChatError> {
+        let client = self.client.clone();
+        let info = self
+            .lifecycle
+            .run(async move {
+                store_issued_session(&client, &user_id, &device_id, &access_token).await?;
+                restore_stored_session(&client, RoomLoadSettings::default())
+                    .await?
+                    .context("issued session was not stored")
+            })
+            .await?;
+
+        self.lifecycle.set_session(SessionState::Active);
+        self.watch_session_changes().await;
+
+        Ok(info)
+    }
+
+    /// Replaces the access token of an issued session (renewed by NGO.Tools)
+    /// while the client keeps running.
+    pub async fn update_access_token(&self, access_token: String) -> Result<(), ChatError> {
+        let client = self.client.clone();
+        let config = self.config.clone();
+        self.lifecycle
+            .run(async move {
+                store_access_token(&client, &access_token).await?;
+                announce_session_tokens(&config.data_dir, &config.store_key, &access_token).await?;
+                // Reloads the stored tokens (hash mismatch) instead of refreshing.
+                client.oauth().refresh_access_token().await?;
+                anyhow::ensure!(
+                    client.access_token().as_deref() == Some(access_token.as_str()),
+                    "the new access token was not taken over"
+                );
+                Ok(())
+            })
+            .await?;
+        self.lifecycle.set_session(SessionState::Active);
+        Ok(())
+    }
+
     /// Discards a login started with `login_url` (e.g. the user closed the
     /// browser).
     pub async fn abort_login(&self) {
@@ -219,7 +272,11 @@ impl ChatClient {
         let client = self.client.clone();
         self.lifecycle
             .run(async move {
-                client.oauth().logout().await?;
+                // NGO.Tools revokes issued sessions; only OAuth sessions are
+                // ended here.
+                if !is_issued_session(&client).await? {
+                    client.oauth().logout().await?;
+                }
                 forget_session(&client).await
             })
             .await?;

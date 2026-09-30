@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Sign in with a chat session issued by NGO.Tools (`signInWithToken`) and
+  swap renewed tokens into the running session (`updateAccessToken`).
 - **Breaking:** handwritten public API. `ChatSession` replaces the generated
   `ChatClient`; models, controllers and `ChatException` are plain Dart types
   and the generated bindings are no longer exported. The platform gate

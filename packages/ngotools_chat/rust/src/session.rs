@@ -1,9 +1,11 @@
 //! Client construction and the OAuth session persisted in the encrypted
 //! state store. Shared by the app and the iOS Notification Service Extension.
 //!
-//! Dart never sees access or refresh tokens: the session lives in the
-//! encrypted SQLite store (key from the Keychain/Keystore) and refreshed
-//! tokens are written back synchronously while the SDK holds its lock.
+//! Tokens live only in the encrypted SQLite store (key from the
+//! Keychain/Keystore); refreshed tokens are written back synchronously while
+//! the SDK holds its lock. Sessions issued by NGO.Tools pass through Dart once
+//! (from the NGO.Tools API into `sign_in_with_token`/`update_access_token`)
+//! and are never stored there.
 
 use std::{
     path::PathBuf,
@@ -22,13 +24,24 @@ use matrix_sdk::{
     reqwest::Certificate,
     ruma::UserId,
     store::RoomLoadSettings,
-    AuthSession, Client, SqliteStoreConfig, ThreadingSupport,
+    AuthSession, Client, SqliteCryptoStore, SqliteStoreConfig, ThreadingSupport,
 };
+use matrix_sdk_crypto::store::CryptoStore;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 use crate::{api::client::SessionInfo, runtime::block_on_runtime};
 
 const SESSION_KEY: &[u8] = b"ngotools.session.v1";
+
+/// Placeholder client id of sessions issued by NGO.Tools (MAS personal
+/// sessions); the SDK needs one, but these sessions are never refreshed via
+/// OAuth.
+pub(crate) const ISSUED_SESSION_CLIENT_ID: &str = "ngotools-issued";
+
+/// Key of the SDK's cross-process refresh lock for the current token hash
+/// (`matrix_sdk::authentication::oauth::cross_process`).
+const SESSION_HASH_KEY: &str = "oidc_session_hash";
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct StoredSession {
@@ -122,12 +135,17 @@ pub(crate) async fn build_client(params: ClientParams) -> Result<(Client, Arc<At
         }),
     )?;
 
-    if let Some(holder) = &params.cross_process_holder {
-        client
-            .oauth()
-            .enable_cross_process_refresh_lock(holder.clone())
-            .await?;
-    }
+    // Always on: besides the iOS NSE, it lets issued tokens be swapped in
+    // (see `announce_session_tokens`).
+    client
+        .oauth()
+        .enable_cross_process_refresh_lock(
+            params
+                .cross_process_holder
+                .clone()
+                .unwrap_or_else(|| "main".to_owned()),
+        )
+        .await?;
 
     tracing::debug!("client built in {:?}", started.elapsed());
 
@@ -186,6 +204,70 @@ pub(crate) async fn persist_session(client: &Client) -> Result<()> {
         .set_custom_value(SESSION_KEY, serde_json::to_vec(&stored)?)
         .await?;
     Ok(())
+}
+
+/// Stores a session issued by NGO.Tools (no refresh token).
+pub(crate) async fn store_issued_session(
+    client: &Client,
+    user_id: &str,
+    device_id: &str,
+    access_token: &str,
+) -> Result<()> {
+    let stored = StoredSession {
+        client_id: ISSUED_SESSION_CLIENT_ID.to_owned(),
+        user_id: user_id.to_owned(),
+        device_id: device_id.to_owned(),
+        access_token: access_token.to_owned(),
+        refresh_token: None,
+    };
+    client
+        .state_store()
+        .set_custom_value(SESSION_KEY, serde_json::to_vec(&stored)?)
+        .await?;
+    Ok(())
+}
+
+/// Whether the stored session was issued by NGO.Tools (and is revoked there).
+pub(crate) async fn is_issued_session(client: &Client) -> Result<bool> {
+    Ok(read_stored_session(client)
+        .await?
+        .is_some_and(|stored| stored.client_id == ISSUED_SESSION_CLIENT_ID))
+}
+
+/// Replaces the access token of the stored session.
+pub(crate) async fn store_access_token(client: &Client, access_token: &str) -> Result<()> {
+    let mut stored = read_stored_session(client)
+        .await?
+        .context("no stored session")?;
+    stored.access_token = access_token.to_owned();
+    stored.refresh_token = None;
+    client
+        .state_store()
+        .set_custom_value(SESSION_KEY, serde_json::to_vec(&stored)?)
+        .await?;
+    Ok(())
+}
+
+/// Tells the SDK's cross-process refresh lock that the tokens changed, as if
+/// another process had refreshed them: the next refresh reloads them from the
+/// session callback instead of asking the server.
+pub(crate) async fn announce_session_tokens(
+    data_dir: &str,
+    store_key: &[u8],
+    access_token: &str,
+) -> Result<()> {
+    let config = SqliteStoreConfig::new(data_dir).key(Some(store_key));
+    let store = SqliteCryptoStore::open_with_config(&config).await?;
+    store
+        .set_custom_value(SESSION_HASH_KEY, session_hash(access_token))
+        .await?;
+    Ok(())
+}
+
+/// Same hash as the SDK's `compute_session_hash` for a session without
+/// refresh token.
+fn session_hash(access_token: &str) -> Vec<u8> {
+    Sha256::digest(access_token.as_bytes()).to_vec()
 }
 
 /// Removes the persisted session (after logout).

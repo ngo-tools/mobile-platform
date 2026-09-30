@@ -18,6 +18,8 @@ matrix-sdk = { version = "=0.19.1", default-features = false, features = [
     "rustls-aws-lc-rs",
 ] }
 matrix-sdk-ui = { version = "=0.19.1", default-features = false }
+# Only for the `CryptoStore` trait (custom values of the crypto store).
+matrix-sdk-crypto = { version = "=0.19.1", default-features = false }
 anyhow = "1.0.104"
 eyeball-im = "0.9.1"
 futures-util = "0.3.34"
@@ -27,6 +29,8 @@ mime = "0.3.17"
 oauth2 = { version = "=5.0.0", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.151"
+# Same version as matrix-sdk; hashes session tokens like its cross-process refresh lock.
+sha2 = "=0.10.9"
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "sync", "time", "macros"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "fmt"] }

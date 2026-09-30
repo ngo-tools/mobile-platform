@@ -133,6 +133,31 @@ class ChatSession {
     return _account = map.account(info);
   }
 
+  /// Signs in with a chat session that NGO.Tools issued for this device
+  /// (the organization apps' background sign-in, no browser). The token is
+  /// kept in the encrypted store only; keep [deviceId] for later sessions of
+  /// the same account so keys and verification survive.
+  Future<ChatAccount> signInWithToken({
+    required String userId,
+    required String deviceId,
+    required String accessToken,
+  }) async {
+    final info = await map.guard(
+      () => _client.signInWithToken(
+        userId: userId,
+        deviceId: deviceId,
+        accessToken: accessToken,
+      ),
+    );
+
+    return _account = map.account(info);
+  }
+
+  /// Takes over a renewed token of an issued session while the session keeps
+  /// running (sync, timelines).
+  Future<void> updateAccessToken(String accessToken) =>
+      map.guard(() => _client.updateAccessToken(accessToken: accessToken));
+
   /// Discards a login whose browser flow was cancelled.
   Future<void> abortLogin() => map.guard(_client.abortLogin);
 

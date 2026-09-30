@@ -48,6 +48,14 @@ render() {
         } > "$GEN/secrets.env"
         chmod 600 "$GEN/secrets.env"
     fi
+    # Admin client (client credentials) like the one chatctl creates in production;
+    # NGO.Tools uses it to issue the apps' chat sessions.
+    if ! grep -q MAS_ADMIN_CLIENT_ID "$GEN/secrets.env"; then
+        {
+            echo "MAS_ADMIN_CLIENT_ID=$(python3 -c 'import secrets; a="0123456789ABCDEFGHJKMNPQRSTVWXYZ"; print("01" + "".join(secrets.choice(a) for _ in range(24)))')"
+            echo "MAS_ADMIN_CLIENT_SECRET=$(secret)"
+        } >> "$GEN/secrets.env"
+    fi
     # shellcheck disable=SC1091
     source "$GEN/secrets.env"
 
@@ -198,8 +206,14 @@ matrix:
   endpoint: "http://synapse:8008/"
   secret: "${MAS_SYNAPSE_SECRET}"
 
+clients:
+  - client_id: "${MAS_ADMIN_CLIENT_ID}"
+    client_auth_method: client_secret_basic
+    client_secret: "${MAS_ADMIN_CLIENT_SECRET}"
+
 policy:
   data:
+    admin_clients: ["${MAS_ADMIN_CLIENT_ID}"]
     client_registration:
       allow_insecure_uris: true
       allow_host_mismatch: true
