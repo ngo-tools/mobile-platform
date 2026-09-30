@@ -27,6 +27,12 @@ abstract interface class ChatClient {
   /// Starts syncing.
   Future<void> startSync();
 
+  /// Stops syncing while the app is in the background.
+  Future<void> pause();
+
+  /// Resumes syncing after [pause].
+  Future<void> resume();
+
   /// Stops all background work; the stores stay on the device.
   Future<void> dispose();
 }
@@ -145,6 +151,12 @@ final class _SessionChatClient implements ChatClient {
 
   @override
   Future<void> startSync() => session.startSync();
+
+  @override
+  Future<void> pause() => session.pause();
+
+  @override
+  Future<void> resume() => session.resume();
 
   @override
   Future<void> dispose() => session.dispose();

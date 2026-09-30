@@ -10,6 +10,7 @@ import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 
 import 'app.dart';
 import 'generated/mobile_app_config.dart';
+import 'modules/chat_module.dart';
 
 /// Build number passed with `--dart-define=BUILD_NUMBER=…`.
 const _buildNumber = String.fromEnvironment('BUILD_NUMBER', defaultValue: '1');
@@ -35,6 +36,7 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
   NgoToolsMobileApi? _api;
   MobileCapabilitiesCubit? _capabilities;
   StreamSubscription<MobileAuthStatus>? _authChanges;
+  GoldenChat? _chat;
 
   MobileEnvironmentConfiguration get _environment =>
       mobileAppConfiguration.forEnvironment(widget.environment);
@@ -71,14 +73,45 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
     ) {
       if (status == MobileAuthStatus.authenticated) {
         unawaited(capabilities.load());
+        unawaited(_chat?.connect());
       }
     });
+    unawaited(_createChat(api));
     unawaited(auth.restore());
+  }
+
+  Future<void> _createChat(NgoToolsMobileApi api) async {
+    final chat = await GoldenChat.create(
+      api: api,
+      app: mobileAppConfiguration,
+      environment: _environment,
+    );
+
+    if (!mounted) {
+      await chat.dispose();
+      return;
+    }
+
+    setState(() => _chat = chat);
+
+    if (_auth?.state.status == MobileAuthStatus.authenticated) {
+      unawaited(chat.connect());
+    }
+  }
+
+  /// The chat session ends before the NGO.Tools token is gone.
+  Future<void> _signOut() async {
+    try {
+      await _chat?.disconnect();
+    } finally {
+      await _auth?.signOut();
+    }
   }
 
   @override
   void dispose() {
     unawaited(_authChanges?.cancel());
+    unawaited(_chat?.dispose());
     unawaited(_capabilities?.close());
     unawaited(_api?.close());
     unawaited(_auth?.close());
@@ -119,8 +152,9 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
                 eventsRepository: authenticated
                     ? NgoToolsEventsRepository(api)
                     : null,
+                chatBuilder: authenticated ? _chat?.build : null,
                 onSignIn: auth.signIn,
-                onSignOut: auth.signOut,
+                onSignOut: _signOut,
               );
             },
           ),

@@ -17,6 +17,7 @@ final class ChatRoomListView extends StatefulWidget {
     required this.labels,
     required this.onOpenRoom,
     this.selectedRoomId,
+    this.source,
     this.now,
     super.key,
   });
@@ -32,6 +33,10 @@ final class ChatRoomListView extends StatefulWidget {
 
   /// Room shown next to the list (tablet layout).
   final String? selectedRoomId;
+
+  /// Room list owned by the caller; opened (and stopped) by the view when
+  /// `null`.
+  final ChatRoomListSource? source;
 
   /// Current time, injectable for tests.
   final DateTime Function()? now;
@@ -61,6 +66,13 @@ final class _ChatRoomListViewState extends State<ChatRoomListView> {
   }
 
   Future<void> _open() async {
+    final external = widget.source;
+
+    if (external != null) {
+      setState(() => _source = external);
+      return;
+    }
+
     final source = await widget.gateway.rooms();
 
     if (!mounted) {
@@ -73,7 +85,10 @@ final class _ChatRoomListViewState extends State<ChatRoomListView> {
 
   @override
   void dispose() {
-    unawaited(_source?.dispose());
+    if (widget.source == null) {
+      unawaited(_source?.dispose());
+    }
+
     _search.dispose();
     super.dispose();
   }

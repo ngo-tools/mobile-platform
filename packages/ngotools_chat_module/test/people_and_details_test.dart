@@ -70,7 +70,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(gateway.calls, contains('dm:@maria.muster:example.org'));
-      expect(popped, '!dm-@maria.muster:example.org');
+      expect(
+        (popped! as ChatStartedDirectChat).roomId,
+        '!dm-@maria.muster:example.org',
+      );
+      expect((popped! as ChatStartedDirectChat).name, 'Maria Muster');
     });
 
     testWidgets('stays open when the chat cannot be started', (tester) async {

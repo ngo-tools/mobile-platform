@@ -7,8 +7,20 @@ import 'package:ngotools_design_system/ngotools_design_system.dart';
 import 'chat_gateway.dart';
 import 'chat_labels.dart';
 
+/// A direct chat started from the address book.
+final class ChatStartedDirectChat {
+  /// Creates the result.
+  const ChatStartedDirectChat({required this.roomId, required this.name});
+
+  /// Room of the direct chat.
+  final String roomId;
+
+  /// Name of the person.
+  final String name;
+}
+
 /// Starts a direct chat with a person from the organization's address book.
-/// Pops with the room id of the chat.
+/// Pops with a [ChatStartedDirectChat].
 final class ChatNewChatPage extends StatefulWidget {
   /// Creates the page.
   const ChatNewChatPage({
@@ -117,7 +129,9 @@ final class _ChatNewChatPageState extends State<ChatNewChatPage> {
       final roomId = await widget.gateway.createDirectChat(person.matrixUserId);
 
       if (mounted) {
-        Navigator.of(context).pop(roomId);
+        Navigator.of(
+          context,
+        ).pop(ChatStartedDirectChat(roomId: roomId, name: person.displayName));
       }
     } on Object {
       if (mounted) {

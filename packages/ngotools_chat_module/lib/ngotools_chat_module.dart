@@ -4,12 +4,14 @@
 /// NGO.Tools session, without a second login.
 library;
 
+export 'src/chat_app_lifecycle.dart';
 export 'src/chat_client.dart';
 export 'src/chat_connection_state.dart';
 export 'src/chat_connection_view.dart';
 export 'src/chat_connector.dart';
 export 'src/chat_device_store.dart';
 export 'src/chat_gateway.dart';
+export 'src/chat_home.dart';
 export 'src/chat_image_picker.dart';
 export 'src/chat_image_views.dart';
 export 'src/chat_labels.dart';
