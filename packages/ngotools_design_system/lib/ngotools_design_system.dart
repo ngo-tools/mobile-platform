@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'src/layout.dart';
 
+export 'src/avatar.dart';
 export 'src/components.dart';
 export 'src/layout.dart';
 
