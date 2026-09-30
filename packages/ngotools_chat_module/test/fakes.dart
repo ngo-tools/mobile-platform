@@ -57,6 +57,10 @@ final class FakeTimeline implements ChatTimelineSource {
   }
 
   @override
+  Future<void> sendImage(ImageAttachment image) async =>
+      calls.add('image:${image.filePath}:${image.caption}');
+
+  @override
   Future<void> edit(EventItem item, String body) async =>
       calls.add('edit:${item.eventId}:$body');
 
@@ -149,7 +153,108 @@ final class FakeChatGateway implements ChatGateway {
 
   @override
   Future<Uint8List> thumbnail(ChatMedia media, int size) async => Uint8List(0);
+
+  bool failMedia = false;
+
+  @override
+  Future<Uint8List> media(ChatMedia media) async {
+    calls.add('media:${media.reference}');
+
+    if (failMedia) {
+      throw const ChatException(ChatErrorKind.network);
+    }
+
+    return transparentPng;
+  }
 }
+
+final class FakeImagePicker implements ChatImagePicker {
+  ImageAttachment? result = const ImageAttachment(
+    filePath: '/tmp/sommerfest.jpg',
+    mimeType: 'image/jpeg',
+    width: 1600,
+    height: 1200,
+  );
+  final sources = <ChatImageSource>[];
+
+  @override
+  Future<ImageAttachment?> pick(ChatImageSource source) async {
+    sources.add(source);
+
+    return result;
+  }
+}
+
+/// A 1×1 transparent PNG.
+final transparentPng = Uint8List.fromList(const [
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
+]);
 
 EventItem chatEvent(
   String id,

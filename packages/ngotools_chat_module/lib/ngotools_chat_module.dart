@@ -10,6 +10,8 @@ export 'src/chat_connection_view.dart';
 export 'src/chat_connector.dart';
 export 'src/chat_device_store.dart';
 export 'src/chat_gateway.dart';
+export 'src/chat_image_picker.dart';
+export 'src/chat_image_views.dart';
 export 'src/chat_labels.dart';
 export 'src/room_list_view.dart';
 export 'src/room_view.dart';

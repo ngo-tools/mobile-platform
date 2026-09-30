@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,8 @@ import 'package:ngotools_chat/ngotools_chat.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 
 import 'chat_gateway.dart';
+import 'chat_image_picker.dart';
+import 'chat_image_views.dart';
 import 'chat_labels.dart';
 import 'thread_list_view.dart';
 import 'timeline_tiles.dart';
@@ -24,6 +27,7 @@ final class ChatRoomPage extends StatelessWidget {
     required this.isGroup,
     this.threadRootId,
     this.actions = const [],
+    this.imagePicker = const PlatformChatImagePicker(),
     this.now,
     super.key,
   });
@@ -49,6 +53,9 @@ final class ChatRoomPage extends StatelessWidget {
   /// Further app bar actions, e.g. room details.
   final List<Widget> actions;
 
+  /// Picks images to send.
+  final ChatImagePicker imagePicker;
+
   /// Current time, injectable for tests.
   final DateTime Function()? now;
 
@@ -68,6 +75,7 @@ final class ChatRoomPage extends StatelessWidget {
                   labels: labels,
                   roomId: roomId,
                   isGroup: isGroup,
+                  imagePicker: imagePicker,
                   now: now,
                 ),
               ),
@@ -82,6 +90,7 @@ final class ChatRoomPage extends StatelessWidget {
       roomId: roomId,
       isGroup: isGroup,
       threadRootId: threadRootId,
+      imagePicker: imagePicker,
       now: now,
     ),
   );
@@ -96,6 +105,7 @@ final class ChatRoomView extends StatefulWidget {
     required this.roomId,
     required this.isGroup,
     this.threadRootId,
+    this.imagePicker = const PlatformChatImagePicker(),
     this.now,
     super.key,
   });
@@ -115,6 +125,9 @@ final class ChatRoomView extends StatefulWidget {
   /// Root event of a thread.
   final String? threadRootId;
 
+  /// Picks images to send.
+  final ChatImagePicker imagePicker;
+
   /// Current time, injectable for tests.
   final DateTime Function()? now;
 
@@ -128,6 +141,7 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
   final _text = TextEditingController();
   final _focus = FocusNode();
   final _requestedReplies = <String>{};
+  final _media = <ChatMedia, Future<Uint8List>>{};
   EventItem? _replyTo;
   EventItem? _editing;
   Timer? _typingTimer;
@@ -315,6 +329,18 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
       onOpenThread: widget.threadRootId == null && event.eventId != null
           ? () => _openThread(event)
           : null,
+      content: switch (event.content) {
+        final ImageContent image => ChatImageMessage(
+          content: image,
+          sendState: event.sendState,
+          labels: _labels,
+          loadPreview: (media) =>
+              _media.putIfAbsent(media, () => widget.gateway.media(media)),
+          loadFull: (media) =>
+              _media.putIfAbsent(media, () => widget.gateway.media(media)),
+        ),
+        _ => null,
+      },
     );
   }
 
@@ -363,6 +389,12 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                if (editing == null)
+                  IconButton(
+                    tooltip: labels.attachImage,
+                    icon: const Icon(Icons.add_photo_alternate_outlined),
+                    onPressed: _pickImage,
+                  ),
                 Expanded(
                   child: TextField(
                     controller: _text,
@@ -437,6 +469,67 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
           : timeline.sendText(body, replyTo: replyTo),
     );
   }
+
+  Future<void> _pickImage() async {
+    final labels = _labels;
+    final source = await showModalBottomSheet<ChatImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(labels.camera),
+              onTap: () => Navigator.of(context).pop(ChatImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(labels.gallery),
+              onTap: () => Navigator.of(context).pop(ChatImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null || !mounted) {
+      return;
+    }
+
+    ImageAttachment? image;
+
+    try {
+      image = await widget.imagePicker.pick(source);
+    } on Object {
+      _snack(labels.actionFailed);
+    }
+
+    if (image == null || !mounted) {
+      return;
+    }
+
+    final caption = await _confirmImage(image);
+
+    if (caption == null) {
+      return;
+    }
+
+    final timeline = _timeline!;
+
+    await _run(
+      () => timeline.sendImage(
+        image!.copyWith(caption: caption.isEmpty ? null : caption),
+      ),
+    );
+  }
+
+  /// Shows the picked image with a caption field; `null` when cancelled.
+  Future<String?> _confirmImage(ImageAttachment image) => showDialog<String>(
+    context: context,
+    builder: (context) => _ImageConfirmDialog(image: image, labels: _labels),
+  );
 
   void _resetComposer() {
     setState(() {
@@ -600,6 +693,7 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
             title: _labels.thread,
             isGroup: widget.isGroup,
             threadRootId: eventId,
+            imagePicker: widget.imagePicker,
             now: widget.now,
           ),
         ),
@@ -631,5 +725,65 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
     } on Object {
       // Background work (read marker, typing, paging) is retried naturally.
     }
+  }
+}
+
+final class _ImageConfirmDialog extends StatefulWidget {
+  const _ImageConfirmDialog({required this.image, required this.labels});
+
+  final ImageAttachment image;
+  final ChatLabels labels;
+
+  @override
+  State<_ImageConfirmDialog> createState() => _ImageConfirmDialogState();
+}
+
+final class _ImageConfirmDialogState extends State<_ImageConfirmDialog> {
+  final _caption = TextEditingController();
+
+  @override
+  void dispose() {
+    _caption.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = widget.labels;
+    final thumbnail = widget.image.thumbnail;
+
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 280),
+            child: thumbnail != null
+                ? Image.memory(thumbnail.data, fit: BoxFit.contain)
+                : Image.file(
+                    File(widget.image.filePath),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, _, _) =>
+                        const Icon(Icons.image_outlined, size: 64),
+                  ),
+          ),
+          const SizedBox(height: NgoToolsLayout.spacing),
+          TextField(
+            controller: _caption,
+            decoration: InputDecoration(hintText: labels.captionHint),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(labels.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_caption.text.trim()),
+          child: Text(labels.send),
+        ),
+      ],
+    );
   }
 }

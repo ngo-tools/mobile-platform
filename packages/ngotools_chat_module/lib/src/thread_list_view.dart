@@ -5,6 +5,7 @@ import 'package:ngotools_chat/ngotools_chat.dart';
 import 'package:ngotools_design_system/ngotools_design_system.dart';
 
 import 'chat_gateway.dart';
+import 'chat_image_picker.dart';
 import 'chat_labels.dart';
 import 'room_view.dart';
 import 'timeline_tiles.dart';
@@ -17,6 +18,7 @@ final class ChatThreadListPage extends StatefulWidget {
     required this.labels,
     required this.roomId,
     required this.isGroup,
+    this.imagePicker = const PlatformChatImagePicker(),
     this.now,
     super.key,
   });
@@ -32,6 +34,9 @@ final class ChatThreadListPage extends StatefulWidget {
 
   /// Whether sender names are shown in threads.
   final bool isGroup;
+
+  /// Picks images to send in threads.
+  final ChatImagePicker imagePicker;
 
   /// Current time, injectable for tests.
   final DateTime Function()? now;
@@ -142,6 +147,7 @@ final class _ChatThreadListPageState extends State<ChatThreadListPage> {
             title: labels.thread,
             isGroup: widget.isGroup,
             threadRootId: root.eventId,
+            imagePicker: widget.imagePicker,
             now: widget.now,
           ),
         ),

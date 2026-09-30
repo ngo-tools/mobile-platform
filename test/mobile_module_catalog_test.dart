@@ -75,7 +75,7 @@ void main() {
       },
       'permissions': {
         'apiScopes': ['chat:login', 'chat:read', 'profile:read'],
-        'device': <Object?>[],
+        'device': ['camera', 'photos'],
       },
     });
 

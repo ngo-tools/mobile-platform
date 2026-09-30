@@ -82,6 +82,13 @@ final class ChatLabels {
     required this.encryptedMessage,
     required this.replyLoading,
     required this.fullDate,
+    required this.attachImage,
+    required this.camera,
+    required this.gallery,
+    required this.captionHint,
+    required this.imageLoadFailed,
+    required this.close,
+    required this.uploading,
   });
 
   /// Screen title.
@@ -312,6 +319,27 @@ final class ChatLabels {
   /// Weekday, day and month of a date divider.
   final String Function(String weekday, int day, String month) fullDate;
 
+  /// Opens the image choice.
+  final String attachImage;
+
+  /// Takes a photo.
+  final String camera;
+
+  /// Picks from the gallery.
+  final String gallery;
+
+  /// Hint of the caption field.
+  final String captionHint;
+
+  /// An image could not be loaded.
+  final String imageLoadFailed;
+
+  /// Close action.
+  final String close;
+
+  /// Upload progress.
+  final String Function(int percent) uploading;
+
   /// Text of a message preview.
   String preview(MessagePreview preview) => switch (preview) {
     TextPreview(:final body) => body,
@@ -508,6 +536,13 @@ final class ChatLabels {
         'Diese Nachricht kann auf diesem Gerät noch nicht entschlüsselt werden.',
     replyLoading: 'Nachricht wird geladen …',
     fullDate: (weekday, day, month) => '$weekday, $day. $month',
+    attachImage: 'Bild senden',
+    camera: 'Kamera',
+    gallery: 'Galerie',
+    captionHint: 'Bildunterschrift (optional)',
+    imageLoadFailed: 'Bild konnte nicht geladen werden.',
+    close: 'Schließen',
+    uploading: (percent) => 'Wird hochgeladen … $percent %',
   );
 
   /// English texts.
@@ -625,5 +660,12 @@ final class ChatLabels {
     encryptedMessage: 'This message cannot be decrypted on this device yet.',
     replyLoading: 'Loading message …',
     fullDate: (weekday, day, month) => '$weekday, $day $month',
+    attachImage: 'Send image',
+    camera: 'Camera',
+    gallery: 'Gallery',
+    captionHint: 'Caption (optional)',
+    imageLoadFailed: 'The image could not be loaded.',
+    close: 'Close',
+    uploading: (percent) => 'Uploading … $percent%',
   );
 }

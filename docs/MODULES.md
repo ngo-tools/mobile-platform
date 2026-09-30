@@ -13,7 +13,7 @@ This catalog describes client integration requirements. Server capabilities and 
 - API scopes: `chat:login`, `chat:read`
 - Features: `chat`
 - Permissions: none
-- Device permissions: none
+- Device permissions: `camera`, `photos`
 - Deep links: `/chat`, `/chat/rooms/{id}`
 
 The organization's encrypted chat with direct messages, groups, and threads.
