@@ -96,9 +96,9 @@ cd "$EXAMPLE"
 echo "Users: $ALICE / $BOB — log: $LOG"
 if [[ $PLATFORM == android ]]; then
     # Profile build reuses the release Rust artifacts (no debug Rust build).
-    runner=(flutter drive --driver=test_driver/e2e_driver.dart --target=integration_test/chat_flow_e2e.dart --profile)
+    runner=(flutter drive --driver=test_driver/e2e_driver.dart --target="integration_test/${E2E_TARGET:-chat_flow_e2e}.dart" --profile)
 else
-    runner=(flutter test integration_test/chat_flow_e2e.dart)
+    runner=(flutter test "integration_test/${E2E_TARGET:-chat_flow_e2e}.dart")
 fi
 
 "${runner[@]}" -d "$DEVICE" \
