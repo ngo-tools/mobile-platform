@@ -1,22 +1,15 @@
+/// Matrix chat for NGO.Tools apps on matrix-rust-sdk.
+///
+/// Start with [ChatSession.initialize] and [ChatSession.open]. The native
+/// bindings stay internal; this library is the whole public API.
 library;
 
-// Transitional: the generated bindings are exported until the handwritten
-// public API replaces them (M2, work package 6).
+export 'src/chat_exception.dart';
 export 'src/chat_lifecycle.dart';
-export 'src/diff_list.dart';
+export 'src/chat_models.dart';
+export 'src/chat_session.dart';
 export 'src/image_attachment.dart';
 export 'src/platform.dart';
-export 'src/room_list_controller.dart';
-export 'src/rust/api/client.dart';
-export 'src/rust/api/encryption.dart';
-export 'src/rust/api/error.dart';
-export 'src/rust/api/lifecycle.dart';
-export 'src/rust/api/logging.dart';
-export 'src/rust/api/notifications.dart';
-export 'src/rust/api/room.dart';
-export 'src/rust/api/rooms.dart';
-export 'src/rust/api/threads.dart';
-export 'src/rust/api/timeline.dart';
-export 'src/rust/frb_generated.dart' show RustLib;
-export 'src/thread_list_controller.dart';
-export 'src/timeline_controller.dart';
+export 'src/room_list_controller.dart' show RoomListController;
+export 'src/thread_list_controller.dart' show ThreadListController;
+export 'src/timeline_controller.dart' show TimelineController;

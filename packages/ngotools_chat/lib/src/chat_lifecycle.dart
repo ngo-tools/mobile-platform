@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
-import 'rust/api/client.dart';
-import 'rust/api/error.dart';
+import 'chat_exception.dart';
+import 'chat_session.dart';
 
 /// Pauses syncing while the app is in the background and resumes it in the
 /// foreground. On iOS this frees the store for the notification extension.
 ///
 /// `inactive` (e.g. control center, incoming call) keeps the sync running.
 class ChatLifecycleObserver with WidgetsBindingObserver {
-  ChatLifecycleObserver(ChatClient client)
-    : this.fromCallbacks(pause: client.pause, resume: client.resume);
+  ChatLifecycleObserver(ChatSession session)
+    : this.fromCallbacks(pause: session.pause, resume: session.resume);
 
   @visibleForTesting
   ChatLifecycleObserver.fromCallbacks({
@@ -59,7 +59,7 @@ class ChatLifecycleObserver with WidgetsBindingObserver {
     _pending = _pending.then((_) async {
       try {
         await transition();
-      } on ChatError catch (error) {
+      } on ChatException catch (error) {
         debugPrint('Chat lifecycle transition failed: $error');
       }
     });

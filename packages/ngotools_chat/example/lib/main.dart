@@ -24,10 +24,9 @@ final metrics = Metrics();
 Future<void> main() async {
   metrics.mark('main');
   WidgetsFlutterBinding.ensureInitialized();
-  await RustLib.init();
-  await initLogging(
+  await ChatSession.initialize(
     logFile: '${(await getApplicationSupportDirectory()).path}/chat-rust.log',
-    level: kDebugMode ? LogLevel.debug : LogLevel.info,
+    level: kDebugMode ? ChatLogLevel.debug : ChatLogLevel.info,
   );
   metrics.mark('rust_init');
   runApp(const ChatExampleApp());
@@ -73,8 +72,8 @@ class Bootstrap extends StatefulWidget {
 }
 
 class _BootstrapState extends State<Bootstrap> {
-  ChatClient? _client;
-  SessionInfo? _session;
+  ChatSession? _session;
+  ChatAccount? _account;
   String? _error;
   bool _busy = true;
 
@@ -84,7 +83,7 @@ class _BootstrapState extends State<Bootstrap> {
     unawaited(_start());
   }
 
-  Future<List<int>> _storeKey() async {
+  Future<Uint8List> _storeKey() async {
     const storage = FlutterSecureStorage();
     const keyName = 'ngotools.matrix.store_key';
     final existing = await storage.read(key: keyName);
@@ -94,7 +93,9 @@ class _BootstrapState extends State<Bootstrap> {
     }
 
     final random = Random.secure();
-    final key = List<int>.generate(32, (_) => random.nextInt(256));
+    final key = Uint8List.fromList(
+      List<int>.generate(32, (_) => random.nextInt(256)),
+    );
     await storage.write(key: keyName, value: base64Encode(key));
 
     return key;
@@ -110,13 +111,13 @@ class _BootstrapState extends State<Bootstrap> {
       final cache = group == null
           ? (await getApplicationCacheDirectory()).path
           : '$group/matrix-cache';
-      final client = await ChatClient.create(
-        config: ChatConfig(
+      final session = await ChatSession.open(
+        ChatSessionConfig(
           homeserverUrl: homeserverUrl,
-          dataDir: '$support/matrix',
-          cacheDir: group == null ? '$cache/matrix' : cache,
+          dataDirectory: '$support/matrix',
+          cacheDirectory: group == null ? '$cache/matrix' : cache,
           crossProcessHolder: group == null ? null : 'main',
-          storeKey: Uint8List.fromList(await _storeKey()),
+          storeKey: await _storeKey(),
           clientName: 'NGO.Tools Chat Example',
           clientUri: 'https://ngo.tools/',
           redirectUri: '$callbackScheme:/oauth-callback',
@@ -126,16 +127,16 @@ class _BootstrapState extends State<Bootstrap> {
         ),
       );
       metrics.mark('client_created');
-      final session = await client.restoreSession();
+      final account = await session.restore();
       metrics.mark('session_restored');
 
-      if (session != null) {
-        await client.startSync();
+      if (account != null) {
+        await session.startSync();
       }
 
       setState(() {
-        _client = client;
         _session = session;
+        _account = account;
         _busy = false;
       });
     } catch (error) {
@@ -147,23 +148,24 @@ class _BootstrapState extends State<Bootstrap> {
   }
 
   Future<void> _login() async {
-    final client = _client!;
+    final session = _session!;
     setState(() => _busy = true);
 
     try {
-      final url = await client.loginUrl();
+      final url = await session.startLogin();
       final callback = await FlutterWebAuth2.authenticate(
-        url: url,
+        url: url.toString(),
         callbackUrlScheme: callbackScheme,
         options: const FlutterWebAuth2Options(preferEphemeral: true),
       );
-      final session = await client.finishLogin(callbackUrl: callback);
-      await client.startSync();
+      final account = await session.finishLogin(Uri.parse(callback));
+      await session.startSync();
       setState(() {
-        _session = session;
+        _account = account;
         _busy = false;
       });
     } on PlatformException catch (error) {
+      await session.abortLogin();
       setState(() {
         _error = 'Anmeldung abgebrochen: ${error.message}';
         _busy = false;
@@ -177,8 +179,8 @@ class _BootstrapState extends State<Bootstrap> {
   }
 
   Future<void> _logout() async {
-    await _client!.logout();
-    setState(() => _session = null);
+    await _session!.logout();
+    setState(() => _account = null);
   }
 
   @override
@@ -187,7 +189,7 @@ class _BootstrapState extends State<Bootstrap> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (_session == null) {
+    if (_account == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Chat-Beispiel')),
         body: Center(
@@ -204,7 +206,7 @@ class _BootstrapState extends State<Bootstrap> {
                 ),
               FilledButton(
                 key: const Key('login'),
-                onPressed: _client == null ? null : _login,
+                onPressed: _session == null ? null : _login,
                 child: const Text('Mit NGO.Tools Chat anmelden'),
               ),
             ],
@@ -214,8 +216,8 @@ class _BootstrapState extends State<Bootstrap> {
     }
 
     return RoomListScreen(
-      client: _client!,
       session: _session!,
+      account: _account!,
       onLogout: _logout,
     );
   }
@@ -224,13 +226,13 @@ class _BootstrapState extends State<Bootstrap> {
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({
     super.key,
-    required this.client,
     required this.session,
+    required this.account,
     required this.onLogout,
   });
 
-  final ChatClient client;
-  final SessionInfo session;
+  final ChatSession session;
+  final ChatAccount account;
   final VoidCallback onLogout;
 
   @override
@@ -239,16 +241,14 @@ class RoomListScreen extends StatefulWidget {
 
 class _RoomListScreenState extends State<RoomListScreen> {
   late final RoomListController _rooms;
-  late final Stream<SyncStatus> _syncState;
   late final ChatLifecycleObserver _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _rooms = RoomListController(widget.client);
+    _rooms = widget.session.rooms();
     _rooms.rooms.addListener(_markFirstRoomList);
-    _syncState = widget.client.watchSyncStatus().asBroadcastStream();
-    _lifecycle = ChatLifecycleObserver(widget.client)..attach();
+    _lifecycle = ChatLifecycleObserver(widget.session)..attach();
   }
 
   void _markFirstRoomList() {
@@ -272,7 +272,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
       return;
     }
 
-    final roomId = await widget.client.createDm(userId: userId);
+    final roomId = await widget.session.createDirectChat(userId);
 
     if (!mounted) {
       return;
@@ -285,7 +285,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) =>
-            RoomScreen(client: widget.client, roomId: roomId, title: name),
+            RoomScreen(session: widget.session, roomId: roomId, title: name),
       ),
     );
   }
@@ -294,19 +294,18 @@ class _RoomListScreenState extends State<RoomListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.session.userId),
+        title: Text(widget.account.userId),
         actions: [
-          StreamBuilder<SyncStatus>(
-            stream: _syncState,
-            builder: (context, snapshot) =>
-                Center(child: Text(snapshot.data?.name ?? '…')),
+          ValueListenableBuilder<ChatSyncStatus>(
+            valueListenable: widget.session.syncStatus,
+            builder: (context, status, _) => Center(child: Text(status.name)),
           ),
           IconButton(
             key: const Key('recovery'),
             icon: const Icon(Icons.key),
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
-                builder: (_) => RecoveryScreen(client: widget.client),
+                builder: (_) => RecoveryScreen(session: widget.session),
               ),
             ),
           ),
@@ -346,7 +345,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
                   ),
                   onTap: () async {
                     if (room.membership == Membership.invited) {
-                      await widget.client.joinRoom(roomId: room.id);
+                      await widget.session.joinRoom(room.id);
                     }
                     await _openRoom(room.id, room.name);
                   },
@@ -360,28 +359,28 @@ class _RoomListScreenState extends State<RoomListScreen> {
 }
 
 String _preview(MessagePreview preview) => switch (preview) {
-  MessagePreview_Text(:final body) => body,
-  MessagePreview_Image() => 'Bild',
-  MessagePreview_Video() => 'Video',
-  MessagePreview_Audio() => 'Audio',
-  MessagePreview_File() => 'Datei',
-  MessagePreview_Location() => 'Standort',
-  MessagePreview_Poll() => 'Umfrage',
-  MessagePreview_Sticker() => 'Sticker',
-  MessagePreview_Redacted() => 'Nachricht gelöscht',
-  MessagePreview_UnableToDecrypt() => 'Verschlüsselte Nachricht',
-  MessagePreview_Other() => '',
+  TextPreview(:final body) => body,
+  ImagePreview() => 'Bild',
+  VideoPreview() => 'Video',
+  AudioPreview() => 'Audio',
+  FilePreview() => 'Datei',
+  LocationPreview() => 'Standort',
+  PollPreview() => 'Umfrage',
+  StickerPreview() => 'Sticker',
+  RedactedPreview() => 'Nachricht gelöscht',
+  UnableToDecryptPreview() => 'Verschlüsselte Nachricht',
+  OtherPreview() => '',
 };
 
 class RoomScreen extends StatefulWidget {
   const RoomScreen({
     super.key,
-    required this.client,
+    required this.session,
     required this.roomId,
     required this.title,
   });
 
-  final ChatClient client;
+  final ChatSession session;
   final String roomId;
   final String title;
 
@@ -402,10 +401,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _open() async {
-    final controller = await TimelineController.open(
-      widget.client,
-      widget.roomId,
-    );
+    final controller = await widget.session.openTimeline(widget.roomId);
     controller.items.addListener(() => _onItems(controller.items.value));
 
     if (!mounted) {
@@ -420,11 +416,13 @@ class _RoomScreenState extends State<RoomScreen> {
     metrics.record('timeline_update_after_open', _opened.elapsedMilliseconds);
 
     for (final item in items) {
-      if (item.kind case TimelineItemKind_Event(:final event)
-          when event.isOwn &&
-              event.sendState is SendState_Sent &&
-              event.content is EventContent_Text) {
-        final body = (event.content as EventContent_Text).body;
+      if (item case EventTimelineItem(
+        event: EventItem(
+          isOwn: true,
+          sendState: Sent(),
+          content: TextContent(:final body),
+        ),
+      )) {
         final stopwatch = _pendingSends.remove(body);
 
         if (stopwatch != null) {
@@ -444,7 +442,7 @@ class _RoomScreenState extends State<RoomScreen> {
 
     _input.clear();
     _pendingSends[body] = Stopwatch()..start();
-    await controller.timeline.sendText(body: body);
+    await controller.sendText(body);
   }
 
   Future<void> _sendImage() async {
@@ -458,8 +456,8 @@ class _RoomScreenState extends State<RoomScreen> {
       return;
     }
 
-    await controller.timeline.sendImage(
-      image: await prepareImageAttachment(
+    await controller.sendImage(
+      await prepareImageAttachment(
         filePath: image.path,
         mimeType: image.mimeType ?? 'image/jpeg',
       ),
@@ -500,8 +498,9 @@ class _RoomScreenState extends State<RoomScreen> {
                           reverse: true,
                           itemCount: newestFirst.length,
                           itemBuilder: (context, index) => TimelineTile(
-                            client: widget.client,
-                            timeline: controller.timeline,
+                            key: ValueKey(newestFirst[index].id),
+                            session: widget.session,
+                            controller: controller,
                             item: newestFirst[index],
                           ),
                         ),
@@ -542,21 +541,21 @@ class _RoomScreenState extends State<RoomScreen> {
 class TimelineTile extends StatelessWidget {
   const TimelineTile({
     super.key,
-    required this.client,
-    required this.timeline,
+    required this.session,
+    required this.controller,
     required this.item,
   });
 
-  final ChatClient client;
-  final ChatTimeline timeline;
+  final ChatSession session;
+  final TimelineController controller;
   final TimelineItem item;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return switch (item.kind) {
-      TimelineItemKind_Event(:final event) => Align(
+    return switch (item) {
+      EventTimelineItem(:final event) => Align(
         alignment: event.isOwn ? Alignment.centerRight : Alignment.centerLeft,
         child: Card(
           child: Padding(
@@ -565,12 +564,12 @@ class TimelineTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  event.sender.name ?? event.sender.id,
+                  event.sender.displayName ?? event.sender.id,
                   style: textTheme.labelSmall,
                 ),
                 if (event.replyTo case final reply?)
                   Text(
-                    '↪ ${reply.sender?.name ?? reply.sender?.id ?? '…'}: '
+                    '↪ ${reply.sender?.displayName ?? reply.sender?.id ?? '…'}: '
                     '${reply.preview == null ? '…' : _preview(reply.preview!)}',
                     style: textTheme.bodySmall,
                   ),
@@ -585,10 +584,8 @@ class TimelineTile extends StatelessWidget {
                           backgroundColor: reaction.byMe
                               ? Theme.of(context).colorScheme.primaryContainer
                               : null,
-                          onPressed: () => timeline.toggleReaction(
-                            key: event.key,
-                            reaction: reaction.key,
-                          ),
+                          onPressed: () =>
+                              controller.toggleReaction(event, reaction.key),
                         ),
                     ],
                   ),
@@ -600,47 +597,48 @@ class TimelineTile extends StatelessWidget {
                     style: textTheme.labelSmall,
                   ),
                 switch (event.sendState) {
-                  SendState_Sending() => const Text(
-                    'sendet …',
-                    style: TextStyle(fontSize: 10),
+                  Sending(:final progress) => Text(
+                    progress == null
+                        ? 'sendet …'
+                        : 'lädt hoch … ${progress.currentBytes * 100 ~/ max(progress.totalBytes, 1)} %',
+                    style: const TextStyle(fontSize: 10),
                   ),
-                  SendState_Failed(:final recoverable) => TextButton(
+                  SendFailed(:final recoverable) => TextButton(
                     onPressed: recoverable
-                        ? () => timeline.retry(key: event.key)
-                        : () => timeline.cancel(key: event.key),
+                        ? () => controller.retry(event)
+                        : () => controller.cancel(event),
                     child: Text(
                       recoverable
                           ? 'fehlgeschlagen – erneut senden'
                           : 'fehlgeschlagen – verwerfen',
                     ),
                   ),
-                  SendState_Sent() => const SizedBox.shrink(),
+                  Sent() => const SizedBox.shrink(),
                 },
               ],
             ),
           ),
         ),
       ),
-      TimelineItemKind_DateDivider(:final timestampMs) => Center(
-        child: Text(
-          DateTime.fromMillisecondsSinceEpoch(
-            timestampMs,
-          ).toLocal().toString().substring(0, 10),
-        ),
+      DateDividerItem(:final date) => Center(
+        child: Text(date.toLocal().toString().substring(0, 10)),
       ),
-      TimelineItemKind_ReadMarker() => const Divider(color: Colors.red),
-      TimelineItemKind_TimelineStart() => const Center(
-        child: Text('Anfang des Raums'),
-      ),
+      ReadMarkerItem() => const Divider(color: Colors.red),
+      TimelineStartItem() => const Center(child: Text('Anfang des Raums')),
     };
   }
 
   Widget _content(EventContent content) {
     return switch (content) {
-      EventContent_Text(:final body) => Text(body),
-      EventContent_Image(:final media, :final caption, :final filename) =>
+      TextContent(:final body) => Text(body),
+      ImageContent(
+        :final media,
+        :final thumbnail,
+        :final caption,
+        :final filename,
+      ) =>
         FutureBuilder<Uint8List>(
-          future: client.fetchMedia(media: media),
+          future: session.fetchMedia(thumbnail ?? media),
           builder: (context, snapshot) => snapshot.hasData
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,31 +653,29 @@ class TimelineTile extends StatelessWidget {
                       : 'Lade $filename …',
                 ),
         ),
-      EventContent_Video(:final filename) => Text('Video: $filename'),
-      EventContent_Audio(:final filename) => Text('Audio: $filename'),
-      EventContent_File(:final filename) => Text('Datei: $filename'),
-      EventContent_UnableToDecrypt() => const Text(
+      VideoContent(:final filename) => Text('Video: $filename'),
+      AudioContent(:final filename) => Text('Audio: $filename'),
+      FileContent(:final filename) => Text('Datei: $filename'),
+      UnableToDecryptContent() => const Text(
         '🔒 Nachricht kann nicht entschlüsselt werden',
       ),
-      EventContent_Redacted() => const Text('Nachricht gelöscht'),
-      EventContent_Membership(:final userId, :final change) => Text(
+      RedactedContent() => const Text('Nachricht gelöscht'),
+      MembershipContent(:final userId, :final change) => Text(
         '$userId: ${change.name}',
       ),
-      EventContent_ProfileChange(:final userId) => Text(
+      ProfileChangeContent(:final userId) => Text(
         '$userId hat das Profil geändert',
       ),
-      EventContent_RoomState(:final eventType) => Text(
-        'Raumänderung ($eventType)',
-      ),
-      EventContent_Unsupported() => const Text('Nicht unterstützter Inhalt'),
+      RoomStateContent(:final eventType) => Text('Raumänderung ($eventType)'),
+      UnsupportedContent() => const Text('Nicht unterstützter Inhalt'),
     };
   }
 }
 
 class RecoveryScreen extends StatefulWidget {
-  const RecoveryScreen({super.key, required this.client});
+  const RecoveryScreen({super.key, required this.session});
 
-  final ChatClient client;
+  final ChatSession session;
 
   @override
   State<RecoveryScreen> createState() => _RecoveryScreenState();
@@ -698,19 +694,19 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
   }
 
   Future<void> _refresh() async {
-    final status = await widget.client.recoveryStatus();
+    final status = await widget.session.recoveryStatus();
     setState(() => _status = status);
   }
 
   Future<void> _enable() async {
-    final key = await widget.client.enableRecovery();
+    final key = await widget.session.enableRecovery();
     setState(() => _recoveryKey = key);
     await _refresh();
   }
 
   Future<void> _recover() async {
     try {
-      await widget.client.recover(recoveryKey: _input.text.trim());
+      await widget.session.recover(_input.text.trim());
       setState(() => _message = 'Wiederhergestellt');
     } catch (error) {
       setState(() => _message = '$error');

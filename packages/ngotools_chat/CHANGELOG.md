@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Breaking:** handwritten public API. `ChatSession` replaces the generated
+  `ChatClient`; models, controllers and `ChatException` are plain Dart types
+  and the generated bindings are no longer exported. The platform gate
+  keeps it that way.
 - Add the session state stream (`active`, `expired`, `locked`,
   `signedOut`), `pause`/`resume` with `ChatLifecycleObserver`, a typed sync
   status and `abortLogin`. Expired sessions stop the sync instead of

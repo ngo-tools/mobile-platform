@@ -64,6 +64,24 @@ void main() {
 
     expect(errors, [
       'example/golden_app/lib/chat.dart may not import ngotools_chat internals.',
+      'packages/ngotools_chat/lib/ngotools_chat.dart may not export the '
+          'generated chat bindings.',
+    ]);
+  });
+
+  test('keeps the chat example on the public API', () {
+    final errors = ArchitectureValidator.validateSourceBoundaries({
+      'packages/ngotools_chat/example/lib/main.dart':
+          "import 'package:ngotools_chat/src/rust/api/client.dart';",
+      'packages/ngotools_chat/lib/src/chat_session.dart':
+          "import 'rust/api/client.dart';",
+      'packages/ngotools_chat/lib/ngotools_chat.dart':
+          "export 'src/chat_session.dart';",
+    });
+
+    expect(errors, [
+      'packages/ngotools_chat/example/lib/main.dart may not import '
+          'ngotools_chat internals.',
     ]);
   });
 }

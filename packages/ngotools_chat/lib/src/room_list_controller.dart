@@ -2,25 +2,26 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'chat_models.dart';
 import 'diff_list.dart';
-import 'rust/api/client.dart';
-import 'rust/api/rooms.dart';
+import 'mapping.dart';
+import 'rust/api/client.dart' as rust;
+import 'rust/api/rooms.dart' as rust;
 
-/// Keeps the room list of a [ChatClient] up to date from its diff stream.
-///
-/// The sync must be running before the controller is created.
+/// Keeps the room list up to date from its diff stream. Get it via
+/// `ChatSession.rooms()` after `startSync`; one room list per session.
 class RoomListController {
-  RoomListController(ChatClient client)
+  RoomListController._(rust.ChatClient client)
     : this.fromSource(
         diffs: client.watchRoomList(),
-        setFilter: (filter) => client.setRoomFilter(filter: filter),
+        setFilter: (filter) => client.setRoomFilter(filter: roomFilter(filter)),
         loadMore: client.loadMoreRooms,
         close: client.stopRoomList,
       );
 
   @visibleForTesting
   RoomListController.fromSource({
-    required Stream<List<RoomListDiff>> diffs,
+    required Stream<List<rust.RoomListDiff>> diffs,
     required Future<void> Function(RoomFilter filter) setFilter,
     required Future<void> Function() loadMore,
     required Future<void> Function() close,
@@ -38,18 +39,20 @@ class RoomListController {
   final Future<void> Function() _close;
   final _rooms = ValueNotifier<List<RoomSummary>>(const []);
   final _filter = ValueNotifier<RoomFilter>(RoomFilter.all);
-  late final StreamSubscription<List<RoomListDiff>> _subscription;
+  late final StreamSubscription<List<rust.RoomListDiff>> _subscription;
 
+  /// Rooms, most recent activity first.
   ValueListenable<List<RoomSummary>> get rooms => _rooms;
 
   ValueListenable<RoomFilter> get filter => _filter;
 
   Future<void> setFilter(RoomFilter filter) async {
     _filter.value = filter;
-    await _setFilter(filter);
+    await guard(() => _setFilter(filter));
   }
 
-  Future<void> loadMore() => _loadMore();
+  /// Extends the list by one page.
+  Future<void> loadMore() => guard(_loadMore);
 
   /// Stops the Rust stream first: cancelling an idle generated stream only
   /// completes once it delivers another event or closes.
@@ -61,17 +64,33 @@ class RoomListController {
   }
 }
 
-/// Translates the generated room list diff into a generic [ListDiff].
-ListDiff<RoomSummary> roomListDiff(RoomListDiff diff) => switch (diff) {
-  RoomListDiff_Append(:final values) => ListAppend(values),
-  RoomListDiff_Clear() => const ListClear(),
-  RoomListDiff_PushFront(:final value) => ListPushFront(value),
-  RoomListDiff_PushBack(:final value) => ListPushBack(value),
-  RoomListDiff_PopFront() => const ListPopFront(),
-  RoomListDiff_PopBack() => const ListPopBack(),
-  RoomListDiff_Insert(:final index, :final value) => ListInsert(index, value),
-  RoomListDiff_Set(:final index, :final value) => ListSet(index, value),
-  RoomListDiff_Remove(:final index) => ListRemove(index),
-  RoomListDiff_Truncate(:final length) => ListTruncate(length),
-  RoomListDiff_Reset(:final values) => ListReset(values),
+/// Opens the room list of a client (used by `ChatSession`).
+RoomListController roomListController(rust.ChatClient client) =>
+    RoomListController._(client);
+
+/// Translates a generated room list diff into a [ListDiff] of summaries.
+ListDiff<RoomSummary> roomListDiff(rust.RoomListDiff diff) => switch (diff) {
+  rust.RoomListDiff_Append(:final values) => ListAppend(
+    values.map(roomSummary).toList(),
+  ),
+  rust.RoomListDiff_Clear() => const ListClear(),
+  rust.RoomListDiff_PushFront(:final value) => ListPushFront(
+    roomSummary(value),
+  ),
+  rust.RoomListDiff_PushBack(:final value) => ListPushBack(roomSummary(value)),
+  rust.RoomListDiff_PopFront() => const ListPopFront(),
+  rust.RoomListDiff_PopBack() => const ListPopBack(),
+  rust.RoomListDiff_Insert(:final index, :final value) => ListInsert(
+    index,
+    roomSummary(value),
+  ),
+  rust.RoomListDiff_Set(:final index, :final value) => ListSet(
+    index,
+    roomSummary(value),
+  ),
+  rust.RoomListDiff_Remove(:final index) => ListRemove(index),
+  rust.RoomListDiff_Truncate(:final length) => ListTruncate(length),
+  rust.RoomListDiff_Reset(:final values) => ListReset(
+    values.map(roomSummary).toList(),
+  ),
 };

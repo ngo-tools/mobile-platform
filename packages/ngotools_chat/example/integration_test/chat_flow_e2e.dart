@@ -63,13 +63,15 @@ Future<void> showForScreenshot(
 
 /// A client together with broadcast views of its streams.
 class TestUser {
-  TestUser(this.name, this.client, this.roomList);
+  TestUser(this.name, this.session, this.roomList);
 
   final String name;
-  final ChatClient client;
+  final ChatSession session;
   final RoomListController roomList;
-  final syncStatus = ValueNotifier<SyncStatus?>(null);
-  final sessionState = ValueNotifier<SessionState?>(null);
+
+  ValueListenable<ChatSyncStatus> get syncStatus => session.syncStatus;
+
+  ValueListenable<ChatSessionState> get sessionState => session.state;
 
   List<RoomSummary> get lastRooms => roomList.rooms.value;
 
@@ -99,13 +101,13 @@ class TestUser {
 
   TimelineController? timelineController;
 
-  ChatTimeline get timeline => timelineController!.timeline;
+  TimelineController get timeline => timelineController!;
 
   List<TimelineItem> get lastTimeline =>
       timelineController?.items.value ?? const [];
 
   Future<void> openTimeline(String roomId) async {
-    timelineController = await TimelineController.open(client, roomId);
+    timelineController = await session.openTimeline(roomId);
   }
 
   /// Completes once the timeline (diff-driven) satisfies [predicate].
@@ -153,12 +155,12 @@ String describeTimeline(List<TimelineItem> items) => items
     .map((item) {
       final event = eventOf(item);
       if (event == null) {
-        return item.kind.runtimeType.toString();
+        return item.runtimeType.toString();
       }
       final content = event.content;
-      final text = content is EventContent_Text ? content.body : '';
+      final text = content is TextContent ? content.body : '';
 
-      final key = event.key is EventKey_Local ? 'L' : 'R';
+      final key = event.key is LocalEventKey ? 'L' : 'R';
 
       return '$key:${event.eventId ?? 'local'}:${content.runtimeType}:$text'
           ':thread=${event.thread?.replyCount}:${event.sendState.runtimeType}';
@@ -190,8 +192,8 @@ Future<T> waitForValue<T>(
   }
 }
 
-EventItem? eventOf(TimelineItem item) => switch (item.kind) {
-  TimelineItemKind_Event(:final event) => event,
+EventItem? eventOf(TimelineItem item) => switch (item) {
+  EventTimelineItem(:final event) => event,
   _ => null,
 };
 
@@ -201,7 +203,7 @@ EventItem? findText(List<TimelineItem> items, String body) => items
     .nonNulls
     .where(
       (event) => switch (event.content) {
-        EventContent_Text(body: final text) => text == body,
+        TextContent(body: final text) => text == body,
         _ => false,
       },
     )
@@ -210,7 +212,7 @@ EventItem? findText(List<TimelineItem> items, String body) => items
 bool hasText(List<TimelineItem> items, String body, {bool confirmed = false}) {
   final event = findText(items, body);
 
-  return event != null && (!confirmed || event.sendState is SendState_Sent);
+  return event != null && (!confirmed || event.sendState is Sent);
 }
 
 Future<Uint8List> storeKey(String name) async {
@@ -248,18 +250,18 @@ Future<(String, String)> storeDirs(String dir, {bool shared = false}) async {
   return ('${support.path}/$dir', '${cache.path}/$dir');
 }
 
-Future<ChatClient> createClient(
+Future<ChatSession> createSession(
   String dir,
   Uint8List key, {
   bool shared = false,
 }) async {
   final (dataDir, cacheDir) = await storeDirs(dir, shared: shared);
 
-  return ChatClient.create(
-    config: ChatConfig(
+  return ChatSession.open(
+    ChatSessionConfig(
       homeserverUrl: homeserver,
-      dataDir: dataDir,
-      cacheDir: cacheDir,
+      dataDirectory: dataDir,
+      cacheDirectory: cacheDir,
       crossProcessHolder: shared && Platform.isIOS ? 'main' : null,
       storeKey: key,
       clientName: 'NGO.Tools Chat Example',
@@ -279,35 +281,33 @@ Future<TestUser> loginUser(
   Uint8List key, {
   bool shared = false,
 }) async {
-  final client = await createClient(dir, key, shared: shared);
+  final session = await createSession(dir, key, shared: shared);
   final stopwatch = Stopwatch()..start();
   final browser = MasBrowser(callbackScheme: callbackScheme);
   final callback = await browser.authorize(
-    await client.loginUrl(),
+    (await session.startLogin()).toString(),
     username,
     password,
   );
   browser.close();
-  await client.finishLogin(callbackUrl: callback);
+  await session.finishLogin(Uri.parse(callback));
   metric('login_oauth_ms_$name', stopwatch.elapsedMilliseconds);
 
   stopwatch.reset();
-  await client.startSync();
-  final roomList = RoomListController(client);
+  await session.startSync();
+  final roomList = session.rooms();
   roomList.rooms.addListener(
     () => debugPrint(
       'E2E_ROOMS $name=${roomList.rooms.value.map((room) => '${room.id}${room.membership == Membership.invited ? '(invite)' : ''}').join(',')}',
     ),
   );
-  final user = TestUser(name, client, roomList);
-  client.watchSyncStatus().listen((status) {
-    user.syncStatus.value = status;
-    debugPrint('E2E_SYNC $name=${status.name}');
-  });
-  client.watchSessionState().listen((state) {
-    user.sessionState.value = state;
-    debugPrint('E2E_SESSION $name=${state.name}');
-  });
+  final user = TestUser(name, session, roomList);
+  session.syncStatus.addListener(
+    () => debugPrint('E2E_SYNC $name=${session.syncStatus.value.name}'),
+  );
+  session.state.addListener(
+    () => debugPrint('E2E_SESSION $name=${session.state.value.name}'),
+  );
   final firstBatch = Completer<void>();
   void onFirstBatch() {
     if (!firstBatch.isCompleted) {
@@ -426,12 +426,11 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   setUpAll(() async {
-    await RustLib.init();
     const hostLogFile = String.fromEnvironment('RUST_LOG_FILE');
     final logFile = hostLogFile.isNotEmpty
         ? hostLogFile
         : '${(await getApplicationSupportDirectory()).path}/chat-rust.log';
-    await initLogging(logFile: logFile, level: LogLevel.debug);
+    await ChatSession.initialize(logFile: logFile, level: ChatLogLevel.debug);
     debugPrint('E2E_RUST_LOG=$logFile');
   });
 
@@ -463,26 +462,28 @@ void main() {
 
     // Key backup + recovery key (secret storage) for Alice's first device.
     var stopwatch = Stopwatch()..start();
-    expect(await alice.client.recoveryStatus(), RecoveryStatus.disabled);
+    expect(await alice.session.recoveryStatus(), RecoveryStatus.disabled);
     expect(
-      await alice.client.verificationState(),
-      'verified',
+      await alice.session.verificationState(),
+      VerificationState.verified,
       reason: 'cross-signing bootstrapped',
     );
-    final recoveryKey = await alice.client.enableRecovery();
+    final recoveryKey = await alice.session.enableRecovery();
     metric('enable_recovery_ms', stopwatch.elapsedMilliseconds);
-    expect(await alice.client.recoveryStatus(), RecoveryStatus.enabled);
+    expect(await alice.session.recoveryStatus(), RecoveryStatus.enabled);
 
     // Encrypted DM Alice -> Bob.
     stopwatch = Stopwatch()..start();
-    final roomId = await alice.client.createDm(userId: '@$bobName:$serverName');
+    final roomId = await alice.session.createDirectChat(
+      '@$bobName:$serverName',
+    );
     final bobRooms = await bob.waitForRooms(
       (rooms) => rooms.any((room) => room.id == roomId),
     );
 
     if (bobRooms.firstWhere((room) => room.id == roomId).membership ==
         Membership.invited) {
-      await bob.client.joinRoom(roomId: roomId);
+      await bob.session.joinRoom(roomId);
     }
     metric('dm_created_and_joined_ms', stopwatch.elapsedMilliseconds);
 
@@ -504,7 +505,7 @@ void main() {
     for (var i = 1; i <= 5; i++) {
       final body = 'Hallo Bob $i ($run)';
       final sent = Stopwatch()..start();
-      await alice.timeline.sendText(body: body);
+      await alice.timeline.sendText(body);
       await alice.waitForTimeline(
         (entries) => hasText(entries, body, confirmed: true),
       );
@@ -521,7 +522,7 @@ void main() {
       (rooms) => rooms.any(
         (room) =>
             room.id == roomId &&
-            room.latest?.preview == MessagePreview.text(body: lastBody),
+            room.latest?.preview == MessagePreview.text(lastBody),
       ),
     );
     await bob.roomList.setFilter(RoomFilter.groups);
@@ -532,39 +533,39 @@ void main() {
     metric('room_list_filters', 'ok');
 
     final reply = 'Hallo Alice ($run)';
-    await bob.timeline.sendText(body: reply);
+    await bob.timeline.sendText(reply);
     await alice.waitForTimeline((entries) => hasText(entries, reply));
 
     // Timeline actions: reply, edit, reaction and redaction.
     final firstBody = 'Hallo Bob 1 ($run)';
     final first = findText(alice.lastTimeline, firstBody)!;
     final replyBody = 'Antwort auf 1 ($run)';
-    await bob.timeline.sendText(body: replyBody, replyTo: first.eventId);
+    await bob.timeline.sendText(replyBody, replyTo: first);
     final withReply = await alice.waitForTimeline(
       (items) => findText(items, replyBody)?.replyTo != null,
     );
     final replyEvent = findText(withReply, replyBody)!;
     expect(replyEvent.replyTo!.eventId, first.eventId);
     if (replyEvent.replyTo!.preview == null) {
-      await alice.timeline.loadReplyDetails(eventId: replyEvent.eventId!);
+      await alice.timeline.loadReplyDetails(replyEvent.eventId!);
     }
     await alice.waitForTimeline(
       (items) =>
           findText(items, replyBody)?.replyTo?.preview ==
-          MessagePreview.text(body: firstBody),
+          MessagePreview.text(firstBody),
     );
 
     final second = findText(alice.lastTimeline, 'Hallo Bob 2 ($run)')!;
     final editedBody = 'Hallo Bob 2, bearbeitet ($run)';
     expect(second.canEdit, isTrue);
-    await alice.timeline.edit(key: second.key, body: editedBody);
+    await alice.timeline.edit(second, editedBody);
     await bob.waitForTimeline(
       (items) => findText(items, editedBody)?.isEdited ?? false,
     );
 
     final thirdBody = 'Hallo Bob 3 ($run)';
     final third = findText(bob.lastTimeline, thirdBody)!;
-    await bob.timeline.toggleReaction(key: third.key, reaction: '👍');
+    await bob.timeline.toggleReaction(third, '👍');
     await alice.waitForTimeline(
       (items) =>
           findText(items, thirdBody)?.reactions.any(
@@ -583,7 +584,7 @@ void main() {
     );
 
     final fourth = findText(alice.lastTimeline, 'Hallo Bob 4 ($run)')!;
-    await alice.timeline.redact(key: fourth.key);
+    await alice.timeline.redact(fourth);
     await bob.waitForTimeline(
       (items) => items
           .map(eventOf)
@@ -591,7 +592,7 @@ void main() {
           .any(
             (event) =>
                 event.eventId == fourth.eventId &&
-                event.content is EventContent_Redacted,
+                event.content is RedactedContent,
           ),
     );
     metric('timeline_actions', 'ok');
@@ -599,16 +600,9 @@ void main() {
     // Threads: reply in a thread, summary on the root, thread list.
     final rootBody = 'Hallo Bob 5 ($run)';
     final root = findText(alice.lastTimeline, rootBody)!;
-    final bobThread = TimelineController(
-      await bob.client.threadTimeline(
-        roomId: roomId,
-        rootEventId: root.eventId!,
-      ),
-    );
+    final bobThread = await bob.session.openThread(roomId, root.eventId!);
     final threadBody = 'Im Thread ($run)';
-    await bobThread.timeline
-        .sendText(body: threadBody)
-        .timeout(const Duration(seconds: 60));
+    await bobThread.sendText(threadBody).timeout(const Duration(seconds: 60));
     // Match the remote item: the SDK may keep the local echo of the root
     // next to it for a while (event ids are not unique, matrix-rust-sdk
     // #4758); the UI keys items by `TimelineItem.id`.
@@ -616,10 +610,10 @@ void main() {
       (items) => items
           .map(eventOf)
           .nonNulls
-          .where((event) => event.key is EventKey_Remote)
+          .where((event) => event.key is RemoteEventKey)
           .any(
             (event) =>
-                event.content == EventContent.text(body: rootBody) &&
+                event.content == EventContent.text(rootBody) &&
                 event.thread?.replyCount == 1,
           ),
     );
@@ -630,19 +624,14 @@ void main() {
       reason: 'thread replies stay out of the main timeline',
     );
 
-    final aliceThread = TimelineController(
-      await alice.client.threadTimeline(
-        roomId: roomId,
-        rootEventId: root.eventId!,
-      ),
-    );
+    final aliceThread = await alice.session.openThread(roomId, root.eventId!);
     await waitForValue(
       aliceThread.items,
       (items) => hasText(items, threadBody),
     );
     final threadAnswer = 'Antwort im Thread ($run)';
-    await aliceThread.timeline
-        .sendText(body: threadAnswer)
+    await aliceThread
+        .sendText(threadAnswer)
         .timeout(const Duration(seconds: 60));
     final bobThreadItems = await waitForValue(
       bobThread.items,
@@ -650,10 +639,9 @@ void main() {
     );
     expect(findText(bobThreadItems, threadAnswer)!.threadRoot, root.eventId);
 
-    final threads = await ThreadListController.open(
-      alice.client,
-      roomId,
-    ).timeout(const Duration(seconds: 60));
+    final threads = await alice.session
+        .openThreads(roomId)
+        .timeout(const Duration(seconds: 60));
     await waitForValue(
       threads.threads,
       (list) => list.any(
@@ -684,7 +672,7 @@ void main() {
           .nonNulls
           .any(
             (event) => switch (event.sendState) {
-              SendState_Sending(:final progress) => progress != null,
+              Sending(:final progress) => progress != null,
               _ => false,
             },
           );
@@ -692,25 +680,25 @@ void main() {
 
     alice.timelineController!.items.addListener(watchUpload);
     stopwatch = Stopwatch()..start();
-    await alice.timeline.sendImage(image: attachment);
+    await alice.timeline.sendImage(attachment);
     final withImage = await bob.waitForTimeline(
       (items) => items
           .map(eventOf)
           .nonNulls
-          .any((event) => event.content is EventContent_Image),
+          .any((event) => event.content is ImageContent),
     );
     final image = withImage
         .map(eventOf)
         .nonNulls
         .map((event) => event.content)
-        .whereType<EventContent_Image>()
+        .whereType<ImageContent>()
         .last;
     expect(image.caption, 'Farbverlauf');
-    final downloaded = await bob.client.fetchMedia(media: image.media);
+    final downloaded = await bob.session.fetchMedia(image.media);
     metric('image_bytes', png.length);
     metric('image_send_to_download_ms', stopwatch.elapsedMilliseconds);
     expect(
-      image.media,
+      image.media.reference,
       contains('"file"'),
       reason: 'encrypted rooms use EncryptedFile sources',
     );
@@ -720,9 +708,7 @@ void main() {
           .map(eventOf)
           .nonNulls
           .any(
-            (event) =>
-                event.content is EventContent_Image &&
-                event.sendState is SendState_Sent,
+            (event) => event.content is ImageContent && event.sendState is Sent,
           ),
     );
     alice.timelineController!.items.removeListener(watchUpload);
@@ -731,49 +717,43 @@ void main() {
     // Encrypted media cannot be scaled by the server: the sender's preview
     // is used, the thumbnail endpoint falls back to the whole file.
     expect((image.width, image.height), (800, 600));
-    final preview = await bob.client.fetchMedia(media: image.thumbnail!);
+    final preview = await bob.session.fetchMedia(image.thumbnail!);
     expect(await imageSize(preview), (480, 360));
     expect(
-      listEquals(
-        await bob.client.fetchThumbnail(
-          media: image.media,
-          width: 100,
-          height: 100,
-        ),
-        png,
-      ),
+      listEquals(await bob.session.fetchThumbnail(image.media, 100, 100), png),
       isTrue,
     );
     metric('image_thumbnail', 'ok');
 
     // Members and typing.
-    final members = await alice.client.roomMembers(roomId: roomId);
+    final members = await alice.session.members(roomId);
     expect(
-      {for (final member in members) member.userId: member.isOwn},
+      {for (final member in members) member.user.id: member.isOwn},
       {'@$aliceName:$serverName': true, '@$bobName:$serverName': false},
     );
-    final typing = bob.timeline.watchTyping().asBroadcastStream();
-    await alice.timeline.setTyping(typing: true);
-    await typing
-        .firstWhere(
-          (users) => users.any((user) => user.id == '@$aliceName:$serverName'),
-        )
-        .timeout(const Duration(seconds: 30));
-    await alice.timeline.setTyping(typing: false);
-    await typing
-        .firstWhere((users) => users.isEmpty)
-        .timeout(const Duration(seconds: 30));
+    await alice.timeline.setTyping(true);
+    await waitForValue(
+      bob.timeline.typing,
+      (users) => users.any((user) => user.id == '@$aliceName:$serverName'),
+      timeout: const Duration(seconds: 30),
+    );
+    await alice.timeline.setTyping(false);
+    await waitForValue(
+      bob.timeline.typing,
+      (users) => users.isEmpty,
+      timeout: const Duration(seconds: 30),
+    );
     metric('members_typing', 'ok');
 
     // App in the background: no sync while paused, catch-up on resume.
-    expect(bob.sessionState.value, SessionState.active);
-    await bob.client.pause();
+    expect(bob.sessionState.value, ChatSessionState.active);
+    await bob.session.pause();
     await waitForValue(
       bob.syncStatus,
-      (status) => status != SyncStatus.running,
+      (status) => status != ChatSyncStatus.running,
     );
     final pausedBody = 'Während der Pause ($run)';
-    await alice.timeline.sendText(body: pausedBody);
+    await alice.timeline.sendText(pausedBody);
     await alice.waitForTimeline(
       (items) => hasText(items, pausedBody, confirmed: true),
     );
@@ -784,20 +764,20 @@ void main() {
       reason: 'a paused client does not sync',
     );
     stopwatch = Stopwatch()..start();
-    await bob.client.resume();
+    await bob.session.resume();
     await bob.waitForTimeline((items) => hasText(items, pausedBody));
     metric('resume_catch_up_ms', stopwatch.elapsedMilliseconds);
 
     // Push: pusher for Bob (event_id_only), notification resolved + decrypted like the FCM handler / NSE.
     final pushKey = 'e2e-$platform-$run';
-    await bob.client.registerPusher(
+    await bob.session.registerPusher(
       pushKey: pushKey,
       appId: 'tools.ngo.mobile.chat-example.$platform',
       gatewayUrl: pushGatewayForSynapse,
       deviceName: 'E2E $platform',
     );
     final pushBody = 'Push an Bob ($run)';
-    await alice.timeline.sendText(body: pushBody);
+    await alice.timeline.sendText(pushBody);
     await alice.waitForTimeline(
       (entries) => hasText(entries, pushBody, confirmed: true),
     );
@@ -811,21 +791,15 @@ void main() {
       reason: 'event_id_only must not leak content',
     );
     stopwatch.reset();
-    final notification = await bob.client.getNotification(
-      roomId: roomId,
-      eventId: eventId,
-    );
+    final notification = await bob.session.notification(roomId, eventId);
     metric('notification_resolved_ms', stopwatch.elapsedMilliseconds);
     expect(notification?.body, pushBody);
 
     // Muting the room stops pushes; restoring follows the default again.
-    final defaults = await bob.client.roomNotificationSettings(roomId: roomId);
+    final defaults = await bob.session.notificationSettings(roomId);
     expect(defaults.isDefault, isTrue);
-    await bob.client.setRoomNotificationMode(
-      roomId: roomId,
-      mode: NotificationMode.mute,
-    );
-    final muted = await bob.client.roomNotificationSettings(roomId: roomId);
+    await bob.session.setNotificationMode(roomId, NotificationMode.mute);
+    final muted = await bob.session.notificationSettings(roomId);
     expect((muted.mode, muted.isDefault), (NotificationMode.mute, false));
     await bob.waitForRooms(
       (rooms) => rooms.any(
@@ -834,55 +808,55 @@ void main() {
       ),
     );
     final mutedBody = 'Stumm ($run)';
-    await alice.timeline.sendText(body: mutedBody);
+    await alice.timeline.sendText(mutedBody);
     await bob.waitForTimeline((items) => hasText(items, mutedBody));
     final mutedEventId = findText(bob.lastTimeline, mutedBody)!.eventId!;
     await expectLater(
       waitForPush(pushKey, mutedEventId, timeout: const Duration(seconds: 5)),
       throwsA(isA<TimeoutException>()),
     );
-    await bob.client.setRoomNotificationMode(roomId: roomId, mode: null);
-    expect(
-      (await bob.client.roomNotificationSettings(roomId: roomId)).isDefault,
-      isTrue,
-    );
+    await bob.session.setNotificationMode(roomId, null);
+    expect((await bob.session.notificationSettings(roomId)).isDefault, isTrue);
     metric('notification_mode', 'ok');
 
     // Real UI with live data (room list, encrypted DM with image) at Bob.
     await showForScreenshot(
       tester,
       RoomListScreen(
-        client: bob.client,
-        session: SessionInfo(userId: '@$bobName:$serverName', deviceId: ''),
+        session: bob.session,
+        account: const ChatAccount(
+          userId: '@$bobName:$serverName',
+          deviceId: '',
+        ),
         onLogout: () {},
       ),
       'room-list',
     );
     await showForScreenshot(
       tester,
-      RoomScreen(client: bob.client, roomId: roomId, title: aliceName),
+      RoomScreen(session: bob.session, roomId: roomId, title: aliceName),
       'dm-timeline',
     );
     await tester.pumpWidget(const SizedBox());
 
     // Session persistence: reopen Alice's store without logging in again.
-    await alice.client.shutdown();
+    await alice.session.dispose();
     stopwatch = Stopwatch()..start();
-    final aliceAgain = await createClient(
+    final aliceAgain = await createSession(
       'matrix',
       await storeKey(''),
       shared: true,
     );
-    final restored = await aliceAgain.restoreSession();
+    final restored = await aliceAgain.restore();
     metric('session_restore_ms', stopwatch.elapsedMilliseconds);
     expect(restored?.userId, '@$aliceName:$serverName');
-    expect(await aliceAgain.whoami(), '@$aliceName:$serverName');
+    expect(await aliceAgain.verifySession(), '@$aliceName:$serverName');
 
     // Access token refresh (MAS access_token_ttl = 60 s in the e2e server).
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(seconds: 65)),
     );
-    expect(await aliceAgain.whoami(), '@$aliceName:$serverName');
+    expect(await aliceAgain.verifySession(), '@$aliceName:$serverName');
     final refreshes = await aliceAgain.persistedRefreshes();
     metric('persisted_refreshes_after_ttl', refreshes);
     expect(refreshes, greaterThan(0));
@@ -911,7 +885,7 @@ void main() {
         deviceName: 'E2E iOS NSE',
       );
       final nseBody = 'Für die NSE ($run)';
-      await bob.timeline.sendText(body: nseBody);
+      await bob.timeline.sendText(nseBody);
       final nsePushEventId = await waitForAnyPush(alicePushKey);
       debugPrint('E2E_NSE_PUSH $roomId $nsePushEventId');
       final resultFile = File(
@@ -939,13 +913,16 @@ void main() {
       await storeKey('alice2-$run'),
     );
     expect(
-      await secondDevice.client.recoveryStatus(),
+      await secondDevice.session.recoveryStatus(),
       isNot(RecoveryStatus.enabled),
     );
     stopwatch = Stopwatch()..start();
-    await secondDevice.client.recover(recoveryKey: recoveryKey);
+    await secondDevice.session.recover(recoveryKey);
     metric('recover_ms', stopwatch.elapsedMilliseconds);
-    expect(await secondDevice.client.verificationState(), 'verified');
+    expect(
+      await secondDevice.session.verificationState(),
+      VerificationState.verified,
+    );
 
     stopwatch.reset();
     await secondDevice.openTimeline(roomId);
@@ -964,14 +941,14 @@ void main() {
     );
 
     // Logout removes the session; the store no longer restores it.
-    await secondDevice.client.logout();
-    await secondDevice.client.shutdown();
-    final afterLogout = await createClient(
+    await secondDevice.session.logout();
+    await secondDevice.session.dispose();
+    final afterLogout = await createSession(
       'test-$run-alice2',
       await storeKey('alice2-$run'),
     );
-    expect(await afterLogout.restoreSession(), isNull);
-    await afterLogout.shutdown();
+    expect(await afterLogout.restore(), isNull);
+    await afterLogout.dispose();
 
     // Sessions ended on the server: the sync stops and reports `expired`
     // instead of retrying; resuming is refused.
@@ -979,42 +956,47 @@ void main() {
     debugPrint('E2E_MAS kill-sessions $bobName');
     await waitForValue(
       bob.sessionState,
-      (state) => state == SessionState.expired,
+      (state) => state == ChatSessionState.expired,
       timeout: const Duration(seconds: 120),
     );
     metric('session_expired_detected_ms', stopwatch.elapsedMilliseconds);
     await expectLater(
-      bob.client.resume(),
-      throwsA(isA<ChatError_SessionExpired>()),
+      bob.session.resume(),
+      throwsA(
+        isA<ChatException>().having(
+          (error) => error.kind,
+          'kind',
+          ChatErrorKind.sessionExpired,
+        ),
+      ),
     );
 
     // Locked account: record how MAS reports it (locked or expired).
-    final aliceState = ValueNotifier<SessionState?>(null);
-    aliceAgain.watchSessionState().listen((state) => aliceState.value = state);
     debugPrint('E2E_MAS lock-user $aliceName');
-    ChatError? lockError;
+    ChatException? lockError;
     final lockDeadline = DateTime.now().add(const Duration(seconds: 120));
     while (lockError == null && DateTime.now().isBefore(lockDeadline)) {
       try {
-        await aliceAgain.whoami();
+        await aliceAgain.verifySession();
         await Future<void>.delayed(const Duration(seconds: 2));
-      } on ChatError catch (error) {
+      } on ChatException catch (error) {
         lockError = error;
       }
     }
-    metric('locked_account_error', lockError.runtimeType);
+    metric('locked_account_error', lockError?.kind.name ?? 'none');
     expect(
-      lockError,
-      anyOf(isA<ChatError_AccountLocked>(), isA<ChatError_SessionExpired>()),
+      lockError?.kind,
+      anyOf(ChatErrorKind.accountLocked, ChatErrorKind.sessionExpired),
     );
     final lockedState = await waitForValue(
-      aliceState,
-      (state) => state == SessionState.locked || state == SessionState.expired,
+      aliceAgain.state,
+      (state) =>
+          state == ChatSessionState.locked || state == ChatSessionState.expired,
       timeout: const Duration(seconds: 10),
     );
-    metric('locked_account_state', lockedState!.name);
+    metric('locked_account_state', lockedState.name);
 
-    await bob.client.shutdown();
-    await aliceAgain.shutdown();
+    await bob.session.dispose();
+    await aliceAgain.dispose();
   }, timeout: const Timeout(Duration(minutes: 12)));
 }
