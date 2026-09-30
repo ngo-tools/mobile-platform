@@ -42,6 +42,18 @@ final class ChatEncryptionLabels {
     required this.newKeyTitle,
     required this.newKeyMessage,
     required this.cancel,
+    required this.recoverTitle,
+    required this.recoverInfo,
+    required this.recoveryKeyField,
+    required this.recover,
+    required this.recovering,
+    required this.wrongKey,
+    required this.recoverFailed,
+    required this.recovered,
+    required this.lostKey,
+    required this.lostKeyTitle,
+    required this.lostKeyMessage,
+    required this.recoverReminder,
   });
 
   /// Short line in place of a message this device cannot read.
@@ -155,6 +167,42 @@ final class ChatEncryptionLabels {
   /// Cancels.
   final String cancel;
 
+  /// Title of the recovery key entry.
+  final String recoverTitle;
+
+  /// Why and where to find the key.
+  final String recoverInfo;
+
+  /// Label of the key field.
+  final String recoveryKeyField;
+
+  /// Restores with the key.
+  final String recover;
+
+  /// Restore in progress.
+  final String recovering;
+
+  /// The key does not match.
+  final String wrongKey;
+
+  /// The restore failed.
+  final String recoverFailed;
+
+  /// The restore succeeded.
+  final String recovered;
+
+  /// Help when the key is lost.
+  final String lostKey;
+
+  /// Title of the lost key help.
+  final String lostKeyTitle;
+
+  /// How to reset in the web chat.
+  final String lostKeyMessage;
+
+  /// Reminder above the room list on a new device.
+  final String recoverReminder;
+
   /// German texts.
   static final german = ChatEncryptionLabels(
     undecryptable: (reason) => switch (reason) {
@@ -239,6 +287,23 @@ final class ChatEncryptionLabels {
     newKeyMessage:
         'Dein bisheriger Wiederherstellungsschlüssel funktioniert danach nicht mehr, auch nicht im Web-Chat. Speichere den neuen Schlüssel sicher.',
     cancel: 'Abbrechen',
+    recoverTitle: 'Nachrichten wiederherstellen',
+    recoverInfo:
+        'Gib Deinen Wiederherstellungsschlüssel ein, um ältere verschlüsselte Nachrichten auf diesem Gerät zu lesen. Du hast ihn beim Einrichten der Wiederherstellung gespeichert, zum Beispiel in Deinem Passwortmanager.',
+    recoveryKeyField: 'Wiederherstellungsschlüssel',
+    recover: 'Wiederherstellen',
+    recovering: 'Wird wiederhergestellt …',
+    wrongKey:
+        'Dieser Schlüssel passt nicht. Prüfe die Eingabe oder nimm den zuletzt erzeugten Schlüssel.',
+    recoverFailed: 'Das hat nicht geklappt. Bitte versuche es erneut.',
+    recovered:
+        'Wiederhergestellt. Ältere Nachrichten werden jetzt entschlüsselt.',
+    lostKey: 'Schlüssel verloren?',
+    lostKeyTitle: 'Schlüssel verloren',
+    lostKeyMessage:
+        'Ohne Wiederherstellungsschlüssel lässt sich die Verschlüsselung nur zurücksetzen. Das geht im Web-Chat von NGO.Tools: Einstellungen → Verschlüsselung → „Wiederherstellungsschlüssel vergessen?“ → „Digitale Identität zurücksetzen“.\n\nÄltere verschlüsselte Nachrichten kannst Du danach auf neuen Geräten nicht mehr lesen. Richte anschließend hier die Wiederherstellung neu ein.',
+    recoverReminder:
+        'Auf diesem Gerät fehlt Dein Wiederherstellungsschlüssel. Gib ihn ein, um ältere verschlüsselte Nachrichten zu lesen.',
   );
 
   /// English texts.
@@ -318,6 +383,22 @@ final class ChatEncryptionLabels {
     newKeyMessage:
         'Your previous recovery key stops working, also in the web chat. Keep the new key safe.',
     cancel: 'Cancel',
+    recoverTitle: 'Restore your messages',
+    recoverInfo:
+        'Enter your recovery key to read older encrypted messages on this device. You saved it when you set up recovery, for example in your password manager.',
+    recoveryKeyField: 'Recovery key',
+    recover: 'Restore',
+    recovering: 'Restoring …',
+    wrongKey:
+        'This key does not match. Check what you entered or use the most recently created key.',
+    recoverFailed: 'That did not work. Please try again.',
+    recovered: 'Restored. Older messages are being decrypted now.',
+    lostKey: 'Lost your key?',
+    lostKeyTitle: 'Lost key',
+    lostKeyMessage:
+        'Without the recovery key, encryption can only be reset. You do this in the NGO.Tools web chat: Settings → Encryption → “Forgot recovery key?” → “Reset cryptographic identity”.\n\nAfterwards you cannot read older encrypted messages on new devices. Then set up recovery here again.',
+    recoverReminder:
+        'Your recovery key is missing on this device. Enter it to read older encrypted messages.',
   );
 
   /// Whether the recovery key can make a message with [reason] readable.

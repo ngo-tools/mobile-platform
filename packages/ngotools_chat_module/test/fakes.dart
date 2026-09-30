@@ -213,6 +213,24 @@ final class FakeChatGateway implements ChatGateway {
     return recoveryKey;
   }
 
+  ChatErrorKind? recoverError;
+
+  @override
+  Future<void> recover(String recoveryKey) async {
+    calls.add('recover:$recoveryKey');
+
+    final error = recoverError;
+
+    if (error != null) {
+      throw ChatException(error);
+    }
+
+    encryption.value = const EncryptionStatus(
+      recovery: RecoveryStatus.enabled,
+      deviceVerified: true,
+    );
+  }
+
   @override
   Future<List<ChatMember>> members(String roomId) async => roomMembers;
 

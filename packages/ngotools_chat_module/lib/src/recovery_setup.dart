@@ -7,6 +7,7 @@ import 'package:ngotools_design_system/ngotools_design_system.dart';
 
 import 'chat_encryption_labels.dart';
 import 'chat_gateway.dart';
+import 'recovery_restore.dart';
 
 enum _SetupStep { intro, working, failed, key, confirm }
 
@@ -258,13 +259,15 @@ String chatRecoveryKeyEnding(String key) {
   return compact.length <= 4 ? compact : compact.substring(compact.length - 4);
 }
 
-/// Reminder above the room list while recovery is not set up.
+/// Reminder above the room list while recovery is not set up, or while this
+/// device lacks the recovery key.
 final class ChatRecoveryBanner extends StatelessWidget {
   /// Creates the reminder.
   const ChatRecoveryBanner({
     required this.gateway,
     required this.labels,
     required this.onSetUp,
+    required this.onRecover,
     super.key,
   });
 
@@ -277,64 +280,77 @@ final class ChatRecoveryBanner extends StatelessWidget {
   /// Starts the setup.
   final VoidCallback onSetUp;
 
+  /// Opens the recovery key entry.
+  final VoidCallback onRecover;
+
   @override
-  Widget build(BuildContext context) =>
-      ValueListenableBuilder<EncryptionStatus?>(
-        valueListenable: gateway.encryption,
-        builder: (context, status, _) {
-          if (status?.recovery != RecoveryStatus.disabled) {
-            return const SizedBox.shrink();
-          }
+  Widget build(
+    BuildContext context,
+  ) => ValueListenableBuilder<EncryptionStatus?>(
+    valueListenable: gateway.encryption,
+    builder: (context, status, _) {
+      final (text, action, onPressed) = switch (status?.recovery) {
+        RecoveryStatus.disabled => (
+          labels.setupReminder,
+          labels.setUp,
+          onSetUp,
+        ),
+        RecoveryStatus.incomplete => (
+          labels.recoverReminder,
+          labels.enterRecoveryKey,
+          onRecover,
+        ),
+        _ => (null, null, null),
+      };
 
-          final colors = Theme.of(context).colorScheme;
+      if (text == null || action == null || onPressed == null) {
+        return const SizedBox.shrink();
+      }
 
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(
-              NgoToolsLayout.spacing,
-              NgoToolsLayout.compactSpacing,
-              NgoToolsLayout.spacing,
-              0,
-            ),
-            child: Material(
-              color: colors.secondaryContainer,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
+      final colors = Theme.of(context).colorScheme;
+
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(
+          NgoToolsLayout.spacing,
+          NgoToolsLayout.compactSpacing,
+          NgoToolsLayout.spacing,
+          0,
+        ),
+        child: Material(
+          color: colors.secondaryContainer,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.lock_outline,
-                          color: colors.onSecondaryContainer,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            labels.setupReminder,
-                            style: TextStyle(
-                              color: colors.onSecondaryContainer,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      Icons.lock_outline,
+                      color: colors.onSecondaryContainer,
                     ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: onSetUp,
-                        child: Text(labels.setUp),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        text,
+                        style: TextStyle(color: colors.onSecondaryContainer),
                       ),
                     ),
                   ],
                 ),
-              ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(onPressed: onPressed, child: Text(action)),
+                ),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       );
+    },
+  );
 }
 
 /// Encryption state of the account and this device, with setting up recovery
@@ -405,6 +421,24 @@ final class ChatSecurityPage extends StatelessWidget {
                 onPressed: () => unawaited(_replaceKey(context)),
                 child: Text(labels.newKey),
               ),
+            if (status?.recovery == RecoveryStatus.incomplete) ...[
+              FilledButton(
+                onPressed: () => unawaited(
+                  Navigator.of(context).push(
+                    MaterialPageRoute<bool>(
+                      builder: (_) =>
+                          ChatRecoverPage(gateway: gateway, labels: labels),
+                    ),
+                  ),
+                ),
+                child: Text(labels.enterRecoveryKey),
+              ),
+              TextButton(
+                onPressed: () =>
+                    unawaited(showChatLostKeyHelp(context, labels: labels)),
+                child: Text(labels.lostKey),
+              ),
+            ],
           ],
         ),
       ),

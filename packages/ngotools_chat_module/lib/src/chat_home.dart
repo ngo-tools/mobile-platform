@@ -13,6 +13,7 @@ import 'chat_gateway.dart';
 import 'chat_image_picker.dart';
 import 'chat_labels.dart';
 import 'new_chat_page.dart';
+import 'recovery_restore.dart';
 import 'recovery_setup.dart';
 import 'room_details_page.dart';
 import 'room_list_view.dart';
@@ -177,15 +178,18 @@ final class _ChatHomeState extends State<ChatHome> {
     _promptRecovery();
   }
 
-  /// Offers to set up recovery once per device, the first time the chat
-  /// opens without it; afterwards the banner reminds.
+  /// Once per device, the first time the chat opens: offers to set up
+  /// recovery, or asks for the recovery key when the account has recovery
+  /// but this device lacks the key. Afterwards the banner reminds.
   void _promptRecovery() {
     final gateway = _gateway;
+    final recovery = gateway?.encryption.value?.recovery;
 
     if (gateway == null ||
         _recoveryPromptShown ||
         widget.connector.recoveryPromptSeen ||
-        gateway.encryption.value?.recovery != RecoveryStatus.disabled) {
+        (recovery != RecoveryStatus.disabled &&
+            recovery != RecoveryStatus.incomplete)) {
       return;
     }
 
@@ -194,11 +198,22 @@ final class _ChatHomeState extends State<ChatHome> {
     WidgetsBinding.instance
       ..addPostFrameCallback((_) {
         if (mounted) {
-          unawaited(_setUpRecovery(gateway));
+          unawaited(
+            recovery == RecoveryStatus.disabled
+                ? _setUpRecovery(gateway)
+                : _recover(gateway),
+          );
         }
       })
       ..scheduleFrame();
   }
+
+  Future<void> _recover(ChatGateway gateway) => _navigatorFor().push<bool>(
+    MaterialPageRoute(
+      builder: (_) =>
+          ChatRecoverPage(gateway: gateway, labels: widget.labels.encryption),
+    ),
+  );
 
   Future<void> _setUpRecovery(ChatGateway gateway) =>
       _navigatorFor().push<bool>(
@@ -307,6 +322,7 @@ final class _ChatHomeState extends State<ChatHome> {
           gateway: gateway,
           labels: widget.labels.encryption,
           onSetUp: () => unawaited(_setUpRecovery(gateway)),
+          onRecover: () => unawaited(_recover(gateway)),
         ),
         actions: [
           IconButton(
@@ -396,6 +412,7 @@ final class _ChatHomeState extends State<ChatHome> {
     title: room.name,
     isGroup: room.kind == RoomKind.group,
     imagePicker: widget.imagePicker,
+    onEnterRecoveryKey: () => unawaited(_recover(gateway)),
     now: widget.now,
     actions: [
       Builder(

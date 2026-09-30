@@ -58,8 +58,8 @@ final class ChatRoomPage extends StatelessWidget {
   /// Picks images to send.
   final ChatImagePicker imagePicker;
 
-  /// Opens the recovery key entry from unreadable messages; `null` when this
-  /// device needs no key.
+  /// Opens the recovery key entry from unreadable messages; offered only
+  /// while this device lacks the key.
   final VoidCallback? onEnterRecoveryKey;
 
   /// Current time, injectable for tests.
@@ -137,8 +137,8 @@ final class ChatRoomView extends StatefulWidget {
   /// Picks images to send.
   final ChatImagePicker imagePicker;
 
-  /// Opens the recovery key entry from unreadable messages; `null` when this
-  /// device needs no key.
+  /// Opens the recovery key entry from unreadable messages; offered only
+  /// while this device lacks the key.
   final VoidCallback? onEnterRecoveryKey;
 
   /// Current time, injectable for tests.
@@ -166,8 +166,11 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    widget.gateway.encryption.addListener(_onEncryption);
     unawaited(_open());
   }
+
+  void _onEncryption() => setState(() {});
 
   Future<void> _open() async {
     final threadRootId = widget.threadRootId;
@@ -188,6 +191,7 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
 
   @override
   void dispose() {
+    widget.gateway.encryption.removeListener(_onEncryption);
     _typingTimer?.cancel();
 
     if (_typing) {
@@ -355,7 +359,11 @@ final class _ChatRoomViewState extends State<ChatRoomView> {
         UnableToDecryptContent(:final reason) => ChatUndecryptableMessage(
           reason: reason,
           labels: _labels.encryption,
-          onEnterRecoveryKey: widget.onEnterRecoveryKey,
+          onEnterRecoveryKey:
+              widget.gateway.encryption.value?.recovery ==
+                  RecoveryStatus.incomplete
+              ? widget.onEnterRecoveryKey
+              : null,
         ),
         _ => null,
       },

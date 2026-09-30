@@ -154,6 +154,7 @@ void main() {
             gateway: gateway,
             labels: labels,
             onSetUp: () => setUps++,
+            onRecover: () {},
           ),
         ),
       ),
