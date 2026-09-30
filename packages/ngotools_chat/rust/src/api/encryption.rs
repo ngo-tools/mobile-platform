@@ -1,7 +1,11 @@
 //! Key backup / recovery key and device verification state.
 
 use futures_util::StreamExt;
-use matrix_sdk::encryption::{recovery::RecoveryState, VerificationState};
+use matrix_sdk::encryption::{
+    recovery::{RecoveryError, RecoveryState},
+    secret_storage::SecretStorageError,
+    VerificationState,
+};
 
 use crate::{
     api::{client::ChatClient, error::ChatError},
@@ -116,7 +120,8 @@ impl ChatClient {
             .await
     }
 
-    /// Restores cross-signing and the key backup on a new device.
+    /// Restores cross-signing and the key backup on a new device. A key that
+    /// does not open the account's secret storage fails with `InvalidInput`.
     pub async fn recover(&self, recovery_key: String) -> Result<(), ChatError> {
         let client = self.client.clone();
         self.lifecycle
@@ -125,12 +130,13 @@ impl ChatClient {
                     .encryption()
                     .wait_for_e2ee_initialization_tasks()
                     .await;
-                client
-                    .encryption()
-                    .recovery()
-                    .recover(&recovery_key)
-                    .await?;
-                Ok(())
+                match client.encryption().recovery().recover(&recovery_key).await {
+                    // Mistyped or not this account's key: the user can fix it.
+                    Err(RecoveryError::SecretStorage(SecretStorageError::SecretStorageKey(_))) => {
+                        Err(ChatError::invalid("wrong recovery key").into())
+                    }
+                    result => Ok(result?),
+                }
             })
             .await
     }

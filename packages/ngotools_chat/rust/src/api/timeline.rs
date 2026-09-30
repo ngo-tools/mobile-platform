@@ -18,10 +18,10 @@ use matrix_sdk::{
 };
 use matrix_sdk_crypto::types::events::UtdCause;
 use matrix_sdk_ui::timeline::{
-    AttachmentConfig, AttachmentSource, EmbeddedEvent, EncryptedMessage, EventSendState, EventTimelineItem,
-    MembershipChange, MsgLikeContent, MsgLikeKind, Profile, RoomExt, Timeline, TimelineDetails,
-    TimelineEventItemId, TimelineFocus, TimelineItem as SdkTimelineItem, TimelineItemContent,
-    TimelineItemKind as SdkTimelineItemKind, VirtualTimelineItem,
+    AttachmentConfig, AttachmentSource, EmbeddedEvent, EncryptedMessage, EventSendState,
+    EventTimelineItem, MembershipChange, MsgLikeContent, MsgLikeKind, Profile, RoomExt, Timeline,
+    TimelineDetails, TimelineEventItemId, TimelineFocus, TimelineItem as SdkTimelineItem,
+    TimelineItemContent, TimelineItemKind as SdkTimelineItemKind, VirtualTimelineItem,
 };
 use tokio::{sync::Mutex, task::JoinHandle};
 

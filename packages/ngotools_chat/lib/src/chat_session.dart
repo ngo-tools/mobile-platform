@@ -286,7 +286,8 @@ class ChatSession {
   /// recovery loses access to encrypted history.
   Future<bool> isLastDevice() => map.guard(_client.isLastDevice);
 
-  /// Restores keys and verifies this device with the recovery key.
+  /// Restores keys and verifies this device with the recovery key. A wrong
+  /// key fails with [ChatErrorKind.invalidInput].
   Future<void> recover(String recoveryKey) =>
       map.guard(() => _client.recover(recoveryKey: recoveryKey));
 

@@ -936,6 +936,9 @@ void main() {
 
     // Before the recovery key: history shows as not decryptable, with the
     // reason that the recovery key would restore it.
+    await secondDevice.waitForRooms(
+      (rooms) => rooms.any((room) => room.id == roomId),
+    );
     await secondDevice.openTimeline(roomId);
     final history = secondDevice.timelineController!;
     bool hasUndecryptable(List<TimelineItem> items) => items
@@ -955,6 +958,21 @@ void main() {
         .toSet();
     metric('utd_reasons_before_recovery', reasons.map((r) => r.name).join(','));
     expect(reasons, contains(DecryptionFailure.historicalUnverifiedDevice));
+
+    // A mistyped key is reported as invalid input, not as a failure.
+    await expectLater(
+      secondDevice.session.recover(
+        'EsTc aaaa bbbb cccc dddd eeee ffff gggg hhhh iiii jjjj kkkk',
+      ),
+      throwsA(
+        isA<ChatException>().having(
+          (error) => error.kind,
+          'kind',
+          ChatErrorKind.invalidInput,
+        ),
+      ),
+    );
+    metric('wrong_recovery_key', 'invalidInput');
 
     stopwatch = Stopwatch()..start();
     await secondDevice.session.recover(recoveryKey);
