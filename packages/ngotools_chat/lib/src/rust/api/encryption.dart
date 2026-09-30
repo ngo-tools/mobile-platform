@@ -6,4 +6,38 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-enum RecoveryStatus { unknown, enabled, disabled, incomplete }
+// These functions are ignored because they are not marked as `pub`: `recovery_status`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`
+
+/// What the app shows about encryption: whether recovery is set up and
+/// whether this device is verified.
+class EncryptionStatus {
+  final RecoveryStatus recovery;
+  final bool deviceVerified;
+
+  const EncryptionStatus({
+    required this.recovery,
+    required this.deviceVerified,
+  });
+
+  @override
+  int get hashCode => recovery.hashCode ^ deviceVerified.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EncryptionStatus &&
+          runtimeType == other.runtimeType &&
+          recovery == other.recovery &&
+          deviceVerified == other.deviceVerified;
+}
+
+enum RecoveryStatus {
+  unknown,
+  enabled,
+  disabled,
+
+  /// Recovery is set up for the account, but this device does not have the
+  /// secrets yet: enter the recovery key.
+  incomplete,
+}

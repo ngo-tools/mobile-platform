@@ -16,8 +16,9 @@ use matrix_sdk::{
         EventId, OwnedEventId, OwnedTransactionId, OwnedUserId, RoomId, UInt, UserId,
     },
 };
+use matrix_sdk_crypto::types::events::UtdCause;
 use matrix_sdk_ui::timeline::{
-    AttachmentConfig, AttachmentSource, EmbeddedEvent, EventSendState, EventTimelineItem,
+    AttachmentConfig, AttachmentSource, EmbeddedEvent, EncryptedMessage, EventSendState, EventTimelineItem,
     MembershipChange, MsgLikeContent, MsgLikeKind, Profile, RoomExt, Timeline, TimelineDetails,
     TimelineEventItemId, TimelineFocus, TimelineItem as SdkTimelineItem, TimelineItemContent,
     TimelineItemKind as SdkTimelineItemKind, VirtualTimelineItem,
@@ -48,6 +49,46 @@ pub enum MessagePreview {
     UnableToDecrypt,
     /// State changes and anything the app does not render as a message.
     Other,
+}
+
+/// Why a message cannot be decrypted (yet), as far as this device can tell.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DecryptionFailure {
+    /// No explanation; the keys may still arrive (e.g. from the key backup).
+    Unknown,
+    /// Sent before this account joined the room.
+    SentBeforeJoined,
+    /// Sent before this device existed and there is no key backup to restore
+    /// the keys from.
+    HistoricalNoBackup,
+    /// Sent before this device existed; the key backup is available after
+    /// entering the recovery key.
+    HistoricalUnverifiedDevice,
+    /// The sender did not share the keys with this device (e.g. because it
+    /// is not verified).
+    Withheld,
+    /// The sending device or identity is not trusted.
+    UntrustedSender,
+}
+
+pub(crate) fn decryption_failure(message: &EncryptedMessage) -> DecryptionFailure {
+    let EncryptedMessage::MegolmV1AesSha2 { cause, .. } = message else {
+        return DecryptionFailure::Unknown;
+    };
+    match cause {
+        UtdCause::SentBeforeWeJoined => DecryptionFailure::SentBeforeJoined,
+        UtdCause::HistoricalMessageAndBackupIsDisabled => DecryptionFailure::HistoricalNoBackup,
+        UtdCause::HistoricalMessageAndDeviceIsUnverified => {
+            DecryptionFailure::HistoricalUnverifiedDevice
+        }
+        UtdCause::WithheldForUnverifiedOrInsecureDevice | UtdCause::WithheldBySender => {
+            DecryptionFailure::Withheld
+        }
+        UtdCause::VerificationViolation | UtdCause::UnsignedDevice | UtdCause::UnknownDevice => {
+            DecryptionFailure::UntrustedSender
+        }
+        _ => DecryptionFailure::Unknown,
+    }
 }
 
 /// Identifies an event for actions: a local echo by its transaction id, a
@@ -167,7 +208,9 @@ pub enum EventContent {
         size: Option<u64>,
     },
     Redacted,
-    UnableToDecrypt,
+    UnableToDecrypt {
+        reason: DecryptionFailure,
+    },
     Membership {
         user_id: String,
         change: MembershipKind,
@@ -769,7 +812,9 @@ fn event_content(content: &TimelineItemContent) -> EventContent {
                 },
             },
             MsgLikeKind::Redacted => EventContent::Redacted,
-            MsgLikeKind::UnableToDecrypt(_) => EventContent::UnableToDecrypt,
+            MsgLikeKind::UnableToDecrypt(message) => EventContent::UnableToDecrypt {
+                reason: decryption_failure(message),
+            },
             _ => EventContent::Unsupported,
         },
         TimelineItemContent::MembershipChange(change) => EventContent::Membership {

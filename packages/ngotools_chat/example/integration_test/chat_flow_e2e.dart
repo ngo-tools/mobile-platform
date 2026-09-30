@@ -468,9 +468,20 @@ void main() {
       VerificationState.verified,
       reason: 'cross-signing bootstrapped',
     );
+    expect(await alice.session.isLastDevice(), isTrue);
     final recoveryKey = await alice.session.enableRecovery();
     metric('enable_recovery_ms', stopwatch.elapsedMilliseconds);
     expect(await alice.session.recoveryStatus(), RecoveryStatus.enabled);
+    await waitForValue(
+      alice.session.encryption,
+      (status) =>
+          status ==
+          const EncryptionStatus(
+            recovery: RecoveryStatus.enabled,
+            deviceVerified: true,
+          ),
+    );
+    metric('encryption_status_stream', 'ok');
 
     // Encrypted DM Alice -> Bob.
     stopwatch = Stopwatch()..start();
@@ -912,10 +923,39 @@ void main() {
       'test-$run-alice2',
       await storeKey('alice2-$run'),
     );
-    expect(
-      await secondDevice.session.recoveryStatus(),
-      isNot(RecoveryStatus.enabled),
+    await waitForValue(
+      secondDevice.session.encryption,
+      (status) =>
+          status ==
+          const EncryptionStatus(
+            recovery: RecoveryStatus.incomplete,
+            deviceVerified: false,
+          ),
     );
+    expect(await secondDevice.session.isLastDevice(), isFalse);
+
+    // Before the recovery key: history shows as not decryptable, with the
+    // reason that the recovery key would restore it.
+    await secondDevice.openTimeline(roomId);
+    final history = secondDevice.timelineController!;
+    bool hasUndecryptable(List<TimelineItem> items) => items
+        .map(eventOf)
+        .nonNulls
+        .any((event) => event.content is UnableToDecryptContent);
+    while (!hasUndecryptable(secondDevice.lastTimeline) &&
+        !history.reachedStart.value) {
+      await history.paginateBack(count: 20);
+    }
+    final reasons = secondDevice.lastTimeline
+        .map(eventOf)
+        .nonNulls
+        .map((event) => event.content)
+        .whereType<UnableToDecryptContent>()
+        .map((content) => content.reason)
+        .toSet();
+    metric('utd_reasons_before_recovery', reasons.map((r) => r.name).join(','));
+    expect(reasons, contains(DecryptionFailure.historicalUnverifiedDevice));
+
     stopwatch = Stopwatch()..start();
     await secondDevice.session.recover(recoveryKey);
     metric('recover_ms', stopwatch.elapsedMilliseconds);
@@ -923,11 +963,18 @@ void main() {
       await secondDevice.session.verificationState(),
       VerificationState.verified,
     );
+    await waitForValue(
+      secondDevice.session.encryption,
+      (status) =>
+          status ==
+          const EncryptionStatus(
+            recovery: RecoveryStatus.enabled,
+            deviceVerified: true,
+          ),
+    );
 
     stopwatch.reset();
-    await secondDevice.openTimeline(roomId);
     final firstMessage = 'Hallo Bob 1 ($run)';
-    final history = secondDevice.timelineController!;
     while (!hasText(secondDevice.lastTimeline, firstMessage) &&
         !history.reachedStart.value) {
       await history.paginateBack(count: 20);

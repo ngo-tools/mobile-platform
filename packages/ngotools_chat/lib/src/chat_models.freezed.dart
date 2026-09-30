@@ -12,6 +12,260 @@ part of 'chat_models.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
+mixin _$EncryptionStatus {
+
+ RecoveryStatus get recovery; bool get deviceVerified;
+/// Create a copy of EncryptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$EncryptionStatusCopyWith<EncryptionStatus> get copyWith => _$EncryptionStatusCopyWithImpl<EncryptionStatus>(this as EncryptionStatus, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EncryptionStatus&&(identical(other.recovery, recovery) || other.recovery == recovery)&&(identical(other.deviceVerified, deviceVerified) || other.deviceVerified == deviceVerified));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,recovery,deviceVerified);
+
+@override
+String toString() {
+  return 'EncryptionStatus(recovery: $recovery, deviceVerified: $deviceVerified)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $EncryptionStatusCopyWith<$Res>  {
+  factory $EncryptionStatusCopyWith(EncryptionStatus value, $Res Function(EncryptionStatus) _then) = _$EncryptionStatusCopyWithImpl;
+@useResult
+$Res call({
+ RecoveryStatus recovery, bool deviceVerified
+});
+
+
+
+
+}
+/// @nodoc
+class _$EncryptionStatusCopyWithImpl<$Res>
+    implements $EncryptionStatusCopyWith<$Res> {
+  _$EncryptionStatusCopyWithImpl(this._self, this._then);
+
+  final EncryptionStatus _self;
+  final $Res Function(EncryptionStatus) _then;
+
+/// Create a copy of EncryptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? recovery = null,Object? deviceVerified = null,}) {
+  return _then(_self.copyWith(
+recovery: null == recovery ? _self.recovery : recovery // ignore: cast_nullable_to_non_nullable
+as RecoveryStatus,deviceVerified: null == deviceVerified ? _self.deviceVerified : deviceVerified // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [EncryptionStatus].
+extension EncryptionStatusPatterns on EncryptionStatus {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EncryptionStatus value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EncryptionStatus() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EncryptionStatus value)  $default,){
+final _that = this;
+switch (_that) {
+case _EncryptionStatus():
+return $default(_that);}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EncryptionStatus value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EncryptionStatus() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( RecoveryStatus recovery,  bool deviceVerified)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EncryptionStatus() when $default != null:
+return $default(_that.recovery,_that.deviceVerified);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( RecoveryStatus recovery,  bool deviceVerified)  $default,) {final _that = this;
+switch (_that) {
+case _EncryptionStatus():
+return $default(_that.recovery,_that.deviceVerified);}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( RecoveryStatus recovery,  bool deviceVerified)?  $default,) {final _that = this;
+switch (_that) {
+case _EncryptionStatus() when $default != null:
+return $default(_that.recovery,_that.deviceVerified);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _EncryptionStatus implements EncryptionStatus {
+  const _EncryptionStatus({required this.recovery, required this.deviceVerified});
+  
+
+@override final  RecoveryStatus recovery;
+@override final  bool deviceVerified;
+
+/// Create a copy of EncryptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$EncryptionStatusCopyWith<_EncryptionStatus> get copyWith => __$EncryptionStatusCopyWithImpl<_EncryptionStatus>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EncryptionStatus&&(identical(other.recovery, recovery) || other.recovery == recovery)&&(identical(other.deviceVerified, deviceVerified) || other.deviceVerified == deviceVerified));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,recovery,deviceVerified);
+
+@override
+String toString() {
+  return 'EncryptionStatus(recovery: $recovery, deviceVerified: $deviceVerified)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$EncryptionStatusCopyWith<$Res> implements $EncryptionStatusCopyWith<$Res> {
+  factory _$EncryptionStatusCopyWith(_EncryptionStatus value, $Res Function(_EncryptionStatus) _then) = __$EncryptionStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ RecoveryStatus recovery, bool deviceVerified
+});
+
+
+
+
+}
+/// @nodoc
+class __$EncryptionStatusCopyWithImpl<$Res>
+    implements _$EncryptionStatusCopyWith<$Res> {
+  __$EncryptionStatusCopyWithImpl(this._self, this._then);
+
+  final _EncryptionStatus _self;
+  final $Res Function(_EncryptionStatus) _then;
+
+/// Create a copy of EncryptionStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? recovery = null,Object? deviceVerified = null,}) {
+  return _then(_EncryptionStatus(
+recovery: null == recovery ? _self.recovery : recovery // ignore: cast_nullable_to_non_nullable
+as RecoveryStatus,deviceVerified: null == deviceVerified ? _self.deviceVerified : deviceVerified // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$ChatAccount {
 
  String get userId; String get deviceId;
@@ -3326,7 +3580,7 @@ return unsupported(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult Function( String? caption,  String filename,  ChatMedia media)?  video,TResult Function( String filename,  ChatMedia media)?  audio,TResult Function( String? caption,  String filename,  ChatMedia media,  int? size)?  file,TResult Function()?  redacted,TResult Function()?  unableToDecrypt,TResult Function( String userId,  MembershipChange change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String body)?  text,TResult Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult Function( String? caption,  String filename,  ChatMedia media)?  video,TResult Function( String filename,  ChatMedia media)?  audio,TResult Function( String? caption,  String filename,  ChatMedia media,  int? size)?  file,TResult Function()?  redacted,TResult Function( DecryptionFailure reason)?  unableToDecrypt,TResult Function( String userId,  MembershipChange change)?  membership,TResult Function( String userId)?  profileChange,TResult Function( String eventType)?  roomState,TResult Function()?  unsupported,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TextContent() when text != null:
 return text(_that.body);case ImageContent() when image != null:
@@ -3335,7 +3589,7 @@ return video(_that.caption,_that.filename,_that.media);case AudioContent() when 
 return audio(_that.filename,_that.media);case FileContent() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case RedactedContent() when redacted != null:
 return redacted();case UnableToDecryptContent() when unableToDecrypt != null:
-return unableToDecrypt();case MembershipContent() when membership != null:
+return unableToDecrypt(_that.reason);case MembershipContent() when membership != null:
 return membership(_that.userId,_that.change);case ProfileChangeContent() when profileChange != null:
 return profileChange(_that.userId);case RoomStateContent() when roomState != null:
 return roomState(_that.eventType);case UnsupportedContent() when unsupported != null:
@@ -3357,7 +3611,7 @@ return unsupported();case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)  image,required TResult Function( String? caption,  String filename,  ChatMedia media)  video,required TResult Function( String filename,  ChatMedia media)  audio,required TResult Function( String? caption,  String filename,  ChatMedia media,  int? size)  file,required TResult Function()  redacted,required TResult Function()  unableToDecrypt,required TResult Function( String userId,  MembershipChange change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String body)  text,required TResult Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)  image,required TResult Function( String? caption,  String filename,  ChatMedia media)  video,required TResult Function( String filename,  ChatMedia media)  audio,required TResult Function( String? caption,  String filename,  ChatMedia media,  int? size)  file,required TResult Function()  redacted,required TResult Function( DecryptionFailure reason)  unableToDecrypt,required TResult Function( String userId,  MembershipChange change)  membership,required TResult Function( String userId)  profileChange,required TResult Function( String eventType)  roomState,required TResult Function()  unsupported,}) {final _that = this;
 switch (_that) {
 case TextContent():
 return text(_that.body);case ImageContent():
@@ -3366,7 +3620,7 @@ return video(_that.caption,_that.filename,_that.media);case AudioContent():
 return audio(_that.filename,_that.media);case FileContent():
 return file(_that.caption,_that.filename,_that.media,_that.size);case RedactedContent():
 return redacted();case UnableToDecryptContent():
-return unableToDecrypt();case MembershipContent():
+return unableToDecrypt(_that.reason);case MembershipContent():
 return membership(_that.userId,_that.change);case ProfileChangeContent():
 return profileChange(_that.userId);case RoomStateContent():
 return roomState(_that.eventType);case UnsupportedContent():
@@ -3384,7 +3638,7 @@ return unsupported();}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult? Function( String? caption,  String filename,  ChatMedia media)?  video,TResult? Function( String filename,  ChatMedia media)?  audio,TResult? Function( String? caption,  String filename,  ChatMedia media,  int? size)?  file,TResult? Function()?  redacted,TResult? Function()?  unableToDecrypt,TResult? Function( String userId,  MembershipChange change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String body)?  text,TResult? Function( String? caption,  String filename,  ChatMedia media,  ChatMedia? thumbnail,  int? width,  int? height,  String? blurhash)?  image,TResult? Function( String? caption,  String filename,  ChatMedia media)?  video,TResult? Function( String filename,  ChatMedia media)?  audio,TResult? Function( String? caption,  String filename,  ChatMedia media,  int? size)?  file,TResult? Function()?  redacted,TResult? Function( DecryptionFailure reason)?  unableToDecrypt,TResult? Function( String userId,  MembershipChange change)?  membership,TResult? Function( String userId)?  profileChange,TResult? Function( String eventType)?  roomState,TResult? Function()?  unsupported,}) {final _that = this;
 switch (_that) {
 case TextContent() when text != null:
 return text(_that.body);case ImageContent() when image != null:
@@ -3393,7 +3647,7 @@ return video(_that.caption,_that.filename,_that.media);case AudioContent() when 
 return audio(_that.filename,_that.media);case FileContent() when file != null:
 return file(_that.caption,_that.filename,_that.media,_that.size);case RedactedContent() when redacted != null:
 return redacted();case UnableToDecryptContent() when unableToDecrypt != null:
-return unableToDecrypt();case MembershipContent() when membership != null:
+return unableToDecrypt(_that.reason);case MembershipContent() when membership != null:
 return membership(_that.userId,_that.change);case ProfileChangeContent() when profileChange != null:
 return profileChange(_that.userId);case RoomStateContent() when roomState != null:
 return roomState(_that.eventType);case UnsupportedContent() when unsupported != null:
@@ -3796,33 +4050,67 @@ String toString() {
 
 
 class UnableToDecryptContent implements EventContent {
-  const UnableToDecryptContent();
+  const UnableToDecryptContent({this.reason = DecryptionFailure.unknown});
   
 
+@JsonKey() final  DecryptionFailure reason;
 
-
+/// Create a copy of EventContent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$UnableToDecryptContentCopyWith<UnableToDecryptContent> get copyWith => _$UnableToDecryptContentCopyWithImpl<UnableToDecryptContent>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnableToDecryptContent);
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UnableToDecryptContent&&(identical(other.reason, reason) || other.reason == reason));
 }
 
 
 @override
-int get hashCode => runtimeType.hashCode;
+int get hashCode => Object.hash(runtimeType,reason);
 
 @override
 String toString() {
-  return 'EventContent.unableToDecrypt()';
+  return 'EventContent.unableToDecrypt(reason: $reason)';
 }
 
 
 }
 
+/// @nodoc
+abstract mixin class $UnableToDecryptContentCopyWith<$Res> implements $EventContentCopyWith<$Res> {
+  factory $UnableToDecryptContentCopyWith(UnableToDecryptContent value, $Res Function(UnableToDecryptContent) _then) = _$UnableToDecryptContentCopyWithImpl;
+@useResult
+$Res call({
+ DecryptionFailure reason
+});
 
 
+
+
+}
+/// @nodoc
+class _$UnableToDecryptContentCopyWithImpl<$Res>
+    implements $UnableToDecryptContentCopyWith<$Res> {
+  _$UnableToDecryptContentCopyWithImpl(this._self, this._then);
+
+  final UnableToDecryptContent _self;
+  final $Res Function(UnableToDecryptContent) _then;
+
+/// Create a copy of EventContent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? reason = null,}) {
+  return _then(UnableToDecryptContent(
+reason: null == reason ? _self.reason : reason // ignore: cast_nullable_to_non_nullable
+as DecryptionFailure,
+  ));
+}
+
+
+}
 
 /// @nodoc
 

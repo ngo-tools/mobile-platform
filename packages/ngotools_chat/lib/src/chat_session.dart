@@ -103,12 +103,18 @@ class ChatSession {
   final rust.ChatClient _client;
   final _state = ValueNotifier<ChatSessionState>(ChatSessionState.signedOut);
   final _syncStatus = ValueNotifier<ChatSyncStatus>(ChatSyncStatus.idle);
+  final _encryption = ValueNotifier<EncryptionStatus?>(null);
   final _subscriptions = <StreamSubscription<Object?>>[];
   ChatAccount? _account;
 
   ValueListenable<ChatSessionState> get state => _state;
 
   ValueListenable<ChatSyncStatus> get syncStatus => _syncStatus;
+
+  /// Recovery and verification state after [startSync]; `null` until known.
+  /// Follows changes, e.g. after [enableRecovery], [recover] or recovery set
+  /// up on another device.
+  ValueListenable<EncryptionStatus?> get encryption => _encryption;
 
   /// The signed-in account, if any.
   ChatAccount? get account => _account;
@@ -173,11 +179,18 @@ class ChatSession {
 
   Future<void> startSync() async {
     await map.guard(_client.startSync);
-    _subscriptions.add(
-      _client.watchSyncStatus().listen(
-        (status) => _syncStatus.value = map.syncStatus(status),
-      ),
-    );
+    _subscriptions
+      ..add(
+        _client.watchSyncStatus().listen(
+          (status) => _syncStatus.value = map.syncStatus(status),
+        ),
+      )
+      ..add(
+        _client.watchEncryption().listen(
+          (status) => _encryption.value = map.encryptionStatus(status),
+          onError: (Object _) {},
+        ),
+      );
   }
 
   /// Stops syncing while the app is in the background; see
@@ -264,8 +277,14 @@ class ChatSession {
   Future<RecoveryStatus> recoveryStatus() async =>
       map.recoveryStatus(await map.guard(_client.recoveryStatus));
 
-  /// Enables key backup and returns the recovery key to show the user.
+  /// Enables key backup and returns the recovery key to show the user. When
+  /// recovery is already enabled, creates a new key; the old one stops
+  /// working.
   Future<String> enableRecovery() => map.guard(_client.enableRecovery);
+
+  /// Whether this is the account's only device: signing out without
+  /// recovery loses access to encrypted history.
+  Future<bool> isLastDevice() => map.guard(_client.isLastDevice);
 
   /// Restores keys and verifies this device with the recovery key.
   Future<void> recover(String recoveryKey) =>
@@ -310,5 +329,6 @@ class ChatSession {
     }
     _state.dispose();
     _syncStatus.dispose();
+    _encryption.dispose();
   }
 }

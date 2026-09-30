@@ -42,7 +42,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 374485135;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1018865461;
 
 // Section: executor
 
@@ -498,6 +498,63 @@ fn wire__crate__api__client__ChatClient_get_notification_impl(
                             api_event_id,
                         )
                         .await?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__client__ChatClient_is_last_device_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ChatClient_is_last_device",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, crate::api::error::ChatError>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok =
+                            crate::api::client::ChatClient::is_last_device(&*api_that_guard)
+                                .await?;
                         std::result::Result::Ok(output_ok)
                     })()
                     .await,
@@ -2094,6 +2151,69 @@ fn wire__crate__api__client__ChatClient_verification_state_impl(
         },
     )
 }
+fn wire__crate__api__client__ChatClient_watch_encryption_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "ChatClient_watch_encryption",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_that = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatClient>,
+            >>::sse_decode(&mut deserializer);
+            let api_sink = <StreamSink<
+                crate::api::encryption::EncryptionStatus,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, crate::api::error::ChatError>(
+                    (move || async move {
+                        let mut api_that_guard = None;
+                        let decode_indices_ =
+                            flutter_rust_bridge::for_generated::lockable_compute_decode_order(
+                                vec![flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                    &api_that, 0, false,
+                                )],
+                            );
+                        for i in decode_indices_ {
+                            match i {
+                                0 => {
+                                    api_that_guard =
+                                        Some(api_that.lockable_decode_async_ref().await)
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                        let api_that_guard = api_that_guard.unwrap();
+                        let output_ok = crate::api::client::ChatClient::watch_encryption(
+                            &*api_that_guard,
+                            api_sink,
+                        )
+                        .await?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__client__ChatClient_watch_room_list_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -3509,6 +3629,19 @@ impl SseDecode
 
 impl SseDecode
     for StreamSink<
+        crate::api::encryption::EncryptionStatus,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return StreamSink::deserialize(inner);
+    }
+}
+
+impl SseDecode
+    for StreamSink<
         Vec<crate::api::rooms::RoomListDiff>,
         flutter_rust_bridge::for_generated::SseCodec,
     >
@@ -3677,6 +3810,34 @@ impl SseDecode for crate::api::error::ChatError {
     }
 }
 
+impl SseDecode for crate::api::timeline::DecryptionFailure {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::timeline::DecryptionFailure::Unknown,
+            1 => crate::api::timeline::DecryptionFailure::SentBeforeJoined,
+            2 => crate::api::timeline::DecryptionFailure::HistoricalNoBackup,
+            3 => crate::api::timeline::DecryptionFailure::HistoricalUnverifiedDevice,
+            4 => crate::api::timeline::DecryptionFailure::Withheld,
+            5 => crate::api::timeline::DecryptionFailure::UntrustedSender,
+            _ => unreachable!("Invalid variant for DecryptionFailure: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::encryption::EncryptionStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_recovery = <crate::api::encryption::RecoveryStatus>::sse_decode(deserializer);
+        let mut var_deviceVerified = <bool>::sse_decode(deserializer);
+        return crate::api::encryption::EncryptionStatus {
+            recovery: var_recovery,
+            device_verified: var_deviceVerified,
+        };
+    }
+}
+
 impl SseDecode for crate::api::timeline::EventContent {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -3738,7 +3899,9 @@ impl SseDecode for crate::api::timeline::EventContent {
                 return crate::api::timeline::EventContent::Redacted;
             }
             6 => {
-                return crate::api::timeline::EventContent::UnableToDecrypt;
+                let mut var_reason =
+                    <crate::api::timeline::DecryptionFailure>::sse_decode(deserializer);
+                return crate::api::timeline::EventContent::UnableToDecrypt { reason: var_reason };
             }
             7 => {
                 let mut var_userId = <String>::sse_decode(deserializer);
@@ -4941,210 +5104,224 @@ fn pde_ffi_dispatcher_primary_impl(
             rust_vec_len,
             data_len,
         ),
-        9 => wire__crate__api__client__ChatClient_join_room_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__client__ChatClient_is_last_device_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
         10 => {
+            wire__crate__api__client__ChatClient_join_room_impl(port, ptr, rust_vec_len, data_len)
+        }
+        11 => {
             wire__crate__api__client__ChatClient_leave_room_impl(port, ptr, rust_vec_len, data_len)
         }
-        11 => wire__crate__api__client__ChatClient_load_more_rooms_impl(
+        12 => wire__crate__api__client__ChatClient_load_more_rooms_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        12 => {
+        13 => {
             wire__crate__api__client__ChatClient_login_url_impl(port, ptr, rust_vec_len, data_len)
         }
-        13 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
-        14 => wire__crate__api__client__ChatClient_pause_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
+        14 => wire__crate__api__client__ChatClient_logout_impl(port, ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__client__ChatClient_pause_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__client__ChatClient_persisted_refreshes_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        16 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__client__ChatClient_recovery_status_impl(
+        17 => wire__crate__api__client__ChatClient_recover_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__client__ChatClient_recovery_status_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        18 => wire__crate__api__client__ChatClient_register_pusher_impl(
+        19 => wire__crate__api__client__ChatClient_register_pusher_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        19 => wire__crate__api__client__ChatClient_restore_session_impl(
+        20 => wire__crate__api__client__ChatClient_restore_session_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        20 => wire__crate__api__client__ChatClient_resume_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__client__ChatClient_room_members_impl(
+        21 => wire__crate__api__client__ChatClient_resume_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__client__ChatClient_room_members_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__client__ChatClient_room_notification_settings_impl(
+        23 => wire__crate__api__client__ChatClient_room_notification_settings_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => wire__crate__api__client__ChatClient_set_room_filter_impl(
+        24 => wire__crate__api__client__ChatClient_set_room_filter_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        24 => wire__crate__api__client__ChatClient_set_room_notification_mode_impl(
+        25 => wire__crate__api__client__ChatClient_set_room_notification_mode_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
-        26 => wire__crate__api__client__ChatClient_sign_in_with_token_impl(
+        26 => wire__crate__api__client__ChatClient_shutdown_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__api__client__ChatClient_sign_in_with_token_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        27 => {
+        28 => {
             wire__crate__api__client__ChatClient_start_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        28 => wire__crate__api__client__ChatClient_stop_room_list_impl(
+        29 => wire__crate__api__client__ChatClient_stop_room_list_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        29 => {
+        30 => {
             wire__crate__api__client__ChatClient_stop_sync_impl(port, ptr, rust_vec_len, data_len)
         }
-        30 => {
+        31 => {
             wire__crate__api__client__ChatClient_thread_list_impl(port, ptr, rust_vec_len, data_len)
         }
-        31 => wire__crate__api__client__ChatClient_thread_timeline_impl(
+        32 => wire__crate__api__client__ChatClient_thread_timeline_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        32 => wire__crate__api__client__ChatClient_timeline_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__client__ChatClient_update_access_token_impl(
+        33 => wire__crate__api__client__ChatClient_timeline_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__client__ChatClient_update_access_token_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        34 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__client__ChatClient_verification_state_impl(
+        35 => wire__crate__api__client__ChatClient_user_id_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__client__ChatClient_verification_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        36 => wire__crate__api__client__ChatClient_watch_room_list_impl(
+        37 => wire__crate__api__client__ChatClient_watch_encryption_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        37 => wire__crate__api__client__ChatClient_watch_session_state_impl(
+        38 => wire__crate__api__client__ChatClient_watch_room_list_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        38 => wire__crate__api__client__ChatClient_watch_sync_status_impl(
+        39 => wire__crate__api__client__ChatClient_watch_session_state_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        39 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
-        40 => {
+        40 => wire__crate__api__client__ChatClient_watch_sync_status_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        41 => wire__crate__api__client__ChatClient_whoami_impl(port, ptr, rust_vec_len, data_len),
+        42 => {
             wire__crate__api__threads__ChatThreadList_close_impl(port, ptr, rust_vec_len, data_len)
         }
-        41 => wire__crate__api__threads__ChatThreadList_paginate_impl(
+        43 => wire__crate__api__threads__ChatThreadList_paginate_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        42 => {
+        44 => {
             wire__crate__api__threads__ChatThreadList_watch_impl(port, ptr, rust_vec_len, data_len)
         }
-        43 => {
+        45 => {
             wire__crate__api__timeline__ChatTimeline_cancel_impl(port, ptr, rust_vec_len, data_len)
         }
-        44 => {
+        46 => {
             wire__crate__api__timeline__ChatTimeline_close_impl(port, ptr, rust_vec_len, data_len)
         }
-        45 => wire__crate__api__timeline__ChatTimeline_edit_impl(port, ptr, rust_vec_len, data_len),
-        46 => wire__crate__api__timeline__ChatTimeline_load_reply_details_impl(
+        47 => wire__crate__api__timeline__ChatTimeline_edit_impl(port, ptr, rust_vec_len, data_len),
+        48 => wire__crate__api__timeline__ChatTimeline_load_reply_details_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        47 => wire__crate__api__timeline__ChatTimeline_mark_read_impl(
+        49 => wire__crate__api__timeline__ChatTimeline_mark_read_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        48 => wire__crate__api__timeline__ChatTimeline_paginate_back_impl(
+        50 => wire__crate__api__timeline__ChatTimeline_paginate_back_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        49 => {
+        51 => {
             wire__crate__api__timeline__ChatTimeline_redact_impl(port, ptr, rust_vec_len, data_len)
         }
-        50 => {
+        52 => {
             wire__crate__api__timeline__ChatTimeline_retry_impl(port, ptr, rust_vec_len, data_len)
         }
-        51 => wire__crate__api__timeline__ChatTimeline_send_image_impl(
+        53 => wire__crate__api__timeline__ChatTimeline_send_image_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        52 => wire__crate__api__timeline__ChatTimeline_send_text_impl(
+        54 => wire__crate__api__timeline__ChatTimeline_send_text_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        53 => wire__crate__api__timeline__ChatTimeline_set_typing_impl(
+        55 => wire__crate__api__timeline__ChatTimeline_set_typing_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        54 => wire__crate__api__timeline__ChatTimeline_toggle_reaction_impl(
+        56 => wire__crate__api__timeline__ChatTimeline_toggle_reaction_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        55 => {
+        57 => {
             wire__crate__api__timeline__ChatTimeline_watch_impl(port, ptr, rust_vec_len, data_len)
         }
-        56 => wire__crate__api__timeline__ChatTimeline_watch_typing_impl(
+        58 => wire__crate__api__timeline__ChatTimeline_watch_typing_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        57 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
-        58 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        59 => wire__crate__api__logging__init_app_impl(port, ptr, rust_vec_len, data_len),
+        60 => wire__crate__api__logging__init_logging_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -5275,6 +5452,52 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::error::ChatError>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::timeline::DecryptionFailure {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Unknown => 0.into_dart(),
+            Self::SentBeforeJoined => 1.into_dart(),
+            Self::HistoricalNoBackup => 2.into_dart(),
+            Self::HistoricalUnverifiedDevice => 3.into_dart(),
+            Self::Withheld => 4.into_dart(),
+            Self::UntrustedSender => 5.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::timeline::DecryptionFailure
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::timeline::DecryptionFailure>
+    for crate::api::timeline::DecryptionFailure
+{
+    fn into_into_dart(self) -> crate::api::timeline::DecryptionFailure {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::encryption::EncryptionStatus {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.recovery.into_into_dart().into_dart(),
+            self.device_verified.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::encryption::EncryptionStatus
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::encryption::EncryptionStatus>
+    for crate::api::encryption::EncryptionStatus
+{
+    fn into_into_dart(self) -> crate::api::encryption::EncryptionStatus {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::timeline::EventContent {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
@@ -5331,7 +5554,9 @@ impl flutter_rust_bridge::IntoDart for crate::api::timeline::EventContent {
             ]
             .into_dart(),
             crate::api::timeline::EventContent::Redacted => [5.into_dart()].into_dart(),
-            crate::api::timeline::EventContent::UnableToDecrypt => [6.into_dart()].into_dart(),
+            crate::api::timeline::EventContent::UnableToDecrypt { reason } => {
+                [6.into_dart(), reason.into_into_dart().into_dart()].into_dart()
+            }
             crate::api::timeline::EventContent::Membership { user_id, change } => [
                 7.into_dart(),
                 user_id.into_into_dart().into_dart(),
@@ -6334,6 +6559,18 @@ impl SseEncode
 
 impl SseEncode
     for StreamSink<
+        crate::api::encryption::EncryptionStatus,
+        flutter_rust_bridge::for_generated::SseCodec,
+    >
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        unimplemented!("")
+    }
+}
+
+impl SseEncode
+    for StreamSink<
         Vec<crate::api::rooms::RoomListDiff>,
         flutter_rust_bridge::for_generated::SseCodec,
     >
@@ -6473,6 +6710,34 @@ impl SseEncode for crate::api::error::ChatError {
     }
 }
 
+impl SseEncode for crate::api::timeline::DecryptionFailure {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::timeline::DecryptionFailure::Unknown => 0,
+                crate::api::timeline::DecryptionFailure::SentBeforeJoined => 1,
+                crate::api::timeline::DecryptionFailure::HistoricalNoBackup => 2,
+                crate::api::timeline::DecryptionFailure::HistoricalUnverifiedDevice => 3,
+                crate::api::timeline::DecryptionFailure::Withheld => 4,
+                crate::api::timeline::DecryptionFailure::UntrustedSender => 5,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::encryption::EncryptionStatus {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::encryption::RecoveryStatus>::sse_encode(self.recovery, serializer);
+        <bool>::sse_encode(self.device_verified, serializer);
+    }
+}
+
 impl SseEncode for crate::api::timeline::EventContent {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -6529,8 +6794,9 @@ impl SseEncode for crate::api::timeline::EventContent {
             crate::api::timeline::EventContent::Redacted => {
                 <i32>::sse_encode(5, serializer);
             }
-            crate::api::timeline::EventContent::UnableToDecrypt => {
+            crate::api::timeline::EventContent::UnableToDecrypt { reason } => {
                 <i32>::sse_encode(6, serializer);
+                <crate::api::timeline::DecryptionFailure>::sse_encode(reason, serializer);
             }
             crate::api::timeline::EventContent::Membership { user_id, change } => {
                 <i32>::sse_encode(7, serializer);

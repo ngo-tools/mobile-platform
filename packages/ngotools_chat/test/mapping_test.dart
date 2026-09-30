@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ngotools_chat/src/chat_exception.dart';
 import 'package:ngotools_chat/src/chat_models.dart';
 import 'package:ngotools_chat/src/mapping.dart';
+import 'package:ngotools_chat/src/rust/api/encryption.dart' as rust;
 import 'package:ngotools_chat/src/rust/api/error.dart' as rust;
 import 'package:ngotools_chat/src/rust/api/room.dart' as rust;
 import 'package:ngotools_chat/src/rust/api/rooms.dart' as rust;
@@ -222,5 +223,35 @@ void main() {
     }
     expect(verificationState('verified'), VerificationState.verified);
     expect(verificationState('something-new'), VerificationState.unknown);
+  });
+
+  test('maps why a message cannot be decrypted', () {
+    for (final reason in rust.DecryptionFailure.values) {
+      final content = eventItem(
+        rustEvent(content: rust.EventContent.unableToDecrypt(reason: reason)),
+      ).content;
+
+      expect(
+        content,
+        EventContent.unableToDecrypt(
+          reason: DecryptionFailure.values.byName(reason.name),
+        ),
+      );
+    }
+  });
+
+  test('maps the encryption status', () {
+    expect(
+      encryptionStatus(
+        const rust.EncryptionStatus(
+          recovery: rust.RecoveryStatus.incomplete,
+          deviceVerified: false,
+        ),
+      ),
+      const EncryptionStatus(
+        recovery: RecoveryStatus.incomplete,
+        deviceVerified: false,
+      ),
+    );
   });
 }

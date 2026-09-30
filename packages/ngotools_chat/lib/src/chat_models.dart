@@ -33,10 +33,43 @@ enum ChatSyncStatus {
 enum ChatLogLevel { error, warn, info, debug }
 
 /// Key backup / recovery state of the account.
+///
+/// [incomplete]: recovery is set up for the account, but this device does
+/// not have the keys yet – enter the recovery key.
 enum RecoveryStatus { unknown, enabled, disabled, incomplete }
 
 /// Whether this device is verified (cross-signed).
 enum VerificationState { unknown, verified, unverified }
+
+/// Recovery and verification state as the app shows it.
+@freezed
+sealed class EncryptionStatus with _$EncryptionStatus {
+  const factory EncryptionStatus({
+    required RecoveryStatus recovery,
+    required bool deviceVerified,
+  }) = _EncryptionStatus;
+}
+
+/// Why a message cannot be decrypted (yet), as far as this device can tell.
+enum DecryptionFailure {
+  /// No explanation; the keys may still arrive (e.g. from the key backup).
+  unknown,
+
+  /// Sent before this account joined the room.
+  sentBeforeJoined,
+
+  /// Sent before this device existed and there is no key backup.
+  historicalNoBackup,
+
+  /// Sent before this device existed; entering the recovery key restores it.
+  historicalUnverifiedDevice,
+
+  /// The sender did not share the keys with this device.
+  withheld,
+
+  /// The sending device or identity is not trusted.
+  untrustedSender,
+}
 
 /// Opaque reference to media (image, file, avatar). Pass it to
 /// `ChatSession.fetchMedia`; do not parse it.
@@ -236,7 +269,9 @@ sealed class EventContent with _$EventContent {
     int? size,
   }) = FileContent;
   const factory EventContent.redacted() = RedactedContent;
-  const factory EventContent.unableToDecrypt() = UnableToDecryptContent;
+  const factory EventContent.unableToDecrypt({
+    @Default(DecryptionFailure.unknown) DecryptionFailure reason,
+  }) = UnableToDecryptContent;
   const factory EventContent.membership({
     required String userId,
     required MembershipChange change,

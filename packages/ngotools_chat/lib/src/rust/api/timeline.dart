@@ -9,8 +9,8 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:freezed_annotation/freezed_annotation.dart' hide protected;
 part 'timeline.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `event_content`, `item_id`, `map_diff`, `map_event`, `map_item`, `media_ref`, `message_preview`, `parse_event_id`, `reactions`, `ready`, `reply_preview`, `send_handle`, `sender`, `thumbnail`, `to_u32`, `to_u64`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `drop`, `eq`, `eq`, `fmt`, `fmt`
+// These functions are ignored because they are not marked as `pub`: `decryption_failure`, `event_content`, `item_id`, `map_diff`, `map_event`, `map_item`, `media_ref`, `message_preview`, `parse_event_id`, `reactions`, `ready`, `reply_preview`, `send_handle`, `sender`, `thumbnail`, `to_u32`, `to_u64`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `clone`, `drop`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ChatTimeline>>
 abstract class ChatTimeline implements RustOpaqueInterface {
@@ -66,6 +66,30 @@ abstract class ChatTimeline implements RustOpaqueInterface {
   Stream<List<Sender>> watchTyping();
 }
 
+/// Why a message cannot be decrypted (yet), as far as this device can tell.
+enum DecryptionFailure {
+  /// No explanation; the keys may still arrive (e.g. from the key backup).
+  unknown,
+
+  /// Sent before this account joined the room.
+  sentBeforeJoined,
+
+  /// Sent before this device existed and there is no key backup to restore
+  /// the keys from.
+  historicalNoBackup,
+
+  /// Sent before this device existed; the key backup is available after
+  /// entering the recovery key.
+  historicalUnverifiedDevice,
+
+  /// The sender did not share the keys with this device (e.g. because it
+  /// is not verified).
+  withheld,
+
+  /// The sending device or identity is not trusted.
+  untrustedSender,
+}
+
 @freezed
 sealed class EventContent with _$EventContent {
   const EventContent._();
@@ -101,7 +125,9 @@ sealed class EventContent with _$EventContent {
     BigInt? size,
   }) = EventContent_File;
   const factory EventContent.redacted() = EventContent_Redacted;
-  const factory EventContent.unableToDecrypt() = EventContent_UnableToDecrypt;
+  const factory EventContent.unableToDecrypt({
+    required DecryptionFailure reason,
+  }) = EventContent_UnableToDecrypt;
   const factory EventContent.membership({
     required String userId,
     required MembershipKind change,

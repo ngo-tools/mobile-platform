@@ -97,6 +97,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<EncryptionStatus> dco_decode_StreamSink_encryption_status_Sse(
+    dynamic raw,
+  );
+
+  @protected
   RustStreamSink<List<RoomListDiff>>
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw);
 
@@ -195,6 +200,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ChatError dco_decode_chat_error(dynamic raw);
+
+  @protected
+  DecryptionFailure dco_decode_decryption_failure(dynamic raw);
+
+  @protected
+  EncryptionStatus dco_decode_encryption_status(dynamic raw);
 
   @protected
   EventContent dco_decode_event_content(dynamic raw);
@@ -463,6 +474,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<EncryptionStatus> sse_decode_StreamSink_encryption_status_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<List<RoomListDiff>>
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer);
 
@@ -581,6 +597,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ChatError sse_decode_chat_error(SseDeserializer deserializer);
+
+  @protected
+  DecryptionFailure sse_decode_decryption_failure(SseDeserializer deserializer);
+
+  @protected
+  EncryptionStatus sse_decode_encryption_status(SseDeserializer deserializer);
 
   @protected
   EventContent sse_decode_event_content(SseDeserializer deserializer);
@@ -891,6 +913,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_encryption_status_Sse(
+    RustStreamSink<EncryptionStatus> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_list_room_list_diff_Sse(
     RustStreamSink<List<RoomListDiff>> self,
     SseSerializer serializer,
@@ -1051,6 +1079,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_chat_error(ChatError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_decryption_failure(
+    DecryptionFailure self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_encryption_status(
+    EncryptionStatus self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_event_content(EventContent self, SseSerializer serializer);
