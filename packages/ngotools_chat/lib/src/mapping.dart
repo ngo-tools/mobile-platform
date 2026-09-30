@@ -96,19 +96,18 @@ EncryptionStatus encryptionStatus(rust.EncryptionStatus status) =>
       deviceVerified: status.deviceVerified,
     );
 
-DecryptionFailure decryptionFailure(rust.DecryptionFailure reason) =>
-    switch (reason) {
-      rust.DecryptionFailure.unknown => DecryptionFailure.unknown,
-      rust.DecryptionFailure.sentBeforeJoined =>
-        DecryptionFailure.sentBeforeJoined,
-      rust.DecryptionFailure.historicalNoBackup =>
-        DecryptionFailure.historicalNoBackup,
-      rust.DecryptionFailure.historicalUnverifiedDevice =>
-        DecryptionFailure.historicalUnverifiedDevice,
-      rust.DecryptionFailure.withheld => DecryptionFailure.withheld,
-      rust.DecryptionFailure.untrustedSender =>
-        DecryptionFailure.untrustedSender,
-    };
+DecryptionFailure decryptionFailure(
+  rust.DecryptionFailure reason,
+) => switch (reason) {
+  rust.DecryptionFailure.unknown => DecryptionFailure.unknown,
+  rust.DecryptionFailure.sentBeforeJoined => DecryptionFailure.sentBeforeJoined,
+  rust.DecryptionFailure.historicalNoBackup =>
+    DecryptionFailure.historicalNoBackup,
+  rust.DecryptionFailure.historicalUnverifiedDevice =>
+    DecryptionFailure.historicalUnverifiedDevice,
+  rust.DecryptionFailure.withheld => DecryptionFailure.withheld,
+  rust.DecryptionFailure.untrustedSender => DecryptionFailure.untrustedSender,
+};
 
 VerificationState verificationState(String state) => switch (state) {
   'verified' => VerificationState.verified,
