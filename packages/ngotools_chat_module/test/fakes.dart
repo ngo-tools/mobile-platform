@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:ngotools_api/ngotools_api.dart';
 import 'package:ngotools_chat/ngotools_chat.dart';
 import 'package:ngotools_chat_module/ngotools_chat_module.dart';
 
@@ -166,6 +167,97 @@ final class FakeChatGateway implements ChatGateway {
 
     return transparentPng;
   }
+
+  List<ChatMember> roomMembers = const [];
+  RoomNotificationSettings notifications = const RoomNotificationSettings(
+    mode: NotificationMode.allMessages,
+    isDefault: true,
+  );
+  bool failDirectChat = false;
+
+  @override
+  Future<String> createDirectChat(String userId) async {
+    calls.add('dm:$userId');
+
+    if (failDirectChat) {
+      throw const ChatException(ChatErrorKind.network);
+    }
+
+    return '!dm-$userId';
+  }
+
+  @override
+  Future<List<ChatMember>> members(String roomId) async => roomMembers;
+
+  @override
+  Future<RoomNotificationSettings> notificationSettings(String roomId) async =>
+      notifications;
+
+  @override
+  Future<void> setNotificationMode(
+    String roomId,
+    NotificationMode? mode,
+  ) async {
+    calls.add('notify:${mode?.name ?? 'default'}');
+    notifications = RoomNotificationSettings(
+      mode: mode ?? NotificationMode.allMessages,
+      isDefault: mode == null,
+    );
+  }
+}
+
+final class FakePeopleApi implements MobileChatApi {
+  final searches = <String?>[];
+  List<MobileChatPerson> people = const [
+    MobileChatPerson(
+      matrixUserId: '@maria.muster:example.org',
+      displayName: 'Maria Muster',
+      kind: MobileChatPersonKind.contact,
+    ),
+    MobileChatPerson(
+      matrixUserId: '@tina.team:example.org',
+      displayName: 'Tina Team',
+      kind: MobileChatPersonKind.teamMember,
+    ),
+  ];
+  bool fail = false;
+
+  @override
+  Future<MobileChatPeoplePage> listChatPeople({
+    String? search,
+    int page = 1,
+    int perPage = 50,
+  }) async {
+    searches.add(search);
+
+    if (fail) {
+      throw Exception('offline');
+    }
+
+    final query = search?.toLowerCase() ?? '';
+
+    return MobileChatPeoplePage(
+      people: people.where(
+        (person) => person.displayName.toLowerCase().contains(query),
+      ),
+      page: 1,
+      lastPage: 1,
+      total: people.length,
+    );
+  }
+
+  @override
+  Future<MobileChatAccount> fetchChatAccount() => throw UnimplementedError();
+
+  @override
+  Future<MobileChatSession> createChatSession({String? deviceName}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<MobileChatSession> renewChatSession() => throw UnimplementedError();
+
+  @override
+  Future<void> deleteChatSession() => throw UnimplementedError();
 }
 
 final class FakeImagePicker implements ChatImagePicker {
