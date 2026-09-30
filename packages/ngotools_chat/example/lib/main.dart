@@ -464,6 +464,63 @@ class _RoomScreenState extends State<RoomScreen> {
     );
   }
 
+  /// Device test of the notification extension (gate M0): copies the
+  /// command that pushes the newest message of this room to this iPhone.
+  Future<void> _pushTest(TimelineController controller) async {
+    String? token;
+
+    try {
+      token = await const MethodChannel(
+        'tools.ngo.chat_example/push',
+      ).invokeMethod<String>('apnsToken');
+    } on PlatformException catch (error) {
+      token = null;
+      debugPrint('push test: ${error.message}');
+    }
+
+    final latest = controller.items.value.reversed
+        .whereType<EventTimelineItem>()
+        .map((item) => item.event.eventId)
+        .firstWhere((eventId) => eventId != null, orElse: () => null);
+
+    if (!mounted) {
+      return;
+    }
+
+    final command = token == null || latest == null
+        ? null
+        : 'python3 e2e/device/send_push.py --token $token '
+              "--room '${widget.roomId}' --event '$latest'";
+
+    if (command != null) {
+      await Clipboard.setData(ClipboardData(text: command));
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Push-Test'),
+        content: SelectableText(
+          command == null
+              ? 'Kein APNs-Token oder keine Nachricht. Mitteilungen erlauben '
+                    'und in diesem Chat eine Nachricht empfangen.'
+              : 'Befehl kopiert. App in den Hintergrund legen, dann auf dem '
+                    'Mac im Paket ngotools_chat ausführen:\n\n$command',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _input.dispose();
@@ -476,7 +533,16 @@ class _RoomScreenState extends State<RoomScreen> {
     final controller = _controller;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
+      appBar: AppBar(
+        title: Text(widget.title),
+        actions: [
+          IconButton(
+            tooltip: 'Push-Test',
+            icon: const Icon(Icons.notifications_active_outlined),
+            onPressed: controller == null ? null : () => _pushTest(controller),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
