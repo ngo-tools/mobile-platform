@@ -8,10 +8,12 @@ import 'package:ngotools_mobile_core/ngotools_mobile_core.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
+import 'app_chat.dart';
+
 /// The chat of the app: connection without a second login, lifecycle and
 /// the chat destination. The app generator removes this file together with
 /// the chat packages when the `chat` module is not selected.
-final class GoldenChat {
+final class GoldenChat implements AppChat {
   GoldenChat._(this.api, this.connector, this._lifecycle);
 
   /// Prepares the chat for [environment]; nothing connects before
@@ -52,7 +54,7 @@ final class GoldenChat {
 
   final ChatAppLifecycle _lifecycle;
 
-  /// Chat destination.
+  @override
   Widget build(BuildContext context, {required bool isGerman}) => ChatHome(
     connector: connector,
     api: api,
@@ -60,7 +62,7 @@ final class GoldenChat {
     controller: controller,
   );
 
-  /// Opens a `/chat` or `/chat/rooms/{id}` link.
+  @override
   void openDeepLink(Uri uri) {
     final roomId = ChatDeepLink.roomId(uri);
 
@@ -69,14 +71,13 @@ final class GoldenChat {
     }
   }
 
-  /// Signs into the chat after the NGO.Tools sign-in.
+  @override
   Future<void> connect() => connector.connect();
 
-  /// Ends the chat session and deletes the chat data; call before signing
-  /// out of NGO.Tools.
+  @override
   Future<void> disconnect() => connector.disconnect();
 
-  /// Stops everything, keeping the chat data.
+  @override
   Future<void> dispose() async {
     _lifecycle.detach();
     controller.dispose();
