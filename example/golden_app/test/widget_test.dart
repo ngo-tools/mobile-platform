@@ -184,6 +184,39 @@ void main() {
     expect(signIns, 1);
   });
 
+  testWidgets('asks the chat before signing out', (tester) async {
+    var signOuts = 0;
+    var allowed = false;
+    final asked = <bool>[];
+
+    await tester.pumpWidget(
+      GoldenApp(
+        environment: MobileEnvironment.development,
+        authStatus: MobileAuthStatus.authenticated,
+        onSignIn: () async {},
+        onSignOut: () async => signOuts += 1,
+        confirmSignOut: (context, {required isGerman}) async {
+          asked.add(isGerman);
+
+          return allowed;
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(asked, [false]);
+    expect(signOuts, 0);
+
+    allowed = true;
+    await tester.tap(find.text('Sign out'));
+    await tester.pumpAndSettle();
+
+    expect(signOuts, 1);
+  });
+
   testWidgets('shows the chat only with the booked chat feature', (
     tester,
   ) async {

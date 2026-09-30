@@ -26,6 +26,7 @@ class GoldenApp extends StatelessWidget {
     this.chatBuilder,
     this.onSignIn,
     this.onSignOut,
+    this.confirmSignOut,
     super.key,
   });
 
@@ -60,6 +61,11 @@ class GoldenApp extends StatelessWidget {
   /// Signs out and removes local private data.
   final Future<void> Function()? onSignOut;
 
+  /// Asks before signing out, e.g. when encrypted chat messages would be
+  /// lost; `false` cancels.
+  final Future<bool> Function(BuildContext context, {required bool isGerman})?
+  confirmSignOut;
+
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -78,6 +84,7 @@ class GoldenApp extends StatelessWidget {
       chatBuilder: chatBuilder,
       onSignIn: onSignIn,
       onSignOut: onSignOut,
+      confirmSignOut: confirmSignOut,
     ),
   );
 }
@@ -96,6 +103,7 @@ class GoldenShell extends StatelessWidget {
     this.chatBuilder,
     this.onSignIn,
     this.onSignOut,
+    this.confirmSignOut,
     super.key,
   });
 
@@ -110,6 +118,8 @@ class GoldenShell extends StatelessWidget {
   chatBuilder;
   final Future<void> Function()? onSignIn;
   final Future<void> Function()? onSignOut;
+  final Future<bool> Function(BuildContext context, {required bool isGerman})?
+  confirmSignOut;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +143,7 @@ class GoldenShell extends StatelessWidget {
           authStatus: authStatus,
           onSignIn: onSignIn,
           onSignOut: onSignOut,
+          confirmSignOut: confirmSignOut,
         ),
         requirement: MobileRouteRequirement(requiresAuthentication: false),
       ),
@@ -235,6 +246,7 @@ class GoldenHome extends StatelessWidget {
     this.authStatus = MobileAuthStatus.signedOut,
     this.onSignIn,
     this.onSignOut,
+    this.confirmSignOut,
     super.key,
   });
 
@@ -252,6 +264,20 @@ class GoldenHome extends StatelessWidget {
 
   /// Signs out, if available.
   final Future<void> Function()? onSignOut;
+
+  /// Asks before signing out; `false` cancels.
+  final Future<bool> Function(BuildContext context, {required bool isGerman})?
+  confirmSignOut;
+
+  Future<void> _signOut(BuildContext context, {required bool isGerman}) async {
+    final confirm = confirmSignOut;
+
+    if (confirm != null && !await confirm(context, isGerman: isGerman)) {
+      return;
+    }
+
+    await onSignOut!();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -312,7 +338,8 @@ class GoldenHome extends StatelessWidget {
                   OutlinedButton(
                     onPressed: onSignOut == null
                         ? null
-                        : () => unawaited(onSignOut!()),
+                        : () =>
+                              unawaited(_signOut(context, isGerman: isGerman)),
                     child: Text(isGerman ? 'Abmelden' : 'Sign out'),
                   )
                 else

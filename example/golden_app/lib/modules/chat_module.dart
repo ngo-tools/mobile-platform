@@ -75,6 +75,24 @@ final class GoldenChat implements AppChat {
   Future<void> connect() => connector.connect();
 
   @override
+  Future<bool> confirmSignOut(
+    BuildContext context, {
+    required bool isGerman,
+  }) async {
+    final state = connector.state;
+
+    if (state is! ChatConnected) {
+      return true;
+    }
+
+    return confirmChatSignOut(
+      context,
+      gateway: SessionChatGateway(state.client.session),
+      labels: (isGerman ? ChatLabels.german : ChatLabels.english).encryption,
+    );
+  }
+
+  @override
   Future<void> disconnect() => connector.disconnect();
 
   @override

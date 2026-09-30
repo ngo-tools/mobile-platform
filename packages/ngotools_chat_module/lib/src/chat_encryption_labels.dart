@@ -54,6 +54,10 @@ final class ChatEncryptionLabels {
     required this.lostKeyTitle,
     required this.lostKeyMessage,
     required this.recoverReminder,
+    required this.signOutTitle,
+    required this.signOutNoRecovery,
+    required this.signOutKeyMissing,
+    required this.signOutAnyway,
   });
 
   /// Short line in place of a message this device cannot read.
@@ -203,6 +207,18 @@ final class ChatEncryptionLabels {
   /// Reminder above the room list on a new device.
   final String recoverReminder;
 
+  /// Title of the sign-out warning.
+  final String signOutTitle;
+
+  /// Warning without recovery on the last device.
+  final String signOutNoRecovery;
+
+  /// Warning when this last device lacks the key.
+  final String signOutKeyMissing;
+
+  /// Signs out despite the warning.
+  final String signOutAnyway;
+
   /// German texts.
   static final german = ChatEncryptionLabels(
     undecryptable: (reason) => switch (reason) {
@@ -304,6 +320,12 @@ final class ChatEncryptionLabels {
         'Ohne Wiederherstellungsschlüssel lässt sich die Verschlüsselung nur zurücksetzen. Das geht im Web-Chat von NGO.Tools: Einstellungen → Verschlüsselung → „Wiederherstellungsschlüssel vergessen?“ → „Digitale Identität zurücksetzen“.\n\nÄltere verschlüsselte Nachrichten kannst Du danach auf neuen Geräten nicht mehr lesen. Richte anschließend hier die Wiederherstellung neu ein.',
     recoverReminder:
         'Auf diesem Gerät fehlt Dein Wiederherstellungsschlüssel. Gib ihn ein, um ältere verschlüsselte Nachrichten zu lesen.',
+    signOutTitle: 'Verschlüsselte Nachrichten gehen verloren',
+    signOutNoRecovery:
+        'Die Wiederherstellung ist nicht eingerichtet und Du bist nur auf diesem Gerät im Chat angemeldet. Nach dem Abmelden kannst Du Deine verschlüsselten Direktnachrichten nicht mehr lesen.',
+    signOutKeyMissing:
+        'Auf diesem Gerät fehlt Dein Wiederherstellungsschlüssel. Nachrichten, die Du hier erhalten hast, sind deshalb nicht gesichert. Gib den Schlüssel vor dem Abmelden ein.',
+    signOutAnyway: 'Trotzdem abmelden',
   );
 
   /// English texts.
@@ -399,6 +421,12 @@ final class ChatEncryptionLabels {
         'Without the recovery key, encryption can only be reset. You do this in the NGO.Tools web chat: Settings → Encryption → “Forgot recovery key?” → “Reset cryptographic identity”.\n\nAfterwards you cannot read older encrypted messages on new devices. Then set up recovery here again.',
     recoverReminder:
         'Your recovery key is missing on this device. Enter it to read older encrypted messages.',
+    signOutTitle: 'Encrypted messages will be lost',
+    signOutNoRecovery:
+        'Recovery is not set up and this is your only device signed into the chat. After signing out you can no longer read your encrypted direct messages.',
+    signOutKeyMissing:
+        'Your recovery key is missing on this device, so messages you received here are not backed up. Enter the key before signing out.',
+    signOutAnyway: 'Sign out anyway',
   );
 
   /// Whether the recovery key can make a message with [reason] readable.
