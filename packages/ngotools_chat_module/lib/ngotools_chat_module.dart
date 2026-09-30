@@ -13,6 +13,8 @@ export 'src/chat_gateway.dart';
 export 'src/chat_image_picker.dart';
 export 'src/chat_image_views.dart';
 export 'src/chat_labels.dart';
+export 'src/new_chat_page.dart';
+export 'src/room_details_page.dart';
 export 'src/room_list_view.dart';
 export 'src/room_view.dart';
 export 'src/thread_list_view.dart';

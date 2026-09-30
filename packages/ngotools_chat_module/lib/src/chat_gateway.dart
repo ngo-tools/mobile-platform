@@ -115,6 +115,18 @@ abstract interface class ChatGateway {
 
   /// Downloads (and decrypts) media in full size.
   Future<Uint8List> media(ChatMedia media);
+
+  /// Opens (or reuses) the direct chat with [userId]; returns the room id.
+  Future<String> createDirectChat(String userId);
+
+  /// Joined and invited members of a room.
+  Future<List<ChatMember>> members(String roomId);
+
+  /// Notification mode of a room.
+  Future<RoomNotificationSettings> notificationSettings(String roomId);
+
+  /// Sets the notification mode of a room; `null` follows the default.
+  Future<void> setNotificationMode(String roomId, NotificationMode? mode);
 }
 
 /// [ChatGateway] of a signed-in [ChatSession].
@@ -154,6 +166,21 @@ final class SessionChatGateway implements ChatGateway {
 
   @override
   Future<Uint8List> media(ChatMedia media) => session.fetchMedia(media);
+
+  @override
+  Future<String> createDirectChat(String userId) =>
+      session.createDirectChat(userId);
+
+  @override
+  Future<List<ChatMember>> members(String roomId) => session.members(roomId);
+
+  @override
+  Future<RoomNotificationSettings> notificationSettings(String roomId) =>
+      session.notificationSettings(roomId);
+
+  @override
+  Future<void> setNotificationMode(String roomId, NotificationMode? mode) =>
+      session.setNotificationMode(roomId, mode);
 }
 
 final class _RoomList implements ChatRoomListSource {

@@ -89,6 +89,27 @@ final class ChatLabels {
     required this.imageLoadFailed,
     required this.close,
     required this.uploading,
+    required this.newChat,
+    required this.peopleSearchHint,
+    required this.teamMember,
+    required this.contact,
+    required this.noPeople,
+    required this.peopleUnavailable,
+    required this.details,
+    required this.encryptedRoom,
+    required this.managedRoom,
+    required this.notifications,
+    required this.notifyDefault,
+    required this.notifyAll,
+    required this.notifyMentions,
+    required this.notifyMute,
+    required this.members,
+    required this.admin,
+    required this.moderator,
+    required this.invited,
+    required this.leaveChat,
+    required this.leaveTitle,
+    required this.leaveMessage,
   });
 
   /// Screen title.
@@ -340,6 +361,69 @@ final class ChatLabels {
   /// Upload progress.
   final String Function(int percent) uploading;
 
+  /// Starts a direct chat.
+  final String newChat;
+
+  /// Hint of the people search.
+  final String peopleSearchHint;
+
+  /// Kind of a person: team member.
+  final String teamMember;
+
+  /// Kind of a person: contact.
+  final String contact;
+
+  /// No person found.
+  final String noPeople;
+
+  /// The address book cannot be loaded.
+  final String peopleUnavailable;
+
+  /// Room details.
+  final String details;
+
+  /// Room is end-to-end encrypted.
+  final String encryptedRoom;
+
+  /// Room is managed and not encrypted.
+  final String managedRoom;
+
+  /// Notification settings.
+  final String notifications;
+
+  /// Follow the default.
+  final String notifyDefault;
+
+  /// All messages.
+  final String notifyAll;
+
+  /// Mentions only.
+  final String notifyMentions;
+
+  /// Muted.
+  final String notifyMute;
+
+  /// Members heading.
+  final String Function(int count) members;
+
+  /// Role admin.
+  final String admin;
+
+  /// Role moderator.
+  final String moderator;
+
+  /// Member is invited.
+  final String invited;
+
+  /// Leaves a direct chat.
+  final String leaveChat;
+
+  /// Title of the leave confirmation.
+  final String leaveTitle;
+
+  /// Text of the leave confirmation.
+  final String leaveMessage;
+
   /// Text of a message preview.
   String preview(MessagePreview preview) => switch (preview) {
     TextPreview(:final body) => body,
@@ -543,6 +627,30 @@ final class ChatLabels {
     imageLoadFailed: 'Bild konnte nicht geladen werden.',
     close: 'Schließen',
     uploading: (percent) => 'Wird hochgeladen … $percent %',
+    newChat: 'Neuer Chat',
+    peopleSearchHint: 'Name suchen',
+    teamMember: 'Team',
+    contact: 'Kontakt',
+    noPeople: 'Niemand gefunden.',
+    peopleUnavailable: 'Das Adressbuch konnte nicht geladen werden.',
+    details: 'Details',
+    encryptedRoom:
+        'Ende-zu-Ende-verschlüsselt: Nur die Beteiligten können die Nachrichten lesen.',
+    managedRoom:
+        'Gruppe Deiner Organisation, nicht Ende-zu-Ende-verschlüsselt. Mitglieder verwaltet Deine Organisation.',
+    notifications: 'Benachrichtigungen',
+    notifyDefault: 'Standard',
+    notifyAll: 'Alle Nachrichten',
+    notifyMentions: 'Nur Erwähnungen',
+    notifyMute: 'Stumm',
+    members: (count) => count == 1 ? '1 Mitglied' : '$count Mitglieder',
+    admin: 'Admin',
+    moderator: 'Moderation',
+    invited: 'eingeladen',
+    leaveChat: 'Chat verlassen',
+    leaveTitle: 'Chat verlassen?',
+    leaveMessage:
+        'Der Chat verschwindet aus Deiner Liste. Neue Nachrichten erreichen Dich erst, wenn Du ihn wieder startest.',
   );
 
   /// English texts.
@@ -667,5 +775,29 @@ final class ChatLabels {
     imageLoadFailed: 'The image could not be loaded.',
     close: 'Close',
     uploading: (percent) => 'Uploading … $percent%',
+    newChat: 'New chat',
+    peopleSearchHint: 'Search name',
+    teamMember: 'Team',
+    contact: 'Contact',
+    noPeople: 'Nobody found.',
+    peopleUnavailable: 'The address book could not be loaded.',
+    details: 'Details',
+    encryptedRoom:
+        'End-to-end encrypted: only the participants can read the messages.',
+    managedRoom:
+        'Group of your organization, not end-to-end encrypted. Your organization manages the members.',
+    notifications: 'Notifications',
+    notifyDefault: 'Default',
+    notifyAll: 'All messages',
+    notifyMentions: 'Mentions only',
+    notifyMute: 'Muted',
+    members: (count) => count == 1 ? '1 member' : '$count members',
+    admin: 'Admin',
+    moderator: 'Moderator',
+    invited: 'invited',
+    leaveChat: 'Leave chat',
+    leaveTitle: 'Leave chat?',
+    leaveMessage:
+        'The chat disappears from your list. You will only get new messages after starting it again.',
   );
 }
