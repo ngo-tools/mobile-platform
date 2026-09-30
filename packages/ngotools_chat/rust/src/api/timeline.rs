@@ -25,9 +25,9 @@ use matrix_sdk_ui::timeline::{
 use tokio::{sync::Mutex, task::JoinHandle};
 
 use crate::{
-    api::{client::ChatClient, error::ChatError},
+    api::{client::ChatClient, error::ChatError, lifecycle::Lifecycle},
     frb_generated::StreamSink,
-    runtime::{on_runtime, runtime, DropInRuntime},
+    runtime::{runtime, DropInRuntime},
 };
 
 /// Short, localizable description of a message (room list, notifications,
@@ -229,6 +229,7 @@ pub enum TimelineDiff {
 #[frb(opaque)]
 pub struct ChatTimeline {
     timeline: DropInRuntime<Arc<Timeline>>,
+    lifecycle: Arc<Lifecycle>,
     own_user_id: OwnedUserId,
     watch_task: Mutex<Option<JoinHandle<()>>>,
     typing_task: Mutex<Option<JoinHandle<()>>>,
@@ -244,23 +245,26 @@ impl ChatClient {
             .user_id()
             .ok_or(ChatError::SessionExpired)?
             .to_owned();
-        let timeline = on_runtime(async move {
-            let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
-            // Thread replies appear as summaries on their root and in the
-            // thread timeline, not in the main timeline.
-            let timeline = room
-                .timeline_builder()
-                .with_focus(TimelineFocus::Live {
-                    hide_threaded_events: true,
-                })
-                .build()
-                .await?;
-            Ok(Arc::new(timeline))
-        })
-        .await?;
+        let timeline = self
+            .lifecycle
+            .run(async move {
+                let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
+                // Thread replies appear as summaries on their root and in the
+                // thread timeline, not in the main timeline.
+                let timeline = room
+                    .timeline_builder()
+                    .with_focus(TimelineFocus::Live {
+                        hide_threaded_events: true,
+                    })
+                    .build()
+                    .await?;
+                Ok(Arc::new(timeline))
+            })
+            .await?;
 
         Ok(ChatTimeline {
             timeline: DropInRuntime::new(timeline),
+            lifecycle: self.lifecycle.clone(),
             own_user_id,
             watch_task: Mutex::new(None),
             typing_task: Mutex::new(None),
@@ -282,19 +286,22 @@ impl ChatClient {
             .user_id()
             .ok_or(ChatError::SessionExpired)?
             .to_owned();
-        let timeline = on_runtime(async move {
-            let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
-            let timeline = room
-                .timeline_builder()
-                .with_focus(TimelineFocus::Thread { root_event_id })
-                .build()
-                .await?;
-            Ok(Arc::new(timeline))
-        })
-        .await?;
+        let timeline = self
+            .lifecycle
+            .run(async move {
+                let room = client.get_room(&room_id).ok_or(ChatError::NotFound)?;
+                let timeline = room
+                    .timeline_builder()
+                    .with_focus(TimelineFocus::Thread { root_event_id })
+                    .build()
+                    .await?;
+                Ok(Arc::new(timeline))
+            })
+            .await?;
 
         Ok(ChatTimeline {
             timeline: DropInRuntime::new(timeline),
+            lifecycle: self.lifecycle.clone(),
             own_user_id,
             watch_task: Mutex::new(None),
             typing_task: Mutex::new(None),
@@ -339,7 +346,9 @@ impl ChatTimeline {
     /// Loads older events; returns true when the start of the room was reached.
     pub async fn paginate_back(&self, count: u16) -> Result<bool, ChatError> {
         let timeline = self.timeline.clone();
-        on_runtime(async move { Ok(timeline.paginate_backwards(count).await?) }).await
+        self.lifecycle
+            .run(async move { Ok(timeline.paginate_backwards(count).await?) })
+            .await
     }
 
     /// Sends a plain-text message, optionally as a reply to `reply_to`.
@@ -348,19 +357,20 @@ impl ChatTimeline {
             .map(|event_id| parse_event_id(&event_id))
             .transpose()?;
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            let content = RoomMessageEventContentWithoutRelation::text_plain(body);
-            match reply_to {
-                Some(event_id) => {
-                    timeline.send_reply(content, event_id).await?;
+        self.lifecycle
+            .run(async move {
+                let content = RoomMessageEventContentWithoutRelation::text_plain(body);
+                match reply_to {
+                    Some(event_id) => {
+                        timeline.send_reply(content, event_id).await?;
+                    }
+                    None => {
+                        timeline.send(content.with_relation(None).into()).await?;
+                    }
                 }
-                None => {
-                    timeline.send(content.with_relation(None).into()).await?;
-                }
-            }
-            Ok(())
-        })
-        .await
+                Ok(())
+            })
+            .await
     }
 
     /// Sends an image. Upload progress appears on the local echo
@@ -373,53 +383,56 @@ impl ChatTimeline {
             .map_err(|_| ChatError::invalid("invalid mime type"))?;
         let thumbnail = image.thumbnail.map(thumbnail).transpose()?;
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            let config = AttachmentConfig {
-                caption: image.caption.map(TextMessageEventContent::plain),
-                info: Some(AttachmentInfo::Image(BaseImageInfo {
-                    width: image.width.map(UInt::from),
-                    height: image.height.map(UInt::from),
-                    blurhash: image.blurhash,
-                    ..BaseImageInfo::default()
-                })),
-                thumbnail,
-                ..AttachmentConfig::default()
-            };
-            timeline
-                .send_attachment(
-                    AttachmentSource::File(PathBuf::from(image.file_path)),
-                    mime,
-                    config,
-                )
-                .await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                let config = AttachmentConfig {
+                    caption: image.caption.map(TextMessageEventContent::plain),
+                    info: Some(AttachmentInfo::Image(BaseImageInfo {
+                        width: image.width.map(UInt::from),
+                        height: image.height.map(UInt::from),
+                        blurhash: image.blurhash,
+                        ..BaseImageInfo::default()
+                    })),
+                    thumbnail,
+                    ..AttachmentConfig::default()
+                };
+                timeline
+                    .send_attachment(
+                        AttachmentSource::File(PathBuf::from(image.file_path)),
+                        mime,
+                        config,
+                    )
+                    .await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Replaces the text of an own message.
     pub async fn edit(&self, key: EventKey, body: String) -> Result<(), ChatError> {
         let id = item_id(&key)?;
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            let content = RoomMessageEventContentWithoutRelation::text_plain(body);
-            timeline
-                .edit(&id, EditedContent::RoomMessage(content))
-                .await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                let content = RoomMessageEventContentWithoutRelation::text_plain(body);
+                timeline
+                    .edit(&id, EditedContent::RoomMessage(content))
+                    .await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Deletes a message (own messages, or others' with moderation rights).
     pub async fn redact(&self, key: EventKey, reason: Option<String>) -> Result<(), ChatError> {
         let id = item_id(&key)?;
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            timeline.redact(&id, reason.as_deref()).await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                timeline.redact(&id, reason.as_deref()).await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Adds or removes an own reaction; returns true if it is now set.
@@ -430,34 +443,40 @@ impl ChatTimeline {
     ) -> Result<bool, ChatError> {
         let id = item_id(&key)?;
         let timeline = self.timeline.clone();
-        on_runtime(async move { Ok(timeline.toggle_reaction(&id, &reaction).await?) }).await
+        self.lifecycle
+            .run(async move { Ok(timeline.toggle_reaction(&id, &reaction).await?) })
+            .await
     }
 
     /// Retries a local echo whose sending failed.
     pub async fn retry(&self, key: EventKey) -> Result<(), ChatError> {
         let handle = self.send_handle(&key).await?;
-        on_runtime(async move {
-            handle.unwedge().await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                handle.unwedge().await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Cancels a pending or failed local echo; returns false if it was
     /// already sent.
     pub async fn cancel(&self, key: EventKey) -> Result<bool, ChatError> {
         let handle = self.send_handle(&key).await?;
-        on_runtime(async move { Ok(handle.abort().await?) }).await
+        self.lifecycle
+            .run(async move { Ok(handle.abort().await?) })
+            .await
     }
 
     /// Moves the read receipt to the latest event.
     pub async fn mark_read(&self) -> Result<(), ChatError> {
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            timeline.mark_as_read(ReceiptType::Read).await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                timeline.mark_as_read(ReceiptType::Read).await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Loads the replied-to event of `event_id` so that its `reply_to`
@@ -465,11 +484,12 @@ impl ChatTimeline {
     pub async fn load_reply_details(&self, event_id: String) -> Result<(), ChatError> {
         let event_id = parse_event_id(&event_id)?;
         let timeline = self.timeline.clone();
-        on_runtime(async move {
-            timeline.fetch_details_for_event(&event_id).await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                timeline.fetch_details_for_event(&event_id).await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Streams the other members currently typing in this room.
@@ -510,11 +530,12 @@ impl ChatTimeline {
     /// repeated notices and lets them expire).
     pub async fn set_typing(&self, typing: bool) -> Result<(), ChatError> {
         let room = self.timeline.room().clone();
-        on_runtime(async move {
-            room.typing_notice(typing).await?;
-            Ok(())
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                room.typing_notice(typing).await?;
+                Ok(())
+            })
+            .await
     }
 
     /// Stops streaming; the timeline can be watched again later.

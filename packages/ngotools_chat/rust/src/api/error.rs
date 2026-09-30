@@ -173,37 +173,51 @@ fn classify_sdk(error: &matrix_sdk::Error) -> Option<ChatError> {
 
 impl From<anyhow::Error> for ChatError {
     fn from(error: anyhow::Error) -> Self {
-        for cause in error.chain() {
-            if let Some(chat) = cause.downcast_ref::<ChatError>() {
-                return chat.clone_kind();
-            }
-            if let Some(sdk) = cause.downcast_ref::<matrix_sdk::Error>() {
-                if let Some(classified) = classify_sdk(sdk) {
-                    return classified;
-                }
-            }
-            if let Some(http) = cause.downcast_ref::<HttpError>() {
-                if let Some(classified) = classify_http(http) {
-                    return classified;
-                }
-            }
-            if let Some(refresh) = cause.downcast_ref::<RefreshTokenError>() {
-                return classify_refresh(refresh);
-            }
-            if let Some(oauth) = cause.downcast_ref::<OAuthError>() {
-                return classify_oauth(oauth);
-            }
-            if let Some(reqwest) = cause.downcast_ref::<matrix_sdk::reqwest::Error>() {
-                if reqwest.is_connect() || reqwest.is_timeout() {
-                    return ChatError::Network;
-                }
+        classify_chain(error.chain()).unwrap_or_else(|| ChatError::Internal {
+            message: format!("{error:#}"),
+        })
+    }
+}
+
+/// Classifies any error by its source chain (e.g. `SyncService` errors);
+/// unknown errors become `Internal`.
+pub(crate) fn classify_error(error: &(dyn std::error::Error + 'static)) -> ChatError {
+    let chain = std::iter::successors(Some(error), |error| error.source());
+    classify_chain(chain).unwrap_or_else(|| ChatError::Internal {
+        message: error.to_string(),
+    })
+}
+
+fn classify_chain<'a>(
+    chain: impl Iterator<Item = &'a (dyn std::error::Error + 'static)>,
+) -> Option<ChatError> {
+    for cause in chain {
+        if let Some(chat) = cause.downcast_ref::<ChatError>() {
+            return Some(chat.clone_kind());
+        }
+        if let Some(sdk) = cause.downcast_ref::<matrix_sdk::Error>() {
+            if let Some(classified) = classify_sdk(sdk) {
+                return Some(classified);
             }
         }
-
-        ChatError::Internal {
-            message: format!("{error:#}"),
+        if let Some(http) = cause.downcast_ref::<HttpError>() {
+            if let Some(classified) = classify_http(http) {
+                return Some(classified);
+            }
+        }
+        if let Some(refresh) = cause.downcast_ref::<RefreshTokenError>() {
+            return Some(classify_refresh(refresh));
+        }
+        if let Some(oauth) = cause.downcast_ref::<OAuthError>() {
+            return Some(classify_oauth(oauth));
+        }
+        if let Some(reqwest) = cause.downcast_ref::<matrix_sdk::reqwest::Error>() {
+            if reqwest.is_connect() || reqwest.is_timeout() {
+                return Some(ChatError::Network);
+            }
         }
     }
+    None
 }
 
 impl ChatError {
@@ -294,6 +308,37 @@ mod tests {
             "connection refused".to_owned(),
         )));
         assert!(matches!(classify_oauth(&offline), ChatError::Network));
+    }
+
+    #[test]
+    fn classifies_errors_through_their_source_chain() {
+        use super::classify_error;
+
+        #[derive(Debug)]
+        struct Wrapper(ChatError);
+
+        impl std::fmt::Display for Wrapper {
+            fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(formatter, "sync failed")
+            }
+        }
+
+        impl std::error::Error for Wrapper {
+            fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+                Some(&self.0)
+            }
+        }
+
+        assert!(matches!(
+            classify_error(&Wrapper(ChatError::SessionExpired)),
+            ChatError::SessionExpired
+        ));
+        assert!(matches!(
+            classify_error(&ChatError::Internal {
+                message: "x".into()
+            }),
+            ChatError::Internal { .. }
+        ));
     }
 
     #[test]

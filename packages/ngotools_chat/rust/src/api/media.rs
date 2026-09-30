@@ -5,10 +5,7 @@ use matrix_sdk::{
     ruma::{events::room::MediaSource, UInt},
 };
 
-use crate::{
-    api::{client::ChatClient, error::ChatError},
-    runtime::on_runtime,
-};
+use crate::api::{client::ChatClient, error::ChatError};
 
 impl ChatClient {
     /// Downloads (and decrypts) media referenced by a timeline item
@@ -16,14 +13,15 @@ impl ChatClient {
     pub async fn fetch_media(&self, media: String) -> Result<Vec<u8>, ChatError> {
         let source = parse_media(&media)?;
         let client = self.client.clone();
-        on_runtime(async move {
-            let request = MediaRequestParameters {
-                source,
-                format: MediaFormat::File,
-            };
-            Ok(client.media().get_media_content(&request, true).await?)
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                let request = MediaRequestParameters {
+                    source,
+                    format: MediaFormat::File,
+                };
+                Ok(client.media().get_media_content(&request, true).await?)
+            })
+            .await
     }
 
     /// Downloads a scaled preview (`width` x `height`, aspect kept). The
@@ -38,15 +36,16 @@ impl ChatClient {
     ) -> Result<Vec<u8>, ChatError> {
         let source = parse_media(&media)?;
         let client = self.client.clone();
-        on_runtime(async move {
-            let settings = MediaThumbnailSettings::new(UInt::from(width), UInt::from(height));
-            let request = MediaRequestParameters {
-                source,
-                format: MediaFormat::Thumbnail(settings),
-            };
-            Ok(client.media().get_media_content(&request, true).await?)
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                let settings = MediaThumbnailSettings::new(UInt::from(width), UInt::from(height));
+                let request = MediaRequestParameters {
+                    source,
+                    format: MediaFormat::Thumbnail(settings),
+                };
+                Ok(client.media().get_media_content(&request, true).await?)
+            })
+            .await
     }
 }
 

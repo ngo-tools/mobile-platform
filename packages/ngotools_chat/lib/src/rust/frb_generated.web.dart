@@ -9,6 +9,7 @@
 import 'api/client.dart';
 import 'api/encryption.dart';
 import 'api/error.dart';
+import 'api/lifecycle.dart';
 import 'api/logging.dart';
 import 'api/notifications.dart';
 import 'api/room.dart';
@@ -98,9 +99,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  RustStreamSink<String> dco_decode_StreamSink_String_Sse(dynamic raw);
-
-  @protected
   RustStreamSink<List<RoomListDiff>>
   dco_decode_StreamSink_list_room_list_diff_Sse(dynamic raw);
 
@@ -116,6 +114,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   RustStreamSink<List<TimelineDiff>>
   dco_decode_StreamSink_list_timeline_diff_Sse(dynamic raw);
+
+  @protected
+  RustStreamSink<SessionState> dco_decode_StreamSink_session_state_Sse(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<SyncStatus> dco_decode_StreamSink_sync_status_Sse(dynamic raw);
 
   @protected
   String dco_decode_String(dynamic raw);
@@ -247,6 +253,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<TimelineItem> dco_decode_list_timeline_item(dynamic raw);
 
   @protected
+  LogLevel dco_decode_log_level(dynamic raw);
+
+  @protected
   Member dco_decode_member(dynamic raw);
 
   @protected
@@ -351,6 +360,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionInfo dco_decode_session_info(dynamic raw);
 
   @protected
+  SessionState dco_decode_session_state(dynamic raw);
+
+  @protected
+  SyncStatus dco_decode_sync_status(dynamic raw);
+
+  @protected
   ThreadEvent dco_decode_thread_event(dynamic raw);
 
   @protected
@@ -450,11 +465,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  RustStreamSink<String> sse_decode_StreamSink_String_Sse(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   RustStreamSink<List<RoomListDiff>>
   sse_decode_StreamSink_list_room_list_diff_Sse(SseDeserializer deserializer);
 
@@ -470,6 +480,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   RustStreamSink<List<TimelineDiff>>
   sse_decode_StreamSink_list_timeline_diff_Sse(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<SessionState> sse_decode_StreamSink_session_state_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<SyncStatus> sse_decode_StreamSink_sync_status_Sse(
+    SseDeserializer deserializer,
+  );
 
   @protected
   String sse_decode_String(SseDeserializer deserializer);
@@ -627,6 +647,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  LogLevel sse_decode_log_level(SseDeserializer deserializer);
+
+  @protected
   Member sse_decode_member(SseDeserializer deserializer);
 
   @protected
@@ -753,6 +776,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   SessionInfo sse_decode_session_info(SseDeserializer deserializer);
 
   @protected
+  SessionState sse_decode_session_state(SseDeserializer deserializer);
+
+  @protected
+  SyncStatus sse_decode_sync_status(SseDeserializer deserializer);
+
+  @protected
   ThreadEvent sse_decode_thread_event(SseDeserializer deserializer);
 
   @protected
@@ -864,12 +893,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_StreamSink_String_Sse(
-    RustStreamSink<String> self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_StreamSink_list_room_list_diff_Sse(
     RustStreamSink<List<RoomListDiff>> self,
     SseSerializer serializer,
@@ -890,6 +913,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_StreamSink_list_timeline_diff_Sse(
     RustStreamSink<List<TimelineDiff>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_session_state_Sse(
+    RustStreamSink<SessionState> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_sync_status_Sse(
+    RustStreamSink<SyncStatus> self,
     SseSerializer serializer,
   );
 
@@ -1101,6 +1136,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_log_level(LogLevel self, SseSerializer serializer);
+
+  @protected
   void sse_encode_member(Member self, SseSerializer serializer);
 
   @protected
@@ -1252,6 +1290,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_session_info(SessionInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_session_state(SessionState self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_sync_status(SyncStatus self, SseSerializer serializer);
 
   @protected
   void sse_encode_thread_event(ThreadEvent self, SseSerializer serializer);

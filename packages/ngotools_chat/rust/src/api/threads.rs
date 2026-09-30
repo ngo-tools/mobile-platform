@@ -15,10 +15,11 @@ use crate::{
     api::{
         client::ChatClient,
         error::ChatError,
+        lifecycle::Lifecycle,
         timeline::{message_preview, sender, MessagePreview, Sender},
     },
     frb_generated::StreamSink,
-    runtime::{on_runtime, runtime, DropInRuntime},
+    runtime::{runtime, DropInRuntime},
 };
 
 pub struct ThreadEvent {
@@ -53,6 +54,7 @@ pub enum ThreadListDiff {
 #[frb(opaque)]
 pub struct ChatThreadList {
     service: DropInRuntime<Arc<ThreadListService>>,
+    lifecycle: Arc<Lifecycle>,
     watch_task: Mutex<Option<JoinHandle<()>>>,
 }
 
@@ -63,9 +65,13 @@ impl ChatClient {
             RoomId::parse(&room_id).map_err(|error| ChatError::invalid(error.to_string()))?;
         let room = self.client.get_room(&room_id).ok_or(ChatError::NotFound)?;
         // The service spawns its event cache listener, which needs the runtime.
-        let service = on_runtime(async move { Ok(Arc::new(ThreadListService::new(room))) }).await?;
+        let service = self
+            .lifecycle
+            .run(async move { Ok(Arc::new(ThreadListService::new(room))) })
+            .await?;
         Ok(ChatThreadList {
             service: DropInRuntime::new(service),
+            lifecycle: self.lifecycle.clone(),
             watch_task: Mutex::new(None),
         })
     }
@@ -101,19 +107,20 @@ impl ChatThreadList {
     /// Loads the next page of threads; returns true when all are loaded.
     pub async fn paginate(&self) -> Result<bool, ChatError> {
         let service = self.service.clone();
-        on_runtime(async move {
-            tracing::debug!("thread list: paginate");
-            service
-                .paginate()
-                .await
-                .map_err(|error| anyhow::anyhow!("{error}"))?;
-            tracing::debug!(state = ?service.pagination_state(), "thread list: paginated");
-            Ok(matches!(
-                service.pagination_state(),
-                ThreadListPaginationState::Idle { end_reached: true }
-            ))
-        })
-        .await
+        self.lifecycle
+            .run(async move {
+                tracing::debug!("thread list: paginate");
+                service
+                    .paginate()
+                    .await
+                    .map_err(|error| anyhow::anyhow!("{error}"))?;
+                tracing::debug!(state = ?service.pagination_state(), "thread list: paginated");
+                Ok(matches!(
+                    service.pagination_state(),
+                    ThreadListPaginationState::Idle { end_reached: true }
+                ))
+            })
+            .await
     }
 
     /// Stops streaming.

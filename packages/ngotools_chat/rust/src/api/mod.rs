@@ -1,6 +1,7 @@
 pub mod client;
 pub mod encryption;
 pub mod error;
+pub mod lifecycle;
 pub mod logging;
 pub mod media;
 pub mod notifications;

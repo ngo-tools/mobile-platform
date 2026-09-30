@@ -68,6 +68,8 @@ class TestUser {
   final String name;
   final ChatClient client;
   final RoomListController roomList;
+  final syncStatus = ValueNotifier<SyncStatus?>(null);
+  final sessionState = ValueNotifier<SessionState?>(null);
 
   List<RoomSummary> get lastRooms => roomList.rooms.value;
 
@@ -291,9 +293,6 @@ Future<TestUser> loginUser(
 
   stopwatch.reset();
   await client.startSync();
-  client.watchSyncState().listen(
-    (state) => debugPrint('E2E_SYNC $name=$state'),
-  );
   final roomList = RoomListController(client);
   roomList.rooms.addListener(
     () => debugPrint(
@@ -301,6 +300,14 @@ Future<TestUser> loginUser(
     ),
   );
   final user = TestUser(name, client, roomList);
+  client.watchSyncStatus().listen((status) {
+    user.syncStatus.value = status;
+    debugPrint('E2E_SYNC $name=${status.name}');
+  });
+  client.watchSessionState().listen((state) {
+    user.sessionState.value = state;
+    debugPrint('E2E_SESSION $name=${state.name}');
+  });
   final firstBatch = Completer<void>();
   void onFirstBatch() {
     if (!firstBatch.isCompleted) {
@@ -424,7 +431,7 @@ void main() {
     final logFile = hostLogFile.isNotEmpty
         ? hostLogFile
         : '${(await getApplicationSupportDirectory()).path}/chat-rust.log';
-    await initLogging(logFile: logFile);
+    await initLogging(logFile: logFile, level: LogLevel.debug);
     debugPrint('E2E_RUST_LOG=$logFile');
   });
 
@@ -758,6 +765,29 @@ void main() {
         .timeout(const Duration(seconds: 30));
     metric('members_typing', 'ok');
 
+    // App in the background: no sync while paused, catch-up on resume.
+    expect(bob.sessionState.value, SessionState.active);
+    await bob.client.pause();
+    await waitForValue(
+      bob.syncStatus,
+      (status) => status != SyncStatus.running,
+    );
+    final pausedBody = 'Während der Pause ($run)';
+    await alice.timeline.sendText(body: pausedBody);
+    await alice.waitForTimeline(
+      (items) => hasText(items, pausedBody, confirmed: true),
+    );
+    await Future<void>.delayed(const Duration(seconds: 3));
+    expect(
+      hasText(bob.lastTimeline, pausedBody),
+      isFalse,
+      reason: 'a paused client does not sync',
+    );
+    stopwatch = Stopwatch()..start();
+    await bob.client.resume();
+    await bob.waitForTimeline((items) => hasText(items, pausedBody));
+    metric('resume_catch_up_ms', stopwatch.elapsedMilliseconds);
+
     // Push: pusher for Bob (event_id_only), notification resolved + decrypted like the FCM handler / NSE.
     final pushKey = 'e2e-$platform-$run';
     await bob.client.registerPusher(
@@ -943,7 +973,48 @@ void main() {
     expect(await afterLogout.restoreSession(), isNull);
     await afterLogout.shutdown();
 
+    // Sessions ended on the server: the sync stops and reports `expired`
+    // instead of retrying; resuming is refused.
+    stopwatch = Stopwatch()..start();
+    debugPrint('E2E_MAS kill-sessions $bobName');
+    await waitForValue(
+      bob.sessionState,
+      (state) => state == SessionState.expired,
+      timeout: const Duration(seconds: 120),
+    );
+    metric('session_expired_detected_ms', stopwatch.elapsedMilliseconds);
+    await expectLater(
+      bob.client.resume(),
+      throwsA(isA<ChatError_SessionExpired>()),
+    );
+
+    // Locked account: record how MAS reports it (locked or expired).
+    final aliceState = ValueNotifier<SessionState?>(null);
+    aliceAgain.watchSessionState().listen((state) => aliceState.value = state);
+    debugPrint('E2E_MAS lock-user $aliceName');
+    ChatError? lockError;
+    final lockDeadline = DateTime.now().add(const Duration(seconds: 120));
+    while (lockError == null && DateTime.now().isBefore(lockDeadline)) {
+      try {
+        await aliceAgain.whoami();
+        await Future<void>.delayed(const Duration(seconds: 2));
+      } on ChatError catch (error) {
+        lockError = error;
+      }
+    }
+    metric('locked_account_error', lockError.runtimeType);
+    expect(
+      lockError,
+      anyOf(isA<ChatError_AccountLocked>(), isA<ChatError_SessionExpired>()),
+    );
+    final lockedState = await waitForValue(
+      aliceState,
+      (state) => state == SessionState.locked || state == SessionState.expired,
+      timeout: const Duration(seconds: 10),
+    );
+    metric('locked_account_state', lockedState!.name);
+
     await bob.client.shutdown();
     await aliceAgain.shutdown();
-  }, timeout: const Timeout(Duration(minutes: 10)));
+  }, timeout: const Timeout(Duration(minutes: 12)));
 }
