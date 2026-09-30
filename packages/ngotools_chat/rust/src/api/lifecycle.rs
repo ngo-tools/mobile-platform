@@ -241,7 +241,7 @@ async fn restart_after_error(
     service.start().await;
 }
 
-fn sync_status(state: &SyncState) -> SyncStatus {
+pub(crate) fn sync_status(state: &SyncState) -> SyncStatus {
     match state {
         SyncState::Idle => SyncStatus::Idle,
         SyncState::Running => SyncStatus::Running,

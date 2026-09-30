@@ -51,6 +51,14 @@ only. A token refresh that fails for lack of connectivity is `network`, never
 
 ## Session and lifecycle
 
+Organization apps sign in without a browser: NGO.Tools issues a chat session
+for the device (MAS personal session with a fixed device id) and the app
+passes it to `signInWithToken`; renewed tokens go to `updateAccessToken`
+while the session keeps running (swapped in like a refresh by another
+process). NGO.Tools revokes these sessions, so `logout()` only forgets them
+locally. `startLogin`/`finishLogin` (OAuth in the system browser) remain for
+other clients.
+
 `ChatSession.state` is `signedOut`, `active`, `expired` (tokens revoked or
 rejected) or `locked`. On `expired`/`locked` the sync stops and `resume()`
 fails; the app signs in again. With MAS a locked account shows as `expired`
