@@ -178,3 +178,21 @@ python3 e2e/server/push_gateway.py 28451 &
 e2e/run.sh ios <simulator-udid>
 e2e/run.sh android <emulator-serial>   # rootable emulator started with -read-only
 ```
+
+`python3 e2e/issued_session.py` checks sessions issued through the MAS admin
+API against the same local server.
+
+### Acceptance against an NGO.Tools instance
+
+An ignored test signs in through the NGO.Tools API of a real instance with the
+real SDK: issue, sync, renew while running, restore after a restart. It needs
+an API token of a team member with an active chat account, restricted to
+`chat:login` and `chat:read`; the test never prints tokens.
+
+```bash
+cd rust
+CHAT_ACCEPTANCE_API=https://<instance>.ngo.tools CHAT_ACCEPTANCE_TOKEN=… \
+  cargo test -- --ignored acceptance --nocapture
+```
+
+The session stays active afterwards; end it by deleting the API token.
