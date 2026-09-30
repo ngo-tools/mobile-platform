@@ -5,6 +5,8 @@ pub mod encryption;
 pub mod error;
 #[cfg(test)]
 mod issued_session_tests;
+#[cfg(test)]
+mod leave_room_tests;
 pub mod lifecycle;
 pub mod logging;
 pub mod media;

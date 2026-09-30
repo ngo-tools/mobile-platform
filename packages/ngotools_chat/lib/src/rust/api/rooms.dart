@@ -10,8 +10,9 @@ import 'room.dart';
 import 'timeline.dart';
 part 'rooms.freezed.dart';
 
-// These functions are ignored because they are not marked as `pub`: `display_name`, `filter_for`, `latest_event`, `map_diff`, `refresh_notification_mode`, `send_room_command`, `summarize_all`, `summarize`, `to_u32`
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `RoomListCommand`
+// These functions are ignored because they are not marked as `pub`: `display_name`, `filter_for`, `latest_event`, `map_diff`, `not_left`, `refilter_room_lists`, `refresh_notification_mode`, `send_room_command`, `stop_room_lists`, `summarize_all`, `summarize`, `to_u32`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `RoomListCommand`, `RoomListWatch`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
 
 class LatestEvent {
   final String senderId;

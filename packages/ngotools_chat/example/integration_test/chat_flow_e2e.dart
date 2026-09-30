@@ -950,6 +950,13 @@ void main() {
     expect(await afterLogout.restore(), isNull);
     await afterLogout.dispose();
 
+    // Leaving the DM (also how an invite is declined) removes it from the
+    // room list.
+    stopwatch = Stopwatch()..start();
+    await bob.session.leaveRoom(roomId);
+    await bob.waitForRooms((rooms) => rooms.every((room) => room.id != roomId));
+    metric('leave_room_ms', stopwatch.elapsedMilliseconds);
+
     // Sessions ended on the server: the sync stops and reports `expired`
     // instead of retrying; resuming is refused.
     stopwatch = Stopwatch()..start();

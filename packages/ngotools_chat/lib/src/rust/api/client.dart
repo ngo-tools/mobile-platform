@@ -60,8 +60,12 @@ abstract class ChatClient implements RustOpaqueInterface {
 
   Future<void> joinRoom({required String roomId});
 
+  /// Leaves a joined room or declines an invite; the room disappears from
+  /// the room list.
+  Future<void> leaveRoom({required String roomId});
+
   /// Extends the visible room list by one page.
-  Future<void> loadMoreRooms();
+  Future<void> loadMoreRooms({required BigInt watchId});
 
   /// Starts an OAuth 2.0 authorization code flow with PKCE against MAS
   /// (dynamic client registration) and returns the URL for the system
@@ -104,7 +108,10 @@ abstract class ChatClient implements RustOpaqueInterface {
     required String roomId,
   });
 
-  Future<void> setRoomFilter({required RoomFilter filter});
+  Future<void> setRoomFilter({
+    required BigInt watchId,
+    required RoomFilter filter,
+  });
 
   /// Sets the room's mode; `None` restores the account default.
   Future<void> setRoomNotificationMode({
@@ -127,8 +134,8 @@ abstract class ChatClient implements RustOpaqueInterface {
   /// Starts the sync service (Simplified Sliding Sync + encryption sync).
   Future<void> startSync();
 
-  /// Stops the room list stream; the Dart stream ends.
-  Future<void> stopRoomList();
+  /// Stops a room list stream; its Dart stream ends.
+  Future<void> stopRoomList({required BigInt watchId});
 
   Future<void> stopSync();
 
@@ -155,8 +162,9 @@ abstract class ChatClient implements RustOpaqueInterface {
   Future<String> verificationState();
 
   /// Streams the room list as diffs. The first batch resets the list.
-  /// Starting a new watch replaces the previous one.
-  Stream<List<RoomListDiff>> watchRoomList();
+  /// Several lists may run at once, each with its own filter and paging,
+  /// identified by [watch_id]; starting a watch with a used id replaces it.
+  Stream<List<RoomListDiff>> watchRoomList({required BigInt watchId});
 
   /// Streams the session state; starts with the current one.
   Stream<SessionState> watchSessionState();

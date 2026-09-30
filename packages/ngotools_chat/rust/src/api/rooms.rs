@@ -12,8 +12,8 @@ use matrix_sdk_ui::{
     room_list_service::{
         filters::{
             new_filter_all, new_filter_category, new_filter_deduplicate_versions,
-            new_filter_invite, new_filter_joined, new_filter_non_left, new_filter_read_receipts,
-            BoxedFilterFn, ReadReceiptsCategory, RoomCategory,
+            new_filter_invite, new_filter_joined, new_filter_read_receipts, BoxedFilterFn,
+            ReadReceiptsCategory, RoomCategory,
         },
         RoomListItem,
     },
@@ -34,6 +34,7 @@ use crate::{
 
 const PAGE_SIZE: usize = 50;
 
+#[derive(Clone, Copy)]
 pub enum RoomFilter {
     /// Joined rooms and invites.
     All,
@@ -95,16 +96,27 @@ pub enum RoomListDiff {
     Reset { values: Vec<RoomSummary> },
 }
 
+/// A running room list watch.
+pub(crate) struct RoomListWatch {
+    task: tokio::task::JoinHandle<()>,
+    commands: mpsc::UnboundedSender<RoomListCommand>,
+}
+
 pub(crate) enum RoomListCommand {
     Filter(RoomFilter),
     LoadMore,
+    /// Applies the active filter again: the SDK does not re-filter a room
+    /// this device just left.
+    Refilter,
 }
 
 impl ChatClient {
     /// Streams the room list as diffs. The first batch resets the list.
-    /// Starting a new watch replaces the previous one.
+    /// Several lists may run at once, each with its own filter and paging,
+    /// identified by [watch_id]; starting a watch with a used id replaces it.
     pub async fn watch_room_list(
         &self,
+        watch_id: u64,
         sink: StreamSink<Vec<RoomListDiff>>,
     ) -> Result<(), ChatError> {
         let service = self.sync_service().await?;
@@ -120,6 +132,11 @@ impl ChatClient {
                 .await
                 .subscribe_to_changes();
             let mut settings_open = true;
+            // The SDK's list does not drop rooms this account left (declined,
+            // left or was removed): re-apply the filter when a sync reports
+            // left rooms.
+            let mut room_updates = client.subscribe_to_all_room_updates();
+            let mut room_updates_open = true;
             let mut visible = Vector::new();
             let room_list_service = service.room_list_service();
             let all_rooms = match room_list_service.all_rooms().await {
@@ -130,19 +147,24 @@ impl ChatClient {
                 }
             };
             let (stream, controller) = all_rooms.entries_with_dynamic_adapters(PAGE_SIZE);
-            controller.set_filter(filter_for(RoomFilter::All));
+            let mut active_filter = RoomFilter::All;
+            controller.set_filter(filter_for(active_filter));
             pin_mut!(stream);
 
             loop {
                 tokio::select! {
                     diffs = stream.next() => {
-                        let Some(diffs) = diffs else { break };
+                        let Some(diffs) = diffs else {
+                            tracing::debug!("room list: entries stream ended");
+                            break;
+                        };
                         let mut mapped = Vec::with_capacity(diffs.len());
                         for diff in diffs {
                             diff.clone().apply(&mut visible);
                             mapped.push(map_diff(diff).await);
                         }
                         if sink.add(mapped).is_err() {
+                            tracing::debug!("room list: sink closed");
                             break;
                         }
                     }
@@ -162,48 +184,94 @@ impl ChatClient {
                             break;
                         }
                     }
+                    update = room_updates.recv(), if room_updates_open => match update {
+                        Ok(update) if !update.left.is_empty() => {
+                            tracing::debug!(left = update.left.len(), "room list: refilter after sync");
+                            controller.set_filter(filter_for(active_filter));
+                        }
+                        Ok(_) => {}
+                        Err(broadcast::error::RecvError::Lagged(_)) => {
+                            controller.set_filter(filter_for(active_filter));
+                        }
+                        Err(broadcast::error::RecvError::Closed) => room_updates_open = false,
+                    },
                     command = command_receiver.recv() => match command {
                         Some(RoomListCommand::Filter(filter)) => {
+                            active_filter = filter;
                             controller.set_filter(filter_for(filter));
                         }
+                        Some(RoomListCommand::Refilter) => {
+                            tracing::debug!("room list: refilter after leave");
+                            controller.set_filter(filter_for(active_filter));
+                        }
                         Some(RoomListCommand::LoadMore) => controller.add_one_page(),
-                        None => break,
+                        None => {
+                            tracing::debug!("room list: command channel closed");
+                            break;
+                        }
                     },
                 }
             }
         });
 
-        *self.room_commands.lock().await = Some(commands);
-        if let Some(previous) = self.room_task.lock().await.replace(task) {
-            previous.abort();
+        let previous = self
+            .room_lists
+            .lock()
+            .await
+            .insert(watch_id, RoomListWatch { task, commands });
+        if let Some(previous) = previous {
+            previous.task.abort();
         }
         Ok(())
     }
 
-    /// Stops the room list stream; the Dart stream ends.
-    pub async fn stop_room_list(&self) {
-        self.room_commands.lock().await.take();
-        if let Some(task) = self.room_task.lock().await.take() {
-            task.abort();
+    /// Stops a room list stream; its Dart stream ends.
+    pub async fn stop_room_list(&self, watch_id: u64) {
+        if let Some(watch) = self.room_lists.lock().await.remove(&watch_id) {
+            watch.task.abort();
         }
     }
 
-    pub async fn set_room_filter(&self, filter: RoomFilter) -> Result<(), ChatError> {
-        self.send_room_command(RoomListCommand::Filter(filter))
+    /// Stops all room list streams.
+    pub(crate) async fn stop_room_lists(&self) {
+        for (_, watch) in self.room_lists.lock().await.drain() {
+            watch.task.abort();
+        }
+    }
+
+    pub async fn set_room_filter(
+        &self,
+        watch_id: u64,
+        filter: RoomFilter,
+    ) -> Result<(), ChatError> {
+        self.send_room_command(watch_id, RoomListCommand::Filter(filter))
             .await
     }
 
     /// Extends the visible room list by one page.
-    pub async fn load_more_rooms(&self) -> Result<(), ChatError> {
-        self.send_room_command(RoomListCommand::LoadMore).await
+    pub async fn load_more_rooms(&self, watch_id: u64) -> Result<(), ChatError> {
+        self.send_room_command(watch_id, RoomListCommand::LoadMore)
+            .await
     }
 
-    async fn send_room_command(&self, command: RoomListCommand) -> Result<(), ChatError> {
-        self.room_commands
+    /// Re-filters all watched room lists.
+    pub(crate) async fn refilter_room_lists(&self) {
+        for watch in self.room_lists.lock().await.values() {
+            let _ = watch.commands.send(RoomListCommand::Refilter);
+        }
+    }
+
+    async fn send_room_command(
+        &self,
+        watch_id: u64,
+        command: RoomListCommand,
+    ) -> Result<(), ChatError> {
+        self.room_lists
             .lock()
             .await
-            .as_ref()
+            .get(&watch_id)
             .ok_or_else(|| ChatError::invalid("room list is not being watched"))?
+            .commands
             .send(command)
             .map_err(|_| ChatError::invalid("room list is not being watched"))
     }
@@ -219,16 +287,22 @@ async fn refresh_notification_mode(settings: &NotificationSettings, room: &RoomL
     }
 }
 
-fn filter_for(filter: RoomFilter) -> BoxedFilterFn {
+/// Like the SDK's non-left filter, but on the live room state: the SDK's
+/// cached state does not change when this device leaves or declines a room.
+fn not_left(room: &RoomListItem) -> bool {
+    !matches!(room.state(), RoomState::Left | RoomState::Banned)
+}
+
+pub(crate) fn filter_for(filter: RoomFilter) -> BoxedFilterFn {
     let visible: BoxedFilterFn = Box::new(new_filter_all(vec![
-        Box::new(new_filter_non_left()),
+        Box::new(not_left),
         Box::new(new_filter_deduplicate_versions()),
     ]));
     let specific: BoxedFilterFn = match filter {
         RoomFilter::All => return visible,
         RoomFilter::People => Box::new(new_filter_category(RoomCategory::People)),
         RoomFilter::Groups => Box::new(new_filter_category(RoomCategory::Group)),
-        RoomFilter::Invites => return Box::new(new_filter_invite()),
+        RoomFilter::Invites => Box::new(new_filter_invite()),
         RoomFilter::Unread => Box::new(new_filter_all(vec![
             Box::new(new_filter_joined()),
             Box::new(new_filter_read_receipts(ReadReceiptsCategory::Messages)),
@@ -311,8 +385,17 @@ async fn summarize(room: &RoomListItem) -> RoomSummary {
     }
 }
 
+/// Longest wait for a latest event: a stuck lookup must not stall the whole
+/// room list.
+const LATEST_EVENT_TIMEOUT: std::time::Duration = std::time::Duration::from_millis(500);
+
 async fn latest_event(room: &RoomListItem) -> Option<LatestEvent> {
-    match room.latest_event().await {
+    let Ok(latest) = tokio::time::timeout(LATEST_EVENT_TIMEOUT, room.latest_event()).await else {
+        tracing::warn!(room_id = %room.room_id(), "room list: latest event timed out");
+        return None;
+    };
+
+    match latest {
         LatestEventValue::None | LatestEventValue::RemoteInvite { .. } => None,
         LatestEventValue::Remote {
             timestamp,

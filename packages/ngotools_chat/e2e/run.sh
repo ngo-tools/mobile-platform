@@ -84,7 +84,13 @@ mkdir -p "$SHOTS"
     fi
 done) &
 WATCHER=$!
-trap 'kill $WATCHER 2>/dev/null' EXIT
+# The watcher runs `tail -F` and the read loop as child processes; stop them
+# too, or they outlive the run and react to later logs.
+stop_watcher() {
+    pkill -TERM -P "$WATCHER" 2>/dev/null
+    kill "$WATCHER" 2>/dev/null
+}
+trap stop_watcher EXIT
 
 cd "$EXAMPLE"
 echo "Users: $ALICE / $BOB — log: $LOG"
