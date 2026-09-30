@@ -12,3 +12,6 @@ export 'src/chat_device_store.dart';
 export 'src/chat_gateway.dart';
 export 'src/chat_labels.dart';
 export 'src/room_list_view.dart';
+export 'src/room_view.dart';
+export 'src/thread_list_view.dart';
+export 'src/timeline_tiles.dart';

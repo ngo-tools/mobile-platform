@@ -46,6 +46,42 @@ final class ChatLabels {
     required this.noAccount,
     required this.accessWithdrawn,
     required this.accountClosed,
+    required this.timelineStart,
+    required this.newMessages,
+    required this.today,
+    required this.weekdays,
+    required this.months,
+    required this.edited,
+    required this.composerHint,
+    required this.send,
+    required this.replyingTo,
+    required this.editing,
+    required this.cancel,
+    required this.reply,
+    required this.replyInThread,
+    required this.copy,
+    required this.copied,
+    required this.edit,
+    required this.delete,
+    required this.deleteTitle,
+    required this.deleteMessage,
+    required this.retrySend,
+    required this.discard,
+    required this.sending,
+    required this.sent,
+    required this.sendFailed,
+    required this.typing,
+    required this.threadReplies,
+    required this.threads,
+    required this.noThreads,
+    required this.thread,
+    required this.membership,
+    required this.profileChanged,
+    required this.roomChanged,
+    required this.unsupportedMessage,
+    required this.encryptedMessage,
+    required this.replyLoading,
+    required this.fullDate,
   });
 
   /// Screen title.
@@ -168,6 +204,114 @@ final class ChatLabels {
   /// Account closed.
   final String accountClosed;
 
+  /// Start of the conversation.
+  final String timelineStart;
+
+  /// Read marker.
+  final String newMessages;
+
+  /// Date label for today.
+  final String today;
+
+  /// Monday to Sunday.
+  final List<String> weekdays;
+
+  /// January to December.
+  final List<String> months;
+
+  /// Marks an edited message.
+  final String edited;
+
+  /// Hint of the message field.
+  final String composerHint;
+
+  /// Send button.
+  final String send;
+
+  /// Banner while replying.
+  final String Function(String name) replyingTo;
+
+  /// Banner while editing.
+  final String editing;
+
+  /// Cancel action.
+  final String cancel;
+
+  /// Reply action.
+  final String reply;
+
+  /// Opens the thread of a message.
+  final String replyInThread;
+
+  /// Copies the text.
+  final String copy;
+
+  /// Confirms copying.
+  final String copied;
+
+  /// Edit action.
+  final String edit;
+
+  /// Delete action.
+  final String delete;
+
+  /// Title of the delete confirmation.
+  final String deleteTitle;
+
+  /// Text of the delete confirmation.
+  final String deleteMessage;
+
+  /// Sends a failed message again.
+  final String retrySend;
+
+  /// Discards an unsent message.
+  final String discard;
+
+  /// Screen reader label while sending.
+  final String sending;
+
+  /// Screen reader label once sent.
+  final String sent;
+
+  /// A message could not be sent.
+  final String sendFailed;
+
+  /// Who is typing.
+  final String Function(List<String> names) typing;
+
+  /// Replies in a thread.
+  final String Function(int count) threadReplies;
+
+  /// Thread overview.
+  final String threads;
+
+  /// Empty thread overview.
+  final String noThreads;
+
+  /// Title of a thread.
+  final String thread;
+
+  /// Membership change.
+  final String Function(String name, MembershipChange change) membership;
+
+  /// Profile change.
+  final String Function(String name) profileChanged;
+
+  /// Room settings changed.
+  final String roomChanged;
+
+  /// Message the app cannot show.
+  final String unsupportedMessage;
+
+  /// Message this device cannot decrypt (yet).
+  final String encryptedMessage;
+
+  /// Replied-to message not loaded yet.
+  final String replyLoading;
+
+  /// Weekday, day and month of a date divider.
+  final String Function(String weekday, int day, String month) fullDate;
+
   /// Text of a message preview.
   String preview(MessagePreview preview) => switch (preview) {
     TextPreview(:final body) => body,
@@ -212,6 +356,35 @@ final class ChatLabels {
     }
 
     return '${_two(local.day)}.${_two(local.month)}.${now.year == local.year ? '' : '${local.year % 100}'}';
+  }
+
+  /// Label of a date divider: today, yesterday or the full date.
+  String dayLabel(DateTime date, DateTime now) {
+    final local = date.toLocal();
+    final days = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).difference(DateTime(local.year, local.month, local.day)).inDays;
+
+    if (days == 0) {
+      return today;
+    }
+
+    if (days == 1) {
+      return yesterday;
+    }
+
+    final year = local.year == now.year ? '' : ' ${local.year}';
+
+    return '${fullDate(weekdays[local.weekday - 1], local.day, months[local.month - 1])}$year';
+  }
+
+  /// Time of a message.
+  String messageTime(DateTime timestamp) {
+    final local = timestamp.toLocal();
+
+    return '${_two(local.hour)}:${_two(local.minute)}';
   }
 
   static String _two(int value) => value.toString().padLeft(2, '0');
@@ -262,6 +435,79 @@ final class ChatLabels {
     accessWithdrawn:
         'Deine Organisation hat Deinen Chat-Zugang beendet. Bei Fragen wende Dich an Deine Ansprechperson.',
     accountClosed: 'Dein Chat-Konto wurde geschlossen.',
+    timelineStart: 'Beginn des Chats',
+    newMessages: 'Neue Nachrichten',
+    today: 'Heute',
+    weekdays: const [
+      'Montag',
+      'Dienstag',
+      'Mittwoch',
+      'Donnerstag',
+      'Freitag',
+      'Samstag',
+      'Sonntag',
+    ],
+    months: const [
+      'Januar',
+      'Februar',
+      'März',
+      'April',
+      'Mai',
+      'Juni',
+      'Juli',
+      'August',
+      'September',
+      'Oktober',
+      'November',
+      'Dezember',
+    ],
+    edited: 'bearbeitet',
+    composerHint: 'Nachricht',
+    send: 'Senden',
+    replyingTo: (name) => 'Antwort an $name',
+    editing: 'Nachricht bearbeiten',
+    cancel: 'Abbrechen',
+    reply: 'Antworten',
+    replyInThread: 'Im Thread antworten',
+    copy: 'Text kopieren',
+    copied: 'Kopiert',
+    edit: 'Bearbeiten',
+    delete: 'Löschen',
+    deleteTitle: 'Nachricht löschen?',
+    deleteMessage: 'Die Nachricht wird für alle im Chat gelöscht.',
+    retrySend: 'Erneut senden',
+    discard: 'Verwerfen',
+    sending: 'Wird gesendet',
+    sent: 'Gesendet',
+    sendFailed: 'Nicht gesendet',
+    typing: (names) => switch (names.length) {
+      1 => '${names.first} schreibt …',
+      2 => '${names.first} und ${names.last} schreiben …',
+      _ => 'Mehrere schreiben …',
+    },
+    threadReplies: (count) => count == 1 ? '1 Antwort' : '$count Antworten',
+    threads: 'Threads',
+    noThreads: 'In diesem Chat gibt es noch keine Threads.',
+    thread: 'Thread',
+    membership: (name, change) => switch (change) {
+      MembershipChange.joined => '$name ist beigetreten',
+      MembershipChange.left => '$name hat den Chat verlassen',
+      MembershipChange.invited => '$name wurde eingeladen',
+      MembershipChange.invitationAccepted =>
+        '$name hat die Einladung angenommen',
+      MembershipChange.invitationRejected =>
+        '$name hat die Einladung abgelehnt',
+      MembershipChange.kicked => '$name wurde entfernt',
+      MembershipChange.banned => '$name wurde gesperrt',
+      MembershipChange.other => 'Mitgliedschaft von $name geändert',
+    },
+    profileChanged: (name) => '$name hat das Profil geändert',
+    roomChanged: 'Chat-Einstellungen geändert',
+    unsupportedMessage: 'Diese Nachricht kann hier nicht angezeigt werden.',
+    encryptedMessage:
+        'Diese Nachricht kann auf diesem Gerät noch nicht entschlüsselt werden.',
+    replyLoading: 'Nachricht wird geladen …',
+    fullDate: (weekday, day, month) => '$weekday, $day. $month',
   );
 
   /// English texts.
@@ -309,5 +555,75 @@ final class ChatLabels {
     accessWithdrawn:
         'Your organization ended your chat access. Please contact your organization with any questions.',
     accountClosed: 'Your chat account was closed.',
+    timelineStart: 'Start of the chat',
+    newMessages: 'New messages',
+    today: 'Today',
+    weekdays: const [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
+    months: const [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ],
+    edited: 'edited',
+    composerHint: 'Message',
+    send: 'Send',
+    replyingTo: (name) => 'Replying to $name',
+    editing: 'Editing message',
+    cancel: 'Cancel',
+    reply: 'Reply',
+    replyInThread: 'Reply in thread',
+    copy: 'Copy text',
+    copied: 'Copied',
+    edit: 'Edit',
+    delete: 'Delete',
+    deleteTitle: 'Delete message?',
+    deleteMessage: 'The message will be deleted for everyone in the chat.',
+    retrySend: 'Send again',
+    discard: 'Discard',
+    sending: 'Sending',
+    sent: 'Sent',
+    sendFailed: 'Not sent',
+    typing: (names) => switch (names.length) {
+      1 => '${names.first} is typing …',
+      2 => '${names.first} and ${names.last} are typing …',
+      _ => 'Several people are typing …',
+    },
+    threadReplies: (count) => count == 1 ? '1 reply' : '$count replies',
+    threads: 'Threads',
+    noThreads: 'There are no threads in this chat yet.',
+    thread: 'Thread',
+    membership: (name, change) => switch (change) {
+      MembershipChange.joined => '$name joined',
+      MembershipChange.left => '$name left the chat',
+      MembershipChange.invited => '$name was invited',
+      MembershipChange.invitationAccepted => '$name accepted the invite',
+      MembershipChange.invitationRejected => '$name declined the invite',
+      MembershipChange.kicked => '$name was removed',
+      MembershipChange.banned => '$name was banned',
+      MembershipChange.other => 'Membership of $name changed',
+    },
+    profileChanged: (name) => '$name changed their profile',
+    roomChanged: 'Chat settings changed',
+    unsupportedMessage: 'This message cannot be shown here.',
+    encryptedMessage: 'This message cannot be decrypted on this device yet.',
+    replyLoading: 'Loading message …',
+    fullDate: (weekday, day, month) => '$weekday, $day $month',
   );
 }

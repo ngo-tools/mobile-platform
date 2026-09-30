@@ -65,4 +65,25 @@ void main() {
     expect(find.text('99+'), findsOneWidget);
     expect(find.bySemanticsLabel('MM'), findsNothing);
   });
+
+  testWidgets('places own bubbles on the trailing side', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: NgoToolsTheme.community(),
+        home: const Scaffold(
+          body: Column(
+            children: [
+              NgoToolsBubble(outgoing: true, child: Text('Ich')),
+              NgoToolsBubble(outgoing: false, child: Text('Du')),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getCenter(find.text('Ich')).dx,
+      greaterThan(tester.getCenter(find.text('Du')).dx),
+    );
+  });
 }
