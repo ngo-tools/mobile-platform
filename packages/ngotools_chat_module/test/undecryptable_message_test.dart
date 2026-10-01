@@ -42,7 +42,13 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  setUp(() => gateway = FakeChatGateway());
+  setUp(
+    () => gateway = FakeChatGateway()
+      ..encryption.value = const EncryptionStatus(
+        recovery: RecoveryStatus.incomplete,
+        deviceVerified: false,
+      ),
+  );
 
   testWidgets('names the reason instead of a generic placeholder', (
     tester,

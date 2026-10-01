@@ -2,6 +2,12 @@
 
 ## 0.1.0-dev.1
 
+- Restore on a new device: `ChatHome` asks once for the recovery key when
+  the account has recovery but this device lacks the key
+  (`ChatRecoverPage`), the banner and the security page keep offering
+  it, and unreadable messages link to it while the key is missing. A
+  lost key is explained with the reset in the web chat.
+  `ChatGateway` gains `recover`.
 - Set up recovery: `ChatHome` offers it once per device when the chat
   opens without it (`ChatRecoverySetupPage`: explanation, recovery key to
   copy, check of the last four characters), then reminds above the room

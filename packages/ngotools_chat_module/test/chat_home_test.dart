@@ -113,6 +113,48 @@ void main() {
     expect(find.text(gateway.recoveryKey), findsOneWidget);
   });
 
+  testWidgets('asks a new device for the recovery key', (tester) async {
+    gateway.encryption.value = const EncryptionStatus(
+      recovery: RecoveryStatus.incomplete,
+      deviceVerified: false,
+    );
+    gateway.timeline.items.value = [
+      eventItem(
+        chatEvent(
+          r'$1',
+          '',
+          content: const EventContent.unableToDecrypt(
+            reason: DecryptionFailure.historicalUnverifiedDevice,
+          ),
+        ),
+      ),
+    ];
+    await pumpHome(tester);
+
+    expect(find.text('Nachrichten wiederherstellen'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Vorstand'));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.text('Zum Lesen ist Dein Wiederherstellungsschlüssel nötig.'),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wiederherstellungsschlüssel eingeben'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nachrichten wiederherstellen'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'EsTc 1a2b');
+    await tester.pump();
+    await tester.tap(find.text('Wiederherstellen'));
+    await tester.pumpAndSettle();
+
+    expect(gateway.calls, contains('recover:EsTc 1a2b'));
+    expect(find.text('Nachrichten wiederherstellen'), findsNothing);
+  });
+
   testWidgets('does not offer recovery when it is set up', (tester) async {
     await pumpHome(tester);
 
