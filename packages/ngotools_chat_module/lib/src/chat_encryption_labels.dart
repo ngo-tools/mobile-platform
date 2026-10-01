@@ -10,6 +10,38 @@ final class ChatEncryptionLabels {
     required this.undecryptableExplanation,
     required this.showExplanation,
     required this.enterRecoveryKey,
+    required this.setupTitle,
+    required this.setupIntro,
+    required this.setupKeyInfo,
+    required this.setUp,
+    required this.later,
+    required this.settingUp,
+    required this.setupFailed,
+    required this.tryAgain,
+    required this.keyTitle,
+    required this.keyInfo,
+    required this.copyKey,
+    required this.copied,
+    required this.next,
+    required this.confirmTitle,
+    required this.confirmInfo,
+    required this.confirmHint,
+    required this.confirmMismatch,
+    required this.showKeyAgain,
+    required this.done,
+    required this.setupDone,
+    required this.setupReminder,
+    required this.security,
+    required this.recoveryEnabled,
+    required this.recoveryDisabled,
+    required this.recoveryIncomplete,
+    required this.recoveryChecking,
+    required this.deviceVerified,
+    required this.deviceNotVerified,
+    required this.newKey,
+    required this.newKeyTitle,
+    required this.newKeyMessage,
+    required this.cancel,
   });
 
   /// Short line in place of a message this device cannot read.
@@ -26,6 +58,102 @@ final class ChatEncryptionLabels {
 
   /// Opens the recovery key entry.
   final String enterRecoveryKey;
+
+  /// Title of the recovery setup.
+  final String setupTitle;
+
+  /// Why recovery matters.
+  final String setupIntro;
+
+  /// What the recovery key is and who can restore it.
+  final String setupKeyInfo;
+
+  /// Starts the setup.
+  final String setUp;
+
+  /// Skips the setup for now.
+  final String later;
+
+  /// Setup in progress.
+  final String settingUp;
+
+  /// The setup failed.
+  final String setupFailed;
+
+  /// Retries.
+  final String tryAgain;
+
+  /// Title above the recovery key.
+  final String keyTitle;
+
+  /// Asks to save the key now.
+  final String keyInfo;
+
+  /// Copies the key.
+  final String copyKey;
+
+  /// Confirms the copy.
+  final String copied;
+
+  /// Next step.
+  final String next;
+
+  /// Title of the key confirmation.
+  final String confirmTitle;
+
+  /// Asks for the last characters of the key.
+  final String confirmInfo;
+
+  /// Label of the confirmation field.
+  final String confirmHint;
+
+  /// The characters do not match.
+  final String confirmMismatch;
+
+  /// Goes back to the key.
+  final String showKeyAgain;
+
+  /// Finishes the setup.
+  final String done;
+
+  /// Recovery is set up.
+  final String setupDone;
+
+  /// Reminder above the room list.
+  final String setupReminder;
+
+  /// Security settings of the chat.
+  final String security;
+
+  /// Recovery is set up.
+  final String recoveryEnabled;
+
+  /// Recovery is not set up.
+  final String recoveryDisabled;
+
+  /// This device lacks the key.
+  final String recoveryIncomplete;
+
+  /// State not known yet.
+  final String recoveryChecking;
+
+  /// This device is verified.
+  final String deviceVerified;
+
+  /// This device is not verified.
+  final String deviceNotVerified;
+
+  /// Creates a new recovery key.
+  final String newKey;
+
+  /// Title of the new key confirmation.
+  final String newKeyTitle;
+
+  /// What happens with the old key.
+  final String newKeyMessage;
+
+  /// Cancels.
+  final String cancel;
 
   /// German texts.
   static final german = ChatEncryptionLabels(
@@ -70,6 +198,47 @@ final class ChatEncryptionLabels {
     },
     showExplanation: 'Erklärung anzeigen',
     enterRecoveryKey: 'Wiederherstellungsschlüssel eingeben',
+    setupTitle: 'Nachrichten sichern',
+    setupIntro:
+        'Deine Direktnachrichten sind Ende-zu-Ende-verschlüsselt. Damit Du sie auch auf einem neuen Gerät oder nach einer neuen Anmeldung lesen kannst, richte jetzt die Wiederherstellung ein.',
+    setupKeyInfo:
+        'Du bekommst dafür einen Wiederherstellungsschlüssel. Bewahre ihn sicher auf, zum Beispiel in einem Passwortmanager. Weder Deine Organisation noch NGO.Tools können ihn wiederherstellen.',
+    setUp: 'Einrichten',
+    later: 'Später',
+    settingUp: 'Wird eingerichtet …',
+    setupFailed:
+        'Die Wiederherstellung konnte nicht eingerichtet werden. Bitte versuche es erneut.',
+    tryAgain: 'Erneut versuchen',
+    keyTitle: 'Dein Wiederherstellungsschlüssel',
+    keyInfo:
+        'Speichere den Schlüssel jetzt, zum Beispiel in Deinem Passwortmanager. Er wird nur dieses eine Mal angezeigt.',
+    copyKey: 'Schlüssel kopieren',
+    copied: 'Kopiert',
+    next: 'Weiter',
+    confirmTitle: 'Schlüssel bestätigen',
+    confirmInfo:
+        'Gib zur Kontrolle die letzten vier Zeichen Deines gespeicherten Schlüssels ein.',
+    confirmHint: 'Letzte vier Zeichen',
+    confirmMismatch:
+        'Die Zeichen passen nicht. Sieh noch einmal in Deinem gespeicherten Schlüssel nach.',
+    showKeyAgain: 'Schlüssel noch einmal zeigen',
+    done: 'Fertig',
+    setupDone: 'Die Wiederherstellung ist eingerichtet.',
+    setupReminder:
+        'Richte die Wiederherstellung ein, damit Du Deine Direktnachrichten auch auf neuen Geräten lesen kannst.',
+    security: 'Sicherheit',
+    recoveryEnabled: 'Wiederherstellung eingerichtet',
+    recoveryDisabled: 'Wiederherstellung nicht eingerichtet',
+    recoveryIncomplete:
+        'Auf diesem Gerät fehlt der Wiederherstellungsschlüssel',
+    recoveryChecking: 'Wird geprüft …',
+    deviceVerified: 'Dieses Gerät ist bestätigt.',
+    deviceNotVerified: 'Dieses Gerät ist noch nicht bestätigt.',
+    newKey: 'Neuen Schlüssel erzeugen',
+    newKeyTitle: 'Neuen Schlüssel erzeugen?',
+    newKeyMessage:
+        'Dein bisheriger Wiederherstellungsschlüssel funktioniert danach nicht mehr, auch nicht im Web-Chat. Speichere den neuen Schlüssel sicher.',
+    cancel: 'Abbrechen',
   );
 
   /// English texts.
@@ -110,6 +279,45 @@ final class ChatEncryptionLabels {
     },
     showExplanation: 'Show explanation',
     enterRecoveryKey: 'Enter recovery key',
+    setupTitle: 'Back up your messages',
+    setupIntro:
+        'Your direct messages are end-to-end encrypted. To read them on a new device or after signing in again, set up recovery now.',
+    setupKeyInfo:
+        'You get a recovery key for this. Keep it safe, for example in a password manager. Neither your organization nor NGO.Tools can restore it.',
+    setUp: 'Set up',
+    later: 'Later',
+    settingUp: 'Setting up …',
+    setupFailed: 'Recovery could not be set up. Please try again.',
+    tryAgain: 'Try again',
+    keyTitle: 'Your recovery key',
+    keyInfo:
+        'Save the key now, for example in your password manager. It is shown only this once.',
+    copyKey: 'Copy key',
+    copied: 'Copied',
+    next: 'Next',
+    confirmTitle: 'Confirm your key',
+    confirmInfo:
+        'To check, enter the last four characters of the key you saved.',
+    confirmHint: 'Last four characters',
+    confirmMismatch:
+        'The characters do not match. Please check the key you saved.',
+    showKeyAgain: 'Show the key again',
+    done: 'Done',
+    setupDone: 'Recovery is set up.',
+    setupReminder:
+        'Set up recovery so you can read your direct messages on new devices too.',
+    security: 'Security',
+    recoveryEnabled: 'Recovery set up',
+    recoveryDisabled: 'Recovery not set up',
+    recoveryIncomplete: 'The recovery key is missing on this device',
+    recoveryChecking: 'Checking …',
+    deviceVerified: 'This device is verified.',
+    deviceNotVerified: 'This device is not verified yet.',
+    newKey: 'Create a new key',
+    newKeyTitle: 'Create a new key?',
+    newKeyMessage:
+        'Your previous recovery key stops working, also in the web chat. Keep the new key safe.',
+    cancel: 'Cancel',
   );
 
   /// Whether the recovery key can make a message with [reason] readable.

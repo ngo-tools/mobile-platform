@@ -13,6 +13,7 @@ import 'chat_gateway.dart';
 import 'chat_image_picker.dart';
 import 'chat_labels.dart';
 import 'new_chat_page.dart';
+import 'recovery_setup.dart';
 import 'room_details_page.dart';
 import 'room_list_view.dart';
 import 'room_view.dart';
@@ -114,6 +115,7 @@ final class _ChatHomeState extends State<ChatHome> {
   ChatClient? _gatewayClient;
   ChatRoomListSource? _rooms;
   RoomSummary? _selected;
+  bool _recoveryPromptShown = false;
   final _navigator = GlobalKey<NavigatorState>();
 
   @override
@@ -136,6 +138,7 @@ final class _ChatHomeState extends State<ChatHome> {
     unawaited(_subscription?.cancel());
     widget.controller?.removeListener(_openPending);
     _rooms?.rooms.removeListener(_openPending);
+    _gateway?.encryption.removeListener(_promptRecovery);
     unawaited(_rooms?.dispose());
     super.dispose();
   }
@@ -152,6 +155,7 @@ final class _ChatHomeState extends State<ChatHome> {
     }
 
     _rooms?.rooms.removeListener(_openPending);
+    _gateway?.encryption.removeListener(_promptRecovery);
     unawaited(_rooms?.dispose());
     _gatewayClient = state.client;
     final gateway = widget.gatewayFor(state.client);
@@ -163,13 +167,48 @@ final class _ChatHomeState extends State<ChatHome> {
     }
 
     rooms.rooms.addListener(_openPending);
+    gateway.encryption.addListener(_promptRecovery);
     setState(() {
       _gateway = gateway;
       _rooms = rooms;
       _selected = null;
     });
     _openPending();
+    _promptRecovery();
   }
+
+  /// Offers to set up recovery once per device, the first time the chat
+  /// opens without it; afterwards the banner reminds.
+  void _promptRecovery() {
+    final gateway = _gateway;
+
+    if (gateway == null ||
+        _recoveryPromptShown ||
+        widget.connector.recoveryPromptSeen ||
+        gateway.encryption.value?.recovery != RecoveryStatus.disabled) {
+      return;
+    }
+
+    _recoveryPromptShown = true;
+    unawaited(widget.connector.markRecoveryPromptSeen());
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        if (mounted) {
+          unawaited(_setUpRecovery(gateway));
+        }
+      })
+      ..scheduleFrame();
+  }
+
+  Future<void> _setUpRecovery(ChatGateway gateway) =>
+      _navigatorFor().push<bool>(
+        MaterialPageRoute(
+          builder: (_) => ChatRecoverySetupPage(
+            gateway: gateway,
+            labels: widget.labels.encryption,
+          ),
+        ),
+      );
 
   void _openPending() {
     final controller = widget.controller;
@@ -264,6 +303,27 @@ final class _ChatHomeState extends State<ChatHome> {
         source: rooms,
         selectedRoomId: _selected?.id,
         onOpenRoom: _open,
+        header: ChatRecoveryBanner(
+          gateway: gateway,
+          labels: widget.labels.encryption,
+          onSetUp: () => unawaited(_setUpRecovery(gateway)),
+        ),
+        actions: [
+          IconButton(
+            tooltip: widget.labels.encryption.security,
+            icon: const Icon(Icons.shield_outlined),
+            onPressed: () => unawaited(
+              _navigatorFor().push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ChatSecurityPage(
+                    gateway: gateway,
+                    labels: widget.labels.encryption,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
         now: widget.now,
       );
 

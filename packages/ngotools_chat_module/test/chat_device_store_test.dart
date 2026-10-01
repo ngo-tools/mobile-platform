@@ -12,7 +12,7 @@ void main() {
       deviceId: 'NGOAPPABCDEFGHIJKLMNOPQRST',
       homeserverUrl: Uri.parse('https://matrix-example.chat.ngo.tools'),
       expiresAt: DateTime.utc(2026, 10, 7, 12),
-    );
+    ).withRecoveryPromptSeen();
 
     await store.write(record);
     final restored = await store.read();
@@ -21,6 +21,7 @@ void main() {
     expect(restored?.deviceId, record.deviceId);
     expect(restored?.homeserverUrl, record.homeserverUrl);
     expect(restored?.expiresAt, record.expiresAt);
+    expect(restored?.recoveryPromptSeen, isTrue);
     expect(record.toJson().keys, isNot(contains('access_token')));
   });
 

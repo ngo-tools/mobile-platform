@@ -17,6 +17,7 @@ export 'src/chat_image_picker.dart';
 export 'src/chat_image_views.dart';
 export 'src/chat_labels.dart';
 export 'src/new_chat_page.dart';
+export 'src/recovery_setup.dart';
 export 'src/room_details_page.dart';
 export 'src/room_list_view.dart';
 export 'src/room_view.dart';

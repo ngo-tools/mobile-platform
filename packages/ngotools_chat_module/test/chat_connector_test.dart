@@ -81,6 +81,29 @@ void main() {
     await chat.close();
   });
 
+  test('remembers the recovery offer until a new device signs in', () async {
+    final chat = connector();
+    await chat.connect();
+
+    expect(chat.recoveryPromptSeen, isFalse);
+
+    await chat.markRecoveryPromptSeen();
+    now = now.add(const Duration(days: 6, minutes: 1));
+    api.expiresAt = now.add(const Duration(days: 7));
+    timers.fireAll();
+    await chat.refresh();
+
+    expect(chat.recoveryPromptSeen, isTrue);
+    expect(devices.record?.recoveryPromptSeen, isTrue);
+
+    await chat.disconnect();
+    await chat.connect();
+
+    expect(chat.recoveryPromptSeen, isFalse);
+
+    await chat.close();
+  });
+
   test('renews when the scheduled renewal is due', () async {
     final chat = connector();
     await chat.connect();

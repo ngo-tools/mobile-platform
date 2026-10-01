@@ -15,6 +15,8 @@ void main() {
   late _ConnectApi api;
   late ChatConnector connector;
   late ChatHomeController controller;
+  late _Devices devices;
+  late _Clients clients;
 
   Future<void> pumpHome(
     WidgetTester tester, {
@@ -22,8 +24,8 @@ void main() {
   }) async {
     connector = ChatConnector(
       api: api,
-      clients: _Clients(),
-      devices: _Devices(),
+      clients: clients,
+      devices: devices,
       timer: (_, _) => _NoTimer(),
     );
     tester.view.physicalSize = size * 3;
@@ -50,6 +52,8 @@ void main() {
     gateway = FakeChatGateway();
     api = _ConnectApi();
     controller = ChatHomeController();
+    devices = _Devices();
+    clients = _Clients();
     gateway.list.rooms.value = [
       RoomSummary(
         id: '!group',
@@ -68,6 +72,60 @@ void main() {
 
     expect(api.calls, ['account', 'create']);
     expect(find.text('Vorstand'), findsOneWidget);
+  });
+
+  testWidgets('offers recovery once when it is not set up', (tester) async {
+    gateway.encryption.value = const EncryptionStatus(
+      recovery: RecoveryStatus.disabled,
+      deviceVerified: true,
+    );
+    await pumpHome(tester);
+
+    expect(find.text('Nachrichten sichern'), findsOneWidget);
+    expect(devices.record?.recoveryPromptSeen, isTrue);
+
+    await tester.tap(find.text('Später'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Vorstand'), findsOneWidget);
+    expect(
+      find.textContaining('Richte die Wiederherstellung ein'),
+      findsOneWidget,
+    );
+
+    // The app starts again on the same device.
+    clients.restoredUser = '@anna:example.org';
+    await tester.pumpWidget(const SizedBox());
+    await pumpHome(tester);
+
+    expect(api.calls.where((call) => call == 'create'), hasLength(1));
+    expect(find.text('Nachrichten sichern'), findsNothing);
+    expect(
+      find.textContaining('Richte die Wiederherstellung ein'),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.widgetWithText(TextButton, 'Einrichten'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Einrichten'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(gateway.recoveryKey), findsOneWidget);
+  });
+
+  testWidgets('does not offer recovery when it is set up', (tester) async {
+    await pumpHome(tester);
+
+    expect(find.text('Nachrichten sichern'), findsNothing);
+    expect(
+      find.textContaining('Richte die Wiederherstellung ein'),
+      findsNothing,
+    );
+
+    await tester.tap(find.byTooltip('Sicherheit'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Wiederherstellung eingerichtet'), findsOneWidget);
   });
 
   testWidgets('explains withdrawn access', (tester) async {
@@ -173,6 +231,10 @@ final class _ConnectApi extends FakePeopleApi {
 }
 
 final class _Client implements ChatClient {
+  _Client(this._restoredUser);
+
+  final String? _restoredUser;
+
   @override
   final ValueNotifier<ChatSessionState> state = ValueNotifier(
     ChatSessionState.signedOut,
@@ -182,7 +244,13 @@ final class _Client implements ChatClient {
   ChatSession get session => throw UnimplementedError();
 
   @override
-  Future<String?> restore() async => null;
+  Future<String?> restore() async {
+    if (_restoredUser != null) {
+      state.value = ChatSessionState.active;
+    }
+
+    return _restoredUser;
+  }
 
   @override
   Future<void> signInWithToken({
@@ -208,11 +276,13 @@ final class _Client implements ChatClient {
 }
 
 final class _Clients implements ChatClientFactory {
+  String? restoredUser;
+
   @override
   Future<ChatClient> open({
     required Uri homeserverUrl,
     required Uint8List storeKey,
-  }) async => _Client();
+  }) async => _Client(restoredUser);
 
   @override
   Future<void> purge() async {}

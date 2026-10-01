@@ -187,6 +187,33 @@ final class FakeChatGateway implements ChatGateway {
   }
 
   @override
+  final ValueNotifier<EncryptionStatus?> encryption = ValueNotifier(
+    const EncryptionStatus(
+      recovery: RecoveryStatus.enabled,
+      deviceVerified: true,
+    ),
+  );
+
+  String recoveryKey = 'EsTc 1a2b 3c4d 5e6f 7g8h 9i0j XyZ9';
+  bool failRecovery = false;
+
+  @override
+  Future<String> enableRecovery() async {
+    calls.add('enableRecovery');
+
+    if (failRecovery) {
+      throw const ChatException(ChatErrorKind.network);
+    }
+
+    encryption.value = const EncryptionStatus(
+      recovery: RecoveryStatus.enabled,
+      deviceVerified: true,
+    );
+
+    return recoveryKey;
+  }
+
+  @override
   Future<List<ChatMember>> members(String roomId) async => roomMembers;
 
   @override

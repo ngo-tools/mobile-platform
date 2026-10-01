@@ -127,6 +127,12 @@ abstract interface class ChatGateway {
 
   /// Sets the notification mode of a room; `null` follows the default.
   Future<void> setNotificationMode(String roomId, NotificationMode? mode);
+
+  /// Recovery and verification state; `null` until known.
+  ValueListenable<EncryptionStatus?> get encryption;
+
+  /// Sets up recovery (or replaces the key) and returns the recovery key.
+  Future<String> enableRecovery();
 }
 
 /// [ChatGateway] of a signed-in [ChatSession].
@@ -181,6 +187,12 @@ final class SessionChatGateway implements ChatGateway {
   @override
   Future<void> setNotificationMode(String roomId, NotificationMode? mode) =>
       session.setNotificationMode(roomId, mode);
+
+  @override
+  ValueListenable<EncryptionStatus?> get encryption => session.encryption;
+
+  @override
+  Future<String> enableRecovery() => session.enableRecovery();
 }
 
 final class _RoomList implements ChatRoomListSource {

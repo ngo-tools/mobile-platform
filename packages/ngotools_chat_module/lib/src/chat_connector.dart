@@ -65,6 +65,21 @@ final class ChatConnector extends Cubit<ChatConnectionState> {
   /// Ends the chat session and deletes the chat data of this installation.
   Future<void> disconnect() => _serial(_disconnect);
 
+  /// Whether the user already saw the offer to set up recovery on this
+  /// device; a new device (sign-in) offers it again.
+  bool get recoveryPromptSeen => _record?.recoveryPromptSeen ?? false;
+
+  /// Remembers that the recovery offer was shown on this device.
+  Future<void> markRecoveryPromptSeen() => _serial(() async {
+    final record = _record;
+
+    if (record == null || record.recoveryPromptSeen) {
+      return;
+    }
+
+    await _devices.write(_record = record.withRecoveryPromptSeen());
+  });
+
   @override
   Future<void> close() async {
     await _queue;
