@@ -137,6 +137,9 @@ abstract interface class ChatGateway {
   /// Restores the keys on this device; a wrong key fails with
   /// [ChatErrorKind.invalidInput].
   Future<void> recover(String recoveryKey);
+
+  /// Whether this is the account's only device.
+  Future<bool> isLastDevice();
 }
 
 /// [ChatGateway] of a signed-in [ChatSession].
@@ -200,6 +203,9 @@ final class SessionChatGateway implements ChatGateway {
 
   @override
   Future<void> recover(String recoveryKey) => session.recover(recoveryKey);
+
+  @override
+  Future<bool> isLastDevice() => session.isLastDevice();
 }
 
 final class _RoomList implements ChatRoomListSource {

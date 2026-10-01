@@ -2,6 +2,10 @@
 
 ## 0.1.0-dev.1
 
+- `confirmChatSignOut` warns before signing out when encrypted messages
+  would be lost (no recovery or missing key on the account's last
+  device) and offers to secure them first. `ChatGateway` gains
+  `isLastDevice`.
 - Restore on a new device: `ChatHome` asks once for the recovery key when
   the account has recovery but this device lacks the key
   (`ChatRecoverPage`), the banner and the security page keep offering

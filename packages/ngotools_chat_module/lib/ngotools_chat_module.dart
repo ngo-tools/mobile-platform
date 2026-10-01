@@ -22,6 +22,7 @@ export 'src/recovery_setup.dart';
 export 'src/room_details_page.dart';
 export 'src/room_list_view.dart';
 export 'src/room_view.dart';
+export 'src/sign_out_guard.dart';
 export 'src/thread_list_view.dart';
 export 'src/timeline_tiles.dart';
 export 'src/undecryptable_message.dart';

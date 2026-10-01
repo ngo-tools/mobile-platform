@@ -160,6 +160,7 @@ final class _GoldenRuntimeState extends State<GoldenRuntime> {
                 chatBuilder: authenticated ? _chat?.build : null,
                 onSignIn: auth.signIn,
                 onSignOut: _signOut,
+                confirmSignOut: authenticated ? _chat?.confirmSignOut : null,
               );
             },
           ),

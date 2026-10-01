@@ -231,6 +231,15 @@ final class FakeChatGateway implements ChatGateway {
     );
   }
 
+  bool? lastDevice = true;
+
+  @override
+  Future<bool> isLastDevice() async {
+    calls.add('isLastDevice');
+
+    return lastDevice ?? (throw const ChatException(ChatErrorKind.network));
+  }
+
   @override
   Future<List<ChatMember>> members(String roomId) async => roomMembers;
 
