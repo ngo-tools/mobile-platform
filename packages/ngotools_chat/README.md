@@ -215,3 +215,24 @@ event id with `mutable-content`) straight to APNs, so the notification
 extension loads and decrypts the event like it will behind Sygnal. The
 script signs with the team's APNs key from `APNS_KEY_P8`, `APNS_KEY_ID` and
 `APNS_TEAM_ID` (environment or project key store).
+
+### Real iPhone without the Apple Developer Program
+
+The example app can be signed with a free Apple ID ("Personal Team") to try
+the chat screens of `ngotools_chat_module` on a device – everything except
+push. After signing in, the app shows the module's room list, rooms,
+details, security and recovery screens; the developer icon opens the
+technical view with the facade metrics.
+
+1. Xcode → Settings → Accounts: add the Apple ID. On the iPhone enable
+   Developer Mode (Settings → Privacy & Security).
+2. `e2e/device/personal_team.sh` writes `example/ios/Flutter/Personal.xcconfig`
+   (not committed): the team of your "Apple Development" certificate (or
+   `e2e/device/personal_team.sh TEAM_ID`), an own bundle id, no push and no
+   App Group entitlements.
+3. `cd example && flutter run --release -d <iPhone> --dart-define=HOMESERVER=https://matrix-<slug>.chat.ngo.tools`
+   and trust the developer profile on the iPhone (Settings → General → VPN &
+   Device Management).
+4. `e2e/device/personal_team.sh --remove` switches back to the NGO.Tools team.
+
+Free provisioning expires after 7 days; run step 3 again.
