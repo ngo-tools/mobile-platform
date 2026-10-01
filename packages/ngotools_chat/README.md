@@ -182,6 +182,12 @@ e2e/run.sh android <emulator-serial>   # rootable emulator started with -read-on
 `E2E_TARGET=chat_ui_e2e e2e/run.sh ios <simulator-udid>` runs the chat screens
 of `ngotools_chat_module` (room list, invite, room, reply, image) against the
 same server, including tap target, label and contrast checks.
+`E2E_TARGET=chat_encryption_e2e` runs the encryption screens the same way:
+set up recovery, the sign-out warning, an unreadable message on a new device,
+a wrong and the right recovery key.
+
+A simulator used for the first time has to trust the server's root CA:
+`xcrun simctl keychain <simulator-udid> add-root-cert e2e/server/generated/caddy-root.crt`.
 
 `python3 e2e/issued_session.py` checks sessions issued through the MAS admin
 API against the same local server.
