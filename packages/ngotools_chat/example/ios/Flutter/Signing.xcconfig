@@ -1,0 +1,11 @@
+// Signing of the example app. Defaults: the NGO.Tools team with push and
+// the App Group shared with the Notification Service Extension.
+//
+// e2e/device/personal_team.sh writes Personal.xcconfig (not committed) to
+// sign with a free Apple ID instead: own bundle id, no push, no App Group.
+NGO_DEVELOPMENT_TEAM = 9N8629R4M4
+NGO_APP_ID = tools.ngo.mobile.chatExample
+NGO_RUNNER_ENTITLEMENTS = Runner/Runner.entitlements
+NGO_NSE_ENTITLEMENTS = NotificationService/NotificationService.entitlements
+
+#include? "Personal.xcconfig"

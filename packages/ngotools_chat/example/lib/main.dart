@@ -10,7 +10,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ngotools_chat/ngotools_chat.dart';
+import 'package:ngotools_design_system/ngotools_design_system.dart';
 import 'package:path_provider/path_provider.dart';
+
+import 'module_chat.dart';
 
 const homeserverUrl = String.fromEnvironment(
   'HOMESERVER',
@@ -58,7 +61,7 @@ class ChatExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'NGO.Tools Chat Example',
-      theme: ThemeData(colorSchemeSeed: const Color(0xFF1B6E5A)),
+      theme: NgoToolsTheme.community(),
       home: const Bootstrap(),
     );
   }
@@ -179,6 +182,7 @@ class _BootstrapState extends State<Bootstrap> {
   }
 
   Future<void> _logout() async {
+    Navigator.of(context).popUntil((route) => route.isFirst);
     await _session!.logout();
     setState(() => _account = null);
   }
@@ -215,10 +219,18 @@ class _BootstrapState extends State<Bootstrap> {
       );
     }
 
-    return RoomListScreen(
+    return ModuleChatScreen(
       session: _session!,
-      account: _account!,
       onLogout: _logout,
+      onTechnicalView: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => RoomListScreen(
+            session: _session!,
+            account: _account!,
+            onLogout: _logout,
+          ),
+        ),
+      ),
     );
   }
 }
